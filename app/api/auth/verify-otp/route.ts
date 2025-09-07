@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 import { generateToken } from '@/lib/auth'
 import { getUserByPhone, createUser, User } from '@/lib/firestore-server'
 import { getUserByPhoneInMemory, createUserInMemory } from '@/lib/memory-storage'

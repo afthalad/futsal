@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 import { getUserFromToken } from '@/lib/auth'
 import { adminDb } from '@/lib/firebase-admin'
 

@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 import { getGroundById, updateGround, deleteGround, getBookingsByGround } from '@/lib/firestore-server'
 import { getUserFromToken } from '@/lib/auth'
 

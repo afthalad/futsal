@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 import { getBookingById, updateBooking, getGroundById } from '@/lib/firestore-server'
 import { getUserFromToken } from '@/lib/auth'
 import { sendBookingConfirmation } from '@/lib/sms'

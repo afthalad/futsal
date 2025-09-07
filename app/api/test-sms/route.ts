@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 import { sendSMS } from '@/lib/sms-service'
 
 export async function POST(request: NextRequest) {
