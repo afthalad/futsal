@@ -1,0 +1,51 @@
+{
+  "name": "puttalamgrounds",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed": "node scripts/seed-firestore.js",
+    "setup-admin": "node scripts/setup-super-admin.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.1",
+    "date-fns": "^2.30.0",
+    "dotenv": "^17.2.2",
+    "firebase": "^10.14.1",
+    "firebase-admin": "^12.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.292.0",
+    "multer": "^1.4.5-lts.1",
+    "next": "14.0.0",
+    "next-themes": "^0.2.1",
+    "nodemailer": "^6.9.7",
+    "react": "^18.2.0",
+    "react-calendar": "^4.6.0",
+    "react-datepicker": "^4.21.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "sharp": "^0.32.6",
+    "tailwind-merge": "^3.3.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.4",
+    "@types/jsonwebtoken": "^9.0.4",
+    "@types/multer": "^1.4.9",
+    "@types/node": "^20.8.0",
+    "@types/react": "^18.2.25",
+    "@types/react-dom": "^18.2.11",
+    "@types/uuid": "^9.0.6",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.51.0",
+    "eslint-config-next": "14.0.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2"
+  }
+}
