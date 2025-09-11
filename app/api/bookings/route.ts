@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllBookings, getBookingsByUser, getBookingsByGround, createBooking, getGroundById, getGroundsByOwner } from '@/lib/firestore-server'
+import { getAllBookings, getBookingsByUser, getBookingsByGround, createBooking, getGroundById, getGroundsByOwner, updateCommissionAmount } from '@/lib/firestore-server'
 import { getUserFromToken } from '@/lib/auth'
 import { sendBookingConfirmationToCustomer, sendBookingConfirmationToOwner } from '@/lib/sms'
 import { isMorningSlot } from '@/lib/utils'
@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
     // Create booking (immediately booked, no status)
     const bookingId = await createBooking({
       groundId,
+      ownerId: ground.ownerId, // Save ground owner ID
       customerName,
       customerPhone,
       date,
@@ -120,6 +121,15 @@ export async function POST(request: NextRequest) {
         name: ground.name,
         location: ground.location
       }
+    }
+
+    // Update commission for ground owner
+    try {
+      await updateCommissionAmount(ground.ownerId, price, 'add')
+      console.log(`Added commission for owner ${ground.ownerId}: ${price * 0.01}`)
+    } catch (commissionError) {
+      console.error('Commission update error:', commissionError)
+      // Don't fail the booking if commission calculation fails
     }
 
     // Send SMS notifications to both customer and ground owner

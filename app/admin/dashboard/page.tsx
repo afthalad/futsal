@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Eye, Edit, Trash2, Calendar, DollarSign, Users, MapPin, X } from 'lucide-react'
+import { Plus, Eye, Edit, Trash2, Calendar, DollarSign, Users, MapPin, X, CreditCard, ChevronDown, ChevronRight, Filter } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { formatPrice, formatTime } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import ResponsiveTable from '@/components/ResponsiveTable'
+import GroundOwnerCommission from '@/components/GroundOwnerCommission'
 
 interface Ground {
   id: string
@@ -39,11 +41,19 @@ interface Booking {
 export default function AdminDashboard() {
   const [grounds, setGrounds] = useState<Ground[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState< 'bookings'|'grounds'>('bookings')
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [cancelReason, setCancelReason] = useState('')
+  const [cancelling, setCancelling] = useState(false)
+  const [expandedSections, setExpandedSections] = useState({
+    otherBookings: false,
+    commission: false
+  })
+  const [selectedGround, setSelectedGround] = useState<string>('all')
+  const [selectedDate, setSelectedDate] = useState<string>('')
   const router = useRouter()
 
   useEffect(() => {
@@ -64,6 +74,32 @@ export default function AdminDashboard() {
       fetchBookings()
     }
   }, [activeTab])
+
+  // Filter bookings based on selected ground and date
+  useEffect(() => {
+    let filtered = bookings
+
+    // Filter by ground
+    if (selectedGround !== 'all') {
+      filtered = filtered.filter(booking => booking.ground.name === selectedGround)
+    }
+
+    // Filter by date
+    if (selectedDate) {
+      filtered = filtered.filter(booking => booking.date === selectedDate)
+    }
+
+    // Sort bookings by date and time
+    filtered = filtered.sort((a, b) => {
+      const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime()
+      if (dateCompare === 0) {
+        return a.startTime.localeCompare(b.startTime)
+      }
+      return dateCompare
+    })
+
+    setFilteredBookings(filtered.reverse())
+  }, [bookings, selectedGround, selectedDate])
 
   const checkAuth = async () => {
     try {
@@ -129,13 +165,44 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         const data = await response.json()
-        setBookings(data.bookings)
+        // Sort bookings to show today's bookings first
+        const sortedBookings = data.bookings.sort((a: Booking, b: Booking) => {
+          const today = new Date().toDateString()
+          const aDate = new Date(a.date).toDateString()
+          const bDate = new Date(b.date).toDateString()
+          
+          // If both are today, sort by time (earliest first)
+          if (aDate === today && bDate === today) {
+            return a.startTime.localeCompare(b.startTime)
+          }
+          
+          // If only a is today, a comes first
+          if (aDate === today && bDate !== today) {
+            return -1
+          }
+          
+          // If only b is today, b comes first
+          if (bDate === today && aDate !== today) {
+            return 1
+          }
+          
+          // If neither is today, sort by date (earliest first)
+          return new Date(a.date).getTime() - new Date(b.date).getTime()
+        })
+        
+        setBookings(sortedBookings)
       }
     } catch (error) {
       console.error('Error fetching bookings:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const isToday = (date: string) => {
+    const today = new Date().toDateString()
+    const bookingDate = new Date(date).toDateString()
+    return today === bookingDate
   }
 
   const handleCancelBooking = (booking: Booking) => {
@@ -150,6 +217,7 @@ export default function AdminDashboard() {
     }
 
     try {
+      setCancelling(true)
       const token = localStorage.getItem('token')
       const response = await fetch(`/api/bookings/${selectedBooking.id}/cancel`, {
         method: 'POST',
@@ -185,6 +253,8 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Cancel booking error:', error)
       toast.error('Failed to cancel booking. Please try again.')
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -212,56 +282,59 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
-            <div className="flex items-center">
-              <div className="p-2 bg-primary-100 rounded-lg">
-                <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {/* Total Revenue - Prominent Card */}
+          <div className="lg:col-span-2 bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100 text-sm font-medium">Total Revenue</p>
+                <p className="text-3xl sm:text-4xl font-bold">{formatPrice(totalRevenue)}</p>
+                <p className="text-blue-100 text-xs mt-1">From all bookings</p>
               </div>
-              <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Grounds</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{grounds.length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
-              </div>
-              <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Bookings</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{bookings.length}</p>
+              <div className="p-3 bg-white bg-opacity-20 rounded-lg">
+                <DollarSign className="h-8 w-8" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
+          {/* Compact Stats */}
+
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
+              <div className="p-2 bg-blue-100 rounded-lg">
+              <MapPin className="h-6 w-6 text-primary-600" />
               </div>
-              <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Active Bookings</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {bookings.filter(booking => booking.status !== 'CANCELLED' && booking.status !== 'cancelled').length}
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Ground</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {grounds.length}
                 </p>
               </div>
             </div>
           </div>
-
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              <Calendar className="h-6 w-6 text-primary-600" />
               </div>
-              <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{formatPrice(totalRevenue)}</p>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Bookings</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {bookings.length}
+                </p>
               </div>
             </div>
           </div>
+          
+
+      
+
+          
+        </div>
+
+        {/* Commission Due */}
+        <div className="mb-6 sm:mb-8">
+          <GroundOwnerCommission />
         </div>
 
         {/* Tabs */}
@@ -289,6 +362,7 @@ export default function AdminDashboard() {
               >
                 My Grounds
               </button>
+              
             </nav>
           </div>
 
@@ -375,104 +449,170 @@ export default function AdminDashboard() {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : activeTab === 'bookings' ? (
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">Recent Bookings</h2>
+                {/* Filters */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Ground</label>
+                    <select
+                      value={selectedGround}
+                      onChange={(e) => setSelectedGround(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="all">All Grounds</option>
+                      {grounds.map((ground) => (
+                        <option key={ground.id} value={ground.name}>
+                          {ground.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Date</label>
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <button
+                      onClick={() => {
+                        setSelectedGround('all')
+                        setSelectedDate('')
+                      }}
+                      className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                    >
+                      <Filter className="h-4 w-4" />
+                      Clear Filters
+                    </button>
+                  </div>
+                </div>
 
                 {loading ? (
                   <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                   </div>
-                ) : bookings.length === 0 ? (
+                ) : filteredBookings.length === 0 ? (
                   <div className="text-center py-8">
                     <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h3>
-                    <p className="text-gray-600">Bookings will appear here when customers book your grounds</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {bookings.length === 0 ? 'No bookings yet' : 'No bookings match your filters'}
+                    </h3>
+                    <p className="text-gray-600">
+                      {bookings.length === 0 
+                        ? 'Bookings will appear here when customers book your grounds'
+                        : 'Try adjusting your filters to see more bookings'
+                      }
+                    </p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Customer
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Ground
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date & Time
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Price
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                        
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {bookings.map((booking) => (
-                          <tr key={booking.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {booking.customerName}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {booking.customerPhone}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {booking.ground.name}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              <div>
-                                <div>{new Date(booking.date).toLocaleDateString('en-LK')}</div>
-                                <div className="text-gray-500">
-                                  {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {formatPrice(booking.price)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                booking.status === 'CANCELLED' || booking.status === 'cancelled'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-green-100 text-green-800'
-                              }`}>
-                                {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? 'Cancelled' : 'Active'}
-                              </span>
-                            </td>
-                          
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? (
-                                <span className="text-gray-400 text-sm">Cancelled</span>
-                              ) : (
-                                <button
-                                  onClick={() => handleCancelBooking(booking)}
-                                  className="text-red-600 hover:text-red-900 flex items-center gap-1"
-                                >
-                                  <X className="h-4 w-4" />
-                                  Cancel
-                                </button>
-                              )}
-                            </td>
+                  <>
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        All Bookings ({filteredBookings.length})
+                      </h3>
+                    </div>
+                    
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Customer
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Ground
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date & Time
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Price
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {filteredBookings.map((booking) => (
+                            <tr key={booking.id}> 
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {booking.customerName}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {booking.customerPhone}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {booking.ground.name}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    {new Date(booking.date).toLocaleDateString('en-LK')}
+                                    {isToday(booking.date)}
+                                  </div>
+                                  <div className="text-gray-500">
+                                    {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {formatPrice(booking.price)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  booking.status === 'CANCELLED' || booking.status === 'cancelled'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? 'Cancelled' : 'Active'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? (
+                                  <span className="text-gray-400 text-sm">Cancelled</span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleCancelBooking(booking)}
+                                    className="text-red-600 hover:text-red-900 flex items-center gap-1"
+                                  >
+                                    <X className="h-4 w-4" />
+                                    Cancel
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden">
+                      <ResponsiveTable 
+                        bookings={filteredBookings.map(booking => ({
+                          ...booking,
+                          status: booking.status || 'ACTIVE'
+                        }))} 
+                        onCancelBooking={handleCancelBooking}
+                      />
+                    </div>
+                  </>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -489,7 +629,8 @@ export default function AdminDashboard() {
                   setCancelReason('')
                   setSelectedBooking(null)
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                disabled={cancelling}
+                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -515,7 +656,8 @@ export default function AdminDashboard() {
               <textarea
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                disabled={cancelling}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Please provide a reason for cancelling this booking..."
                 rows={3}
               />
@@ -528,15 +670,20 @@ export default function AdminDashboard() {
                   setCancelReason('')
                   setSelectedBooking(null)
                 }}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                disabled={cancelling}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmCancelBooking}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                disabled={cancelling}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
               >
-                Confirm Cancellation
+                {cancelling && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {cancelling ? 'Cancelling...' : 'Confirm Cancellation'}
               </button>
             </div>
           </div>

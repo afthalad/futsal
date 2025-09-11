@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { X, Calendar, Clock, User, Phone } from 'lucide-react'
-import { formatPrice, formatTime } from '@/lib/utils'
+import { formatPrice, formatTime, isMorningSlot } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 interface BookingModalProps {
@@ -17,6 +17,7 @@ interface BookingModalProps {
   selectedDate: string
   selectedTime: string
   selectedEndTime: string
+  onBookingSuccess?: () => void
 }
 
 export default function BookingModal({
@@ -25,7 +26,8 @@ export default function BookingModal({
   ground,
   selectedDate,
   selectedTime,
-  selectedEndTime
+  selectedEndTime,
+  onBookingSuccess
 }: BookingModalProps) {
   const [formData, setFormData] = useState({
     customerName: '',
@@ -35,7 +37,7 @@ export default function BookingModal({
 
   if (!isOpen) return null
 
-  const price = selectedTime < '12:00' ? ground.morningPrice : ground.eveningPrice
+  const price = isMorningSlot(selectedTime) ? ground.morningPrice : ground.eveningPrice
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,6 +78,10 @@ export default function BookingModal({
         toast.success('Booking confirmed! You will receive a confirmation SMS shortly.')
         onClose()
         setFormData({ customerName: '', customerPhone: '' })
+        // Refresh the parent component data
+        if (onBookingSuccess) {
+          onBookingSuccess()
+        }
       } else {
         toast.error(data.error || 'Failed to submit booking')
       }
@@ -88,14 +94,15 @@ export default function BookingModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4" onClick={loading ? undefined : onClose}>
       <div className="bg-white rounded-lg shadow-xl max-w-sm sm:max-w-md w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Book Ground</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1"
+              disabled={loading}
+              className="text-gray-400 hover:text-gray-600 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>

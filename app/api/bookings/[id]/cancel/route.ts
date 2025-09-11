@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 
 import { getUserFromToken } from '@/lib/auth'
-import { getBookingById, updateBooking, getGroundById } from '@/lib/firestore-server'
+import { getBookingById, updateBooking, getGroundById, updateCommissionAmount } from '@/lib/firestore-server'
 import { getBookingByIdInMemory, updateBookingInMemory, getGroundByIdInMemory } from '@/lib/memory-storage'
 import { sendBookingCancellationSMS } from '@/lib/sms'
 
@@ -74,6 +74,15 @@ export async function POST(
     } catch (error) {
       console.error('Error updating booking in Firestore, using memory storage:', error)
       updateBookingInMemory(params.id, updatedBooking)
+    }
+
+    // Update commission for ground owner (subtract the cancelled booking's commission)
+    try {
+      await updateCommissionAmount(ground.ownerId, booking.price, 'subtract')
+      console.log(`Subtracted commission for cancelled booking for owner ${ground.ownerId}: ${booking.price * 0.01}`)
+    } catch (commissionError) {
+      console.error('Commission update error after cancellation:', commissionError)
+      // Don't fail the cancellation if commission calculation fails
     }
 
     // Send cancellation SMS to customer

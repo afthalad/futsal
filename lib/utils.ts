@@ -48,10 +48,10 @@ export function generateTimeSlots(startTime: string, endTime: string, duration: 
 
 export function isMorningSlot(time: string): boolean {
   const hour = parseInt(time.split(':')[0])
-  return hour >= 6 && hour < 12
+  return hour >= 0 && hour < 12
 }
 
 export function isEveningSlot(time: string): boolean {
   const hour = parseInt(time.split(':')[0])
-  return hour >= 12 && hour < 22
+  return hour >= 12 && hour < 24
 }

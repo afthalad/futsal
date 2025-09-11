@@ -34,6 +34,7 @@ export interface Ground {
 export interface Booking {
   id: string
   groundId: string
+  ownerId: string
   customerName: string
   customerPhone: string
   date: string
@@ -49,6 +50,7 @@ export interface Booking {
   createdAt: any
   updatedAt: any
 }
+
 
 // User operations
 export const createUser = async (userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
@@ -270,7 +272,7 @@ export const getBookingById = async (id: string): Promise<Booking | null> => {
     console.error('Error getting booking from Firestore:', error)
     // Fallback to memory storage
     const { getBookingByIdInMemory } = await import('./memory-storage')
-    return getBookingByIdInMemory(id)
+    return getBookingByIdInMemory(id) as Booking | null
   }
 }
 
@@ -315,6 +317,71 @@ export const updateBooking = async (id: string, updates: Partial<Booking>): Prom
     // Fallback to memory storage
     const { updateBookingInMemory } = await import('./memory-storage')
     updateBookingInMemory(id, updates)
+  }
+}
+
+// Commission management functions
+export const updateCommissionAmount = async (ownerId: string, bookingAmount: number, operation: 'add' | 'subtract'): Promise<void> => {
+  try {
+    const commissionRef = adminDb.collection('commission').doc(ownerId)
+    const commissionDoc = await commissionRef.get()
+    
+    const commissionAmount = bookingAmount * 0.01 // 1% commission
+    
+    if (commissionDoc.exists) {
+      const currentData = commissionDoc.data()
+      const currentAmount = currentData?.amount || 0
+      const newAmount = operation === 'add' 
+        ? currentAmount + commissionAmount 
+        : Math.max(0, currentAmount - commissionAmount) // Don't go below 0
+      
+      await commissionRef.update({
+        amount: newAmount,
+        lastUpdated: new Date(),
+        status: newAmount > 0 ? 'PENDING' : 'PAID'
+      })
+    } else {
+      // Create new commission record
+      await commissionRef.set({
+        ownerId,
+        amount: operation === 'add' ? commissionAmount : 0,
+        lastUpdated: new Date(),
+        status: operation === 'add' ? 'PENDING' : 'PAID'
+      })
+    }
+  } catch (error) {
+    console.error('Error updating commission amount:', error)
+    throw error
+  }
+}
+
+export const getCommissionByOwner = async (ownerId: string): Promise<any> => {
+  try {
+    const commissionRef = adminDb.collection('commission').doc(ownerId)
+    const commissionDoc = await commissionRef.get()
+    
+    if (commissionDoc.exists) {
+      return { id: commissionDoc.id, ...commissionDoc.data() }
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting commission:', error)
+    return null
+  }
+}
+
+export const markCommissionAsPaid = async (ownerId: string): Promise<void> => {
+  try {
+    const commissionRef = adminDb.collection('commission').doc(ownerId)
+    await commissionRef.update({
+      amount: 0,
+      status: 'PAID',
+      paidAt: new Date(),
+      lastUpdated: new Date()
+    })
+  } catch (error) {
+    console.error('Error marking commission as paid:', error)
+    throw error
   }
 }
 

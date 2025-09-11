@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Users, MapPin, ToggleLeft, ToggleRight, Eye, Trash2, Edit, Plus, Calendar, Phone, Clock } from 'lucide-react'
+import { Shield, Users, MapPin, ToggleLeft, ToggleRight, Eye, Trash2, Edit, Plus, Calendar, Phone, Clock, DollarSign } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { formatTime } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import SuperAdminTopUpSystem from '@/components/SuperAdminTopUpSystem'
 
 interface User {
   id: string
@@ -53,7 +54,7 @@ export default function SuperAdminPage() {
   const [grounds, setGrounds] = useState<Ground[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'users' | 'grounds' | 'bookings'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'grounds' | 'bookings' | 'commission'>('users')
   const router = useRouter()
 
   useEffect(() => {
@@ -68,10 +69,23 @@ export default function SuperAdminPage() {
     } else if (activeTab === 'bookings') {
       fetchBookings()
     }
+    // Commission tab doesn't need to fetch data on tab change as it handles its own data fetching
   }, [activeTab])
+
+  // Load initial data
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchUsers()
+    }
+  }, [])
 
   const checkAuth = async () => {
     try {
+      // Check if we're on the client side
+      if (typeof window === 'undefined') {
+        return
+      }
+      
       const token = localStorage.getItem('token')
       if (!token) {
         router.push('/auth/login')
@@ -104,6 +118,12 @@ export default function SuperAdminPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
+      
+      // Check if we're on the client side
+      if (typeof window === 'undefined') {
+        return
+      }
+      
       const token = localStorage.getItem('token')
       const response = await fetch('/api/admin/users', {
         headers: {
@@ -128,6 +148,12 @@ export default function SuperAdminPage() {
   const fetchGrounds = async () => {
     try {
       setLoading(true)
+      
+      // Check if we're on the client side
+      if (typeof window === 'undefined') {
+        return
+      }
+      
       const token = localStorage.getItem('token')
       const response = await fetch('/api/admin/grounds', {
         headers: {
@@ -152,6 +178,12 @@ export default function SuperAdminPage() {
   const fetchBookings = async () => {
     try {
       setLoading(true)
+      
+      // Check if we're on the client side
+      if (typeof window === 'undefined') {
+        return
+      }
+      
       const token = localStorage.getItem('token')
       const response = await fetch('/api/admin/bookings', {
         headers: {
@@ -284,7 +316,7 @@ export default function SuperAdminPage() {
     }
   }
 
-  if (loading && users.length === 0 && grounds.length === 0) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -294,6 +326,8 @@ export default function SuperAdminPage() {
       </div>
     )
   }
+
+  console.log('SuperAdminPage rendering, loading:', loading, 'users:', users.length, 'grounds:', grounds.length)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -312,19 +346,7 @@ export default function SuperAdminPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Shield className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Super Admins</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {users.filter(u => u.role === 'SUPER_ADMIN').length}
-                </p>
-              </div>
-            </div>
-          </div>
+          
 
           <div className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
@@ -340,19 +362,7 @@ export default function SuperAdminPage() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Users className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Users</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {users.filter(u => u.role === 'USER').length}
-                </p>
-              </div>
-            </div>
-          </div>
+          
 
           <div className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
@@ -391,7 +401,7 @@ export default function SuperAdminPage() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Users Management
+                Ground Owners Management
               </button>
               <button
                 onClick={() => setActiveTab('grounds')}
@@ -412,6 +422,16 @@ export default function SuperAdminPage() {
                 }`}
               >
                 Bookings Management
+              </button>
+              <button
+                onClick={() => setActiveTab('commission')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'commission'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Commission Management
               </button>
             </nav>
           </div>
@@ -658,7 +678,7 @@ export default function SuperAdminPage() {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : activeTab === 'bookings' ? (
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-semibold text-gray-900">Bookings Management</h2>
@@ -760,7 +780,11 @@ export default function SuperAdminPage() {
                   </div>
                 )}
               </div>
-            )}
+            ) : activeTab === 'commission' ? (
+              <div>
+                <SuperAdminTopUpSystem />
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
