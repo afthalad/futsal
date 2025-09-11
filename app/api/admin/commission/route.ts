@@ -21,8 +21,7 @@ export async function GET(request: NextRequest) {
 
     // Get all grounds to get ground owners
     const allGrounds = await getAllGrounds()
-    const uniqueOwners = [...new Set(allGrounds.map(ground => ground.ownerId))]
-
+    const uniqueOwners = Array.from(new Set(allGrounds.map(ground => ground.ownerId)))
     // Get commission data for each ground owner
     const commissions = await Promise.all(
       uniqueOwners.map(async (ownerId) => {
