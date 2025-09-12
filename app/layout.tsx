@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'PuttalamGrounds - Sri Lanka',
+  title: 'Puttalam Grounds - Sri Lanka',
   description: 'Book futsal grounds across Sri Lanka with ease',
 }
 

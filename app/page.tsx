@@ -173,9 +173,9 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-6 sm:py-8">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 text-center">
-          <h3 className="text-lg sm:text-xl font-bold mb-2">PuttalamGrounds</h3>
+          <h3 className="text-lg sm:text-xl font-bold mb-2">Puttalam Grounds</h3>
           <p className="text-sm sm:text-base text-gray-400">
-            Book futsal grounds across Sri Lanka with ease
+            Book futsal grounds across puttalam with ease
           </p>
         </div>
       </footer>
