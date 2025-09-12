@@ -342,7 +342,7 @@ export default function LoginPage() {
                 disabled={loading}
               >
                 {loading ? 'Processing...' : 
-                  step === 'phone' ? 'Send OTP via Firebase' :
+                  step === 'phone' ? 'Send OTP' :
                   step === 'otp' ? 'Verify OTP' :
                   'Complete Registration'
                 }
