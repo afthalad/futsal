@@ -37,13 +37,7 @@ export async function GET(request: NextRequest) {
         ...ground,
         images: ground.images || [],
         amenities: ground.amenities || [],
-        owner: ground.owner ? {
-          name: ground.owner.name || 'Ground Owner',
-          phone: ground.owner.phone
-        } : {
-          name: 'Ground Owner',
-          phone: ground.phone
-        },
+        owner:  ground.ownerId,
         _count: {
           bookings: 0 // Skip booking count for performance
         }
