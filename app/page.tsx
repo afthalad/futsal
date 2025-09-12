@@ -83,11 +83,11 @@ export default function HomePage() {
 
       {/* Grounds Section */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-6 sm:py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 lg:mb-6 gap-2">
+          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
             Available Grounds
             {grounds.length > 0 && (
-              <span className="text-base sm:text-lg font-normal text-gray-600 ml-1 sm:ml-2">
+              <span className="text-sm sm:text-base md:text-lg font-normal text-gray-600 ml-1 sm:ml-2">
                 ({grounds.length} found)
               </span>
             )}
@@ -110,7 +110,7 @@ export default function HomePage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {grounds.map((ground) => (
               <GroundCard key={ground.id} ground={ground} />
             ))}
@@ -121,48 +121,48 @@ export default function HomePage() {
       {/* Features Section */}
       <div className="bg-white py-8 sm:py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
+          <div className="text-center mb-6 sm:mb-8 lg:mb-12">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
               Why Choose PuttalamGrounds?
             </h2>
-            <p className="text-base sm:text-lg text-gray-600 px-4">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4">
               The easiest way to book futsal grounds in Sri Lanka
             </p>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center">
-              <div className="bg-primary-100 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <MapPin className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
+              <div className="bg-primary-100 w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                <MapPin className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-primary-600" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 mb-1 sm:mb-2">
                 Multiple Locations
               </h3>
-              <p className="text-sm sm:text-base text-gray-600 px-2">
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 px-2">
                 Find futsal grounds across all major cities in Sri Lanka
               </p>
             </div>
             
             <div className="text-center">
-              <div className="bg-primary-100 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Search className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
+              <div className="bg-primary-100 w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                <Search className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-primary-600" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 mb-1 sm:mb-2">
                 Easy Booking
               </h3>
-              <p className="text-sm sm:text-base text-gray-600 px-2">
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 px-2">
                 Simple and quick booking process with instant confirmations
               </p>
             </div>
             
             <div className="text-center sm:col-span-2 lg:col-span-1">
-              <div className="bg-primary-100 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Filter className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
+              <div className="bg-primary-100 w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                <Filter className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-primary-600" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 mb-1 sm:mb-2">
                 Best Prices
               </h3>
-              <p className="text-sm sm:text-base text-gray-600 px-2">
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 px-2">
                 Competitive pricing with morning and evening rates
               </p>
             </div>
@@ -171,10 +171,10 @@ export default function HomePage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-6 sm:py-8">
+      <footer className="bg-gray-900 text-white py-4 sm:py-6 md:py-8">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 text-center">
-          <h3 className="text-lg sm:text-xl font-bold mb-2">Puttalam Grounds</h3>
-          <p className="text-sm sm:text-base text-gray-400">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2">Puttalam Grounds</h3>
+          <p className="text-xs sm:text-sm md:text-base text-gray-400">
             Book futsal grounds across puttalam with ease
           </p>
         </div>

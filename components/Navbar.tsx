@@ -85,9 +85,7 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-2 xl:space-x-4">
-            <Link href="/" className="text-gray-700 hover:text-primary-600 px-2 xl:px-3 py-2 rounded-md text-sm font-medium transition-colors">
-              Home
-            </Link>
+           
             
             {!user ? (
               <>
@@ -97,6 +95,12 @@ export default function Navbar() {
               </>
             ) : (
               <>
+              
+                {user.role === 'GROUND_OWNER' && (
+                   <Link href="/" className="text-gray-700 hover:text-primary-600 px-2 xl:px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                   Home
+                 </Link>
+                )}
                 {user.role === 'GROUND_OWNER' && (
                   <Link href="/admin/dashboard" className="text-gray-700 hover:text-primary-600 px-2 xl:px-3 py-2 rounded-md text-sm font-medium transition-colors">
                     Dashboard

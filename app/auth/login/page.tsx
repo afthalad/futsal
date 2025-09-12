@@ -6,6 +6,9 @@ import { Phone, ArrowLeft, User } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { sendOTP, verifyOTP } from '@/lib/firebase-auth'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 export default function LoginPage() {
   const [step, setStep] = useState<'phone' | 'otp' | 'name'>('phone')
@@ -245,101 +248,102 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">
-            {step === 'phone' && 'Join as Ground Owner'}
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-4 px-4 sm:py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-md">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-2xl font-bold text-gray-900">
+            {step === 'phone' && 'Join or Sign in as Ground Owner'}
             {step === 'otp' && 'Verify Phone Number'}
             {step === 'name' && 'Complete Profile'}
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          </h1>
+          <p className="mt-2 text-sm sm:text-base text-gray-600">
             {step === 'phone' && 'Enter your phone number to get started'}
             {step === 'otp' && 'Enter the verification code sent to your phone'}
             {step === 'name' && 'Please provide your name to complete registration'}
           </p>
         </div>
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={
-            step === 'phone' ? handleSendOTP :
-            step === 'otp' ? handleVerifyOTP :
-            handleCompleteProfile
-          }>
-            {step === 'phone' && (
-              <div>
-                <label className="label">
-                  <Phone className="h-4 w-4 inline mr-1" />
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="input-field"
-                  placeholder="Enter your phone number (e.g., 0771234567)"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Enter your phone number (10 digits starting with 0)
-                </p>
-              </div>
-            )}
+        <Card className="w-full">
+      
+          <CardContent className="p-4 sm:p-6">
+            <form className="space-y-4 sm:space-y-6" onSubmit={
+              step === 'phone' ? handleSendOTP :
+              step === 'otp' ? handleVerifyOTP :
+              handleCompleteProfile
+            }>
+              {step === 'phone' && (
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="text-sm font-medium text-gray-700 flex items-center">
+                    <Phone className="h-4 w-4 mr-1" />
+                    Phone Number
+                  </label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Enter your phone number (e.g., 0771234567)"
+                    className="w-full"
+                    required
+                  />
+                  <p className="text-xs text-gray-500">
+                    Enter your phone number (10 digits starting with 0)
+                  </p>
+                </div>
+              )}
 
-            {step === 'otp' && (
-              <div>
-                <label className="label">
-                  Verification Code
-                </label>
-                <input
-                  type="text"
-                  value={formData.otp}
-                  onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
-                  className="input-field text-center text-lg tracking-widest"
-                  placeholder="000000"
-                  maxLength={6}
-                  required
-                />
-                <p className="text-xs mt-3 text-gray-500 mt-1">
-                  Enter the 6-digit verification code sent to {formData.phone}
-                </p>
-                {otpSentTime && (
-                  <div className="mt-2">
-                    <p className="text-xs text-blue-600">
-                      OTP sent at {new Date(otpSentTime).toLocaleTimeString()}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      OTP is valid for 5 minutes
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+              {step === 'otp' && (
+                <div className="space-y-2">
+                  <label htmlFor="otp" className="text-sm font-medium text-gray-700">
+                    Verification Code
+                  </label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    value={formData.otp}
+                    onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
+                    className="w-full text-center text-lg tracking-widest"
+                    placeholder="000000"
+                    maxLength={6}
+                    required
+                  />
+                  <p className="text-xs text-gray-500">
+                    Enter the 6-digit verification code sent to {formData.phone}
+                  </p>
+                  {otpSentTime && (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs text-blue-600">
+                        OTP sent at {new Date(otpSentTime).toLocaleTimeString()}
+                      </p>
+                      
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {step === 'name' && (
-              <div>
-                <label className="label">
-                  <User className="h-4 w-4 inline mr-1" />
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="input-field"
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
-            )}
+              {step === 'name' && (
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-medium text-gray-700 flex items-center">
+                    <User className="h-4 w-4 mr-1" />
+                    Full Name
+                  </label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Enter your full name"
+                    className="w-full"
+                    required
+                  />
+                </div>
+              )}
 
-            <div>
               <button
                 type="submit"
-                className="btn-primary w-full"
+                className="w-full btn-primary"
                 disabled={loading}
+              
               >
                 {loading ? 'Processing...' : 
                   step === 'phone' ? 'Send OTP' :
@@ -347,60 +351,51 @@ export default function LoginPage() {
                   'Complete Registration'
                 }
               </button>
-            </div>
 
-            {step !== 'phone' && (
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => setStep(step === 'otp' ? 'phone' : 'otp')}
-                  className="text-sm text-primary-600 hover:text-primary-500"
-                >
-                  <ArrowLeft className="h-4 w-4 inline mr-1" />
-                  Back
-                </button>
-                
-                {step === 'otp' && (
-                  <button
+              {step !== 'phone' && (
+                <div className="flex items-center justify-between pt-2">
+                  <Button
                     type="button"
-                    onClick={handleResendOTP}
-                    className={`text-sm ${
-                      resendCooldown > 0 
-                        ? 'text-gray-400 cursor-not-allowed' 
-                        : 'text-primary-600 hover:text-primary-500'
-                    }`}
-                    disabled={resending || resendCooldown > 0}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setStep(step === 'otp' ? 'phone' : 'otp')}
+                    className="text-sm text-gray-600 hover:text-gray-800 p-0 h-auto"
                   >
-                    {resending ? 'Sending...' : 
-                     resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 
-                     'Resend OTP'}
-                  </button>
-                )}
-              </div>
-            )}
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Back
+                  </Button>
+                  
+                  {step === 'otp' && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleResendOTP}
+                      disabled={resending || resendCooldown > 0}
+                      className={`text-sm p-0 h-auto ${
+                        resendCooldown > 0 
+                          ? 'text-gray-400 cursor-not-allowed' 
+                          : 'text-blue-600 hover:text-blue-800'
+                      }`}
+                    >
+                      {resending ? 'Sending...' : 
+                       resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 
+                       'Resend OTP'}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </form>
+          </CardContent>
+        </Card>
 
-            {/* reCAPTCHA disabled - using development mode */}
-          </form>
-
-          {/* <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Already have an account?</span>
-              </div>
-            </div>
-
-            <div className="mt-6 text-center">
-              <Link
-                href="/"
-                className="text-sm text-primary-600 hover:text-primary-500"
-              >
-                Back to Home
-              </Link>
-            </div>
-          </div> */}
+        <div className="mt-4 sm:mt-6 text-center">
+          <Link
+            href="/"
+            className="text-sm text-gray-600 hover:text-gray-800"
+          >
+            ← Back to Home
+          </Link>
         </div>
       </div>
       
@@ -409,3 +404,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

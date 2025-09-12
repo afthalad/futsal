@@ -1,51 +1,43 @@
-import { type ClassValue, clsx } from "clsx"
+import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Format price to display with currency
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('en-LK', {
-    style: 'currency',
-    currency: 'LKR',
-    minimumFractionDigits: 0,
-  }).format(price)
+  return `Rs.${price.toLocaleString()}`
 }
 
+// Format time to 12-hour format
 export function formatTime(time: string): string {
-  const [hours, minutes] = time.split(':')
-  const hour = parseInt(hours)
-  const ampm = hour >= 12 ? 'PM' : 'AM'
-  const displayHour = hour % 12 || 12
-  return `${displayHour}:${minutes} ${ampm}`
+  const [hours, minutes] = time.split(':').map(Number)
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
 }
 
-export function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('en-LK', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-export function generateTimeSlots(startTime: string, endTime: string, duration: number = 60): string[] {
+// Generate time slots between opening and closing time
+export function generateTimeSlots(openingTime: string, closingTime: string, slotDurationMinutes: number = 60): string[] {
   const slots: string[] = []
-  const start = new Date(`2000-01-01T${startTime}:00`)
-  const end = new Date(`2000-01-01T${endTime}:00`)
+  const [openHour, openMinute] = openingTime.split(':').map(Number)
+  const [closeHour, closeMinute] = closingTime.split(':').map(Number)
   
-  let current = new Date(start)
+  const openTimeInMinutes = openHour * 60 + openMinute
+  const closeTimeInMinutes = closeHour * 60 + closeMinute
   
-  while (current < end) {
-    const timeString = current.toTimeString().slice(0, 5)
+  for (let timeInMinutes = openTimeInMinutes; timeInMinutes < closeTimeInMinutes; timeInMinutes += slotDurationMinutes) {
+    const hours = Math.floor(timeInMinutes / 60)
+    const minutes = timeInMinutes % 60
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
     slots.push(timeString)
-    current.setMinutes(current.getMinutes() + duration)
   }
   
   return slots
 }
 
+// Check if a time slot is in the morning (before 12 PM)
 export function isMorningSlot(time: string): boolean {
   const hour = parseInt(time.split(':')[0])
   return hour >= 0 && hour < 12

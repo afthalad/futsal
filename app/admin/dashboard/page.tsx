@@ -267,7 +267,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
     )
@@ -283,59 +283,55 @@ export default function AdminDashboard() {
           <p className="text-sm sm:text-base text-gray-600">Manage your futsal grounds and bookings</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {/* Total Revenue - Prominent Card */}
-          <div className="lg:col-span-2 bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg text-white">
+        {/* Stats Cards - Mobile Optimized */}
+        <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
+          {/* Total Revenue - Full width on mobile, 2 cols on desktop */}
+          <div className="lg:col-span-2 bg-gradient-to-r from-blue-500 to-blue-600 p-4 sm:p-6 rounded-lg shadow-lg text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium">Total Revenue</p>
-                <p className="text-3xl sm:text-4xl font-bold">{formatPrice(totalRevenue)}</p>
+                <p className="text-blue-100 text-xs sm:text-sm font-medium">Total Revenue</p>
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-bold">{formatPrice(totalRevenue)}</p>
                 <p className="text-blue-100 text-xs mt-1">From all bookings</p>
               </div>
-              <div className="p-3 bg-white bg-opacity-20 rounded-lg">
-                <DollarSign className="h-8 w-8" />
+              <div className="p-2 sm:p-3 bg-white bg-opacity-20 rounded-lg">
+                <DollarSign className="h-6 w-6 sm:h-8 sm:w-8" />
               </div>
             </div>
           </div>
 
-          {/* Compact Stats */}
-
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-              <MapPin className="h-6 w-6 text-primary-600" />
+          {/* Compact Stats - Side by side on mobile */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6 sm:col-span-2 lg:col-span-2">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                </div>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Grounds</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                    {grounds.length}
+                  </p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Ground</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {grounds.length}
-                </p>
+            </div>
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                </div>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Bookings</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                    {bookings.length}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-              <Calendar className="h-6 w-6 text-primary-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {bookings.length}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-
-      
-
-          
         </div>
 
-        {/* Commission Due */}
-        <div className="mb-6 sm:mb-8">
+        {/* Commission Due - Mobile Optimized */}
+        <div className="mb-4 sm:mb-6 lg:mb-8">
           <GroundOwnerCommission />
         </div>
 
@@ -348,7 +344,7 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab('bookings')}
                 className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                   activeTab === 'bookings'
-                    ? 'border-primary-500 text-primary-600'
+                    ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -358,7 +354,7 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab('grounds')}
                 className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                   activeTab === 'grounds'
-                    ? 'border-primary-500 text-primary-600'
+                    ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -375,7 +371,7 @@ export default function AdminDashboard() {
                   <h2 className="text-base sm:text-lg font-semibold text-gray-900">My Grounds</h2>
                   <button
                     onClick={() => router.push('/admin/grounds/new')}
-                    className="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-2"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center"
                   >
                     <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Add New Ground
@@ -384,7 +380,7 @@ export default function AdminDashboard() {
 
                 {loading ? (
                   <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
                 ) : grounds.length === 0 ? (
                   <div className="text-center py-8">
@@ -393,7 +389,7 @@ export default function AdminDashboard() {
                     <p className="text-gray-600 mb-4">Get started by adding your first futsal ground</p>
                     <button
                       onClick={() => router.push('/admin/grounds/new')}
-                      className="btn-primary"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Your First Ground
@@ -433,14 +429,14 @@ export default function AdminDashboard() {
                         <div className="flex space-x-2">
                           <button
                             onClick={() => router.push(`/grounds/${ground.id}`)}
-                            className="flex-1 btn-secondary text-sm flex items-center justify-center"
+                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm flex items-center justify-center py-2 rounded-lg transition-colors"
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </button>
                           <button
                             onClick={() => router.push(`/admin/grounds/${ground.id}/edit`)}
-                            className="flex-1 btn-outline text-sm flex items-center justify-center"
+                            className="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm flex items-center justify-center py-2 rounded-lg transition-colors"
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
@@ -460,7 +456,7 @@ export default function AdminDashboard() {
                     <select
                       value={selectedGround}
                       onChange={(e) => setSelectedGround(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">All Grounds</option>
                       {grounds.map((ground) => (
@@ -476,7 +472,7 @@ export default function AdminDashboard() {
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div className="flex items-end">
@@ -485,7 +481,7 @@ export default function AdminDashboard() {
                         setSelectedGround('all')
                         setSelectedDate('')
                       }}
-                      className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
                     >
                       <Filter className="h-4 w-4" />
                       Clear Filters
@@ -495,7 +491,7 @@ export default function AdminDashboard() {
 
                 {loading ? (
                   <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
                 ) : filteredBookings.length === 0 ? (
                   <div className="text-center py-8">
@@ -668,7 +664,7 @@ export default function AdminDashboard() {
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 disabled={cancelling}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Please provide a reason for cancelling this booking..."
                 rows={3}
               />
