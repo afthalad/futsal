@@ -24,6 +24,8 @@ export async function PATCH(
     }
 
     const userId = params.id
+    const body = await request.json()
+    const reason = body.reason || ''
 
     // Get current user data
     const userDoc = await adminDb.collection('users').doc(userId).get()
@@ -35,11 +37,23 @@ export async function PATCH(
     const userData = userDoc.data()
     const newStatus = !userData?.isActive
 
-    // Update user status
-    await adminDb.collection('users').doc(userId).update({
+    // Update user status with reason
+    const updateData: any = {
       isActive: newStatus,
       updatedAt: new Date()
-    })
+    }
+
+    if (!newStatus && reason) {
+      // Only store reason when disabling
+      updateData.disableReason = reason
+      updateData.disabledAt = new Date()
+    } else if (newStatus) {
+      // Clear disable reason when enabling
+      updateData.disableReason = null
+      updateData.disabledAt = null
+    }
+
+    await adminDb.collection('users').doc(userId).update(updateData)
 
     return NextResponse.json({ 
       success: true, 

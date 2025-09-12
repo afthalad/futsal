@@ -185,7 +185,7 @@ export default function GroundDetailPage() {
       setSelectedTime('')
       setSelectedEndTime('')
     } else if (slot.available && !slot.isPast) {
-      // Select available slot (only if not past and not booked)
+      // Select available slot and immediately open booking modal
       setSelectedTime(time)
       setSelectedBooking(null)
       // Set end time to 1 hour later
@@ -193,6 +193,11 @@ export default function GroundDetailPage() {
       const endTime = new Date()
       endTime.setHours(parseInt(hours) + 1, parseInt(minutes))
       setSelectedEndTime(endTime.toTimeString().slice(0, 5))
+      
+      // Immediately open booking modal for available slots
+      if (!isOwner) {
+        setShowBookingModal(true)
+      }
     }
   }
 
@@ -483,18 +488,18 @@ export default function GroundDetailPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Information</h3>
                 
                 {/* Pricing */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
+                <div className="grid grid-cols-2 gap-1 mb-6">
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <div className="text-xl font-bold text-green-600">
                       {formatPrice(ground.morningPrice)}
                     </div>
-                    <div className="text-sm text-gray-600">Morning (6 AM - 12 PM)</div>
+                    <div className="text-xs text-gray-600">Morning (00 AM - 12 PM)</div>
                   </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <div className="text-xl font-bold text-blue-600">
                       {formatPrice(ground.eveningPrice)}
                     </div>
-                    <div className="text-sm text-gray-600">Evening (12 PM - 10 PM)</div>
+                    <div className="text-xs text-gray-600">Evening (12 PM - 24 PM)</div>
                   </div>
                 </div>
 
@@ -682,7 +687,7 @@ export default function GroundDetailPage() {
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 max-h-80 sm:max-h-96 overflow-y-auto p-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 max-h-96 sm:max-h-[500px] overflow-y-auto p-1">
                     {availableSlots.map((slot) => (
                       <button
                         key={slot.time}
@@ -745,7 +750,7 @@ export default function GroundDetailPage() {
           )}
 
           {/* Selected Slot Summary */}
-          {selectedTime && (
+          {/* {selectedTime && (
             <div className="mt-6 p-4 bg-primary-50 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
@@ -779,7 +784,7 @@ export default function GroundDetailPage() {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Selected Booking Info */}
           {selectedBooking && (

@@ -8,6 +8,7 @@ interface Booking {
   id: string
   customerName: string
   customerPhone: string
+  cancellationReason: string
   ground: {
     name: string
   }
@@ -67,8 +68,11 @@ export default function ResponsiveTable({ bookings, onCancelBooking }: Responsiv
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  {booking.ground.name}
+                  {booking.cancellationReason}
                 </p>
+                {/* <p className="text-sm text-gray-500 mt-1">
+                  {booking.ground.name}
+                </p> */}
                 <p className="text-sm font-medium text-primary-600 mt-1">
                   {formatPrice(booking.price)}
                 </p>

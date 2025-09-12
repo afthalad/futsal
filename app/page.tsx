@@ -5,7 +5,7 @@ import { Search, MapPin, Filter } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import GroundCard from '@/components/GroundCard'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
-import PerformanceMonitor from '@/components/PerformanceMonitor'
+// import PerformanceMonitor from '@/components/PerformanceMonitor'
 import toast from 'react-hot-toast'
 
 interface Ground {
@@ -181,7 +181,7 @@ export default function HomePage() {
       </footer>
 
       {/* Performance Monitor (Development Only) */}
-      <PerformanceMonitor />
+      {/* <PerformanceMonitor /> */}
     </div>
   )
 }

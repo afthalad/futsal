@@ -164,3 +164,13 @@ export const sendOTP = async (phone: string, otp: string) => {
   const message = `🔐 Your OTP code is: ${otp}. Valid for 5 minutes. Do not share this code with anyone.`
   return await sendSMS(phone, message)
 }
+
+export const sendBookingCancellationToCustomer = async (phone: string, customerName: string, groundName: string, date: string, startTime: string, endTime: string, reason: string) => {
+  const message = `Dear ${customerName},\n\nYour booking at ${groundName} has been cancelled by Puttalam Grounds.\n\nBooking Details:\nDate: ${new Date(date).toLocaleDateString('en-LK')}\nTime: ${formatTime(startTime)} - ${formatTime(endTime)}\n\nReason: ${reason}\n\nFor assistance, contact us at 0773078103.\n\n- Puttalam Grounds Team`
+  return await sendSMS(phone, message)
+}
+
+export const sendBookingCancellationToOwner = async (phone: string, groundName: string, customerName: string, customerPhone: string, date: string, startTime: string, endTime: string, reason: string) => {
+  const message = `Dear Ground Owner,\n\nA booking at your ground "${groundName}" has been cancelled by Puttalam Grounds.\n\nBooking Details:\nCustomer: ${customerName}\nPhone: ${customerPhone}\nDate: ${new Date(date).toLocaleDateString('en-LK')}\nTime: ${formatTime(startTime)} - ${formatTime(endTime)}\n\nReason: ${reason}\n\n- Puttalam Grounds Team`
+  return await sendSMS(phone, message)
+}

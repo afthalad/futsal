@@ -126,7 +126,7 @@ export default function SuperAdminTopUpSystem() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -162,7 +162,7 @@ export default function SuperAdminTopUpSystem() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {commissions.length === 0 ? (
         <div className="text-center py-8">

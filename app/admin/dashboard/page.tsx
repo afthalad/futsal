@@ -8,6 +8,7 @@ import { formatPrice, formatTime } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import ResponsiveTable from '@/components/ResponsiveTable'
 import GroundOwnerCommission from '@/components/GroundOwnerCommission'
+import Tooltip from '@/components/Tooltip'
 
 interface Ground {
   id: string
@@ -27,6 +28,7 @@ interface Booking {
   id: string
   customerName: string
   customerPhone: string
+  cancellationReason:string
   date: string
   startTime: string
   endTime: string
@@ -525,13 +527,13 @@ export default function AdminDashboard() {
                               Customer
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Ground
+                            Date & Time
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Date & Time
+                            Price
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Price
+                              Reason
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Status
@@ -546,7 +548,7 @@ export default function AdminDashboard() {
                             <tr key={booking.id}> 
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className="text-sm font-normal text-gray-900">
                                     {booking.customerName}
                                   </div>
                                   <div className="text-sm text-gray-500">
@@ -554,9 +556,9 @@ export default function AdminDashboard() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {booking.ground.name}
-                              </td>
+                              </td> */}
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div>
                                   <div className="flex items-center gap-2">
@@ -568,9 +570,16 @@ export default function AdminDashboard() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-normal text-gray-900">
                                 {formatPrice(booking.price)}
                               </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <Tooltip content={booking.cancellationReason || 'No reason provided'}>
+                                <div className="truncate max-w-xs cursor-help">
+                                  {booking.cancellationReason ? (booking.cancellationReason.length > 10 ? booking.cancellationReason.substring(0, 10) + '...' : booking.cancellationReason) : '-'}
+                                </div>
+                              </Tooltip>
+                            </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`px-2 py-1 text-xs rounded-full ${
                                   booking.status === 'CANCELLED' || booking.status === 'cancelled'
@@ -582,7 +591,7 @@ export default function AdminDashboard() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? (
-                                  <span className="text-gray-400 text-sm">Cancelled</span>
+                                  <span ></span>
                                 ) : (
                                   <button
                                     onClick={() => handleCancelBooking(booking)}
@@ -604,7 +613,9 @@ export default function AdminDashboard() {
                       <ResponsiveTable 
                         bookings={filteredBookings.map(booking => ({
                           ...booking,
-                          status: booking.status || 'ACTIVE'
+                          status: booking.status || 'ACTIVE',
+                          // Ensure cancellationReason is a primitive string, not a String object
+                          cancellationReason: String(booking.cancellationReason) 
                         }))} 
                         onCancelBooking={handleCancelBooking}
                       />
@@ -694,6 +705,3 @@ export default function AdminDashboard() {
 }
 
 
-// work on super admin 
-// setup sms
-// check firebase sescurity

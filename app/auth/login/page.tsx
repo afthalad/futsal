@@ -15,12 +15,25 @@ export default function LoginPage() {
     name: ''
   })
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
   const [confirmationResult, setConfirmationResult] = useState<any>(null)
+  const [otpSentTime, setOtpSentTime] = useState<number | null>(null)
+  const [resendCooldown, setResendCooldown] = useState(0)
   const router = useRouter()
 
   useEffect(() => {
     // No reCAPTCHA initialization needed
   }, [])
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => {
+        setResendCooldown(resendCooldown - 1)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [resendCooldown])
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,6 +64,8 @@ export default function LoginPage() {
       if (response.ok) {
         toast.success('OTP sent to your phone number via SMS')
         setStep('otp')
+        setOtpSentTime(Date.now())
+        setResendCooldown(30) // 30 second cooldown
       } else {
         toast.error(data.error || 'Failed to send OTP')
       }
@@ -59,6 +74,44 @@ export default function LoginPage() {
       toast.error('Failed to send OTP. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResendOTP = async () => {
+    if (resendCooldown > 0) {
+      toast.error(`Please wait ${resendCooldown} seconds before resending`)
+      return
+    }
+
+    if (!formData.phone.trim()) {
+      toast.error('Phone number is required')
+      return
+    }
+
+    setResending(true)
+
+    try {
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formData.phone })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('New OTP sent to your phone number via SMS')
+        setOtpSentTime(Date.now())
+        setResendCooldown(30) // 30 second cooldown
+        setFormData({ ...formData, otp: '' }) // Clear current OTP input
+      } else {
+        toast.error(data.error || 'Failed to resend OTP')
+      }
+    } catch (error) {
+      console.error('Resend OTP error:', error)
+      toast.error('Failed to resend OTP. Please try again.')
+    } finally {
+      setResending(false)
     }
   }
 
@@ -248,7 +301,7 @@ export default function LoginPage() {
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Enter your Sri Lankan phone number (10 digits starting with 0)
+                  Enter your phone number (10 digits starting with 0)
                 </p>
               </div>
             )}
@@ -267,12 +320,17 @@ export default function LoginPage() {
                   maxLength={6}
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Enter the 6-digit code sent to {formData.phone}
+                <p className="text-xs mt-3 text-gray-500 mt-1">
+                  Enter the 6-digit verification code sent to {formData.phone}
                 </p>
-                <p className="text-xs text-blue-600 mt-1 font-medium">
-                  Enter the 6-digit verification code sent to your phone
-                </p>
+                {otpSentTime && (
+                  <div className="mt-2">
+                   
+                    <p className="text-xs text-gray-500">
+                      OTP is valid for 5 minutes
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -321,11 +379,17 @@ export default function LoginPage() {
                 {step === 'otp' && (
                   <button
                     type="button"
-                    onClick={handleSendOTP}
-                    className="text-sm text-primary-600 hover:text-primary-500"
-                    disabled={loading}
+                    onClick={handleResendOTP}
+                    className={`text-sm ${
+                      resendCooldown > 0 
+                        ? 'text-gray-400 cursor-not-allowed' 
+                        : 'text-primary-600 hover:text-primary-500'
+                    }`}
+                    disabled={resending || resendCooldown > 0}
                   >
-                    Resend OTP
+                    {resending ? 'Sending...' : 
+                     resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 
+                     'Resend OTP'}
                   </button>
                 )}
               </div>
@@ -334,7 +398,7 @@ export default function LoginPage() {
             {/* reCAPTCHA disabled - using development mode */}
           </form>
 
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -352,7 +416,7 @@ export default function LoginPage() {
                 Back to Home
               </Link>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
       

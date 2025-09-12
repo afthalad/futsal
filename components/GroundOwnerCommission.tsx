@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { DollarSign, AlertCircle, CheckCircle, Clock, RefreshCw } from 'lucide-react'
-import { formatPrice } from '@/lib/utils'
+import { formatFirebaseDate, formatPrice } from '@/lib/utils'
 
 interface Commission {
   id: string
@@ -132,6 +132,8 @@ export default function GroundOwnerCommission() {
 
       {commission && commission.amount > 0 && (
         <div className="space-y-3">
+        
+          
           <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-amber-600" />
@@ -163,7 +165,8 @@ export default function GroundOwnerCommission() {
           <div className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <span className="text-sm text-green-800">
-              Last payment received: {commission.paidAt ? new Date(commission.paidAt).toLocaleDateString('en-LK') : 'N/A'}
+              Last payment received: {formatFirebaseDate(commission.paidAt)}
+              
             </span>
           </div>
         </div>

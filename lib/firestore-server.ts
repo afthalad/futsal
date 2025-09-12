@@ -174,6 +174,42 @@ export const getAllGrounds = async (): Promise<Ground[]> => {
   }
 }
 
+export const getAllGroundsWithOwnerInfo = async (): Promise<Ground[]> => {
+  try {
+    // Get all grounds
+    const grounds = await getAllGrounds()
+    
+    // Get all ground owner IDs
+    const ownerIds = [...new Set(grounds.map(ground => ground.ownerId))]
+    
+    // Fetch owner information for all owners
+    const ownerPromises = ownerIds.map(async (ownerId) => {
+      const user = await getUserById(ownerId)
+      return { ownerId, user }
+    })
+    
+    const ownerResults = await Promise.all(ownerPromises)
+    const ownerMap = new Map(ownerResults.map(({ ownerId, user }) => [ownerId, user]))
+    
+    // Filter out grounds from disabled owners and add owner info
+    const filteredGrounds = grounds
+      .filter(ground => {
+        const owner = ownerMap.get(ground.ownerId)
+        return owner && owner.isActive // Only include grounds from active owners
+      })
+      .map(ground => ({
+        ...ground,
+        owner: ownerMap.get(ground.ownerId)
+      }))
+    
+    return filteredGrounds
+  } catch (error) {
+    console.error('Error getting grounds with owner info:', error)
+    // Fallback to regular getAllGrounds
+    return getAllGrounds()
+  }
+}
+
 export const getGroundsByOwner = async (ownerId: string): Promise<Ground[]> => {
   try {
     const q = adminDb.collection('grounds').where('ownerId', '==', ownerId)

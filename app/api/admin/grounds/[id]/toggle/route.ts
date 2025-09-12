@@ -24,6 +24,8 @@ export async function PATCH(
     }
 
     const groundId = params.id
+    const body = await request.json()
+    const reason = body.reason || ''
 
     // Get current ground data
     const groundDoc = await adminDb.collection('grounds').doc(groundId).get()
@@ -35,11 +37,23 @@ export async function PATCH(
     const groundData = groundDoc.data()
     const newStatus = !groundData?.isActive
 
-    // Update ground status
-    await adminDb.collection('grounds').doc(groundId).update({
+    // Update ground status with reason
+    const updateData: any = {
       isActive: newStatus,
       updatedAt: new Date()
-    })
+    }
+
+    if (!newStatus && reason) {
+      // Only store reason when disabling
+      updateData.disableReason = reason
+      updateData.disabledAt = new Date()
+    } else if (newStatus) {
+      // Clear disable reason when enabling
+      updateData.disableReason = null
+      updateData.disabledAt = null
+    }
+
+    await adminDb.collection('grounds').doc(groundId).update(updateData)
 
     return NextResponse.json({ 
       success: true, 

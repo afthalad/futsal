@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllGrounds, createGround, getBookingsByGround } from '@/lib/firestore-server'
+import { getAllGrounds, getAllGroundsWithOwnerInfo, createGround, getBookingsByGround } from '@/lib/firestore-server'
 import { getUserFromToken } from '@/lib/auth'
 
 // Force dynamic rendering for this route
@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
     const city = searchParams.get('city')
     const search = searchParams.get('search')
 
-    // Get all grounds from Firestore (including disabled ones)
-    const grounds = await getAllGrounds()
+    // Get all grounds from Firestore with owner info (filters out disabled owners)
+    const grounds = await getAllGroundsWithOwnerInfo()
 
     // Filter by city if provided
     let filteredGrounds = grounds
@@ -37,8 +37,11 @@ export async function GET(request: NextRequest) {
         ...ground,
         images: ground.images || [],
         amenities: ground.amenities || [],
-        owner: {
-          name: 'Ground Owner', // We'll need to fetch this separately if needed
+        owner: ground.owner ? {
+          name: ground.owner.name || 'Ground Owner',
+          phone: ground.owner.phone
+        } : {
+          name: 'Ground Owner',
           phone: ground.phone
         },
         _count: {

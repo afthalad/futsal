@@ -185,23 +185,12 @@ export async function sendBookingConfirmationToOwner(phone: string, groundName: 
 
 export async function sendBookingCancellationSMS(phone: string, customerName: string, groundName: string, date: string, startTime: string, endTime: string, reason: string) {
   try {
-    // Import formatTime function
-    const formatTime = (time: string): string => {
-      const [hours, minutes] = time.split(':')
-      const hour = parseInt(hours)
-      const ampm = hour >= 12 ? 'PM' : 'AM'
-      const displayHour = hour % 12 || 12
-      return `${displayHour}:${minutes} ${ampm}`
-    }
-    
-    const message = `Dear ${customerName}, your booking at ${groundName} on ${date} from ${formatTime(startTime)} to ${formatTime(endTime)} has been cancelled. Reason: ${reason}. For any queries, please contact the ground owner. - PuttalamGrounds`
-    
-    // Import and use the SMS service
-    const { sendSMS } = await import('./sms-service')
-    const result = await sendSMS(phone, message)
+    // Import and use the new SMS service functions
+    const { sendBookingCancellationToCustomer } = await import('./sms-service')
+    const result = await sendBookingCancellationToCustomer(phone, customerName, groundName, date, startTime, endTime, reason)
     
     if (result.success) {
-      console.log(`✅ Booking cancellation SMS sent to ${phone}`)
+      console.log(`✅ Booking cancellation SMS sent to ${phone} via ${result.provider}`)
     } else {
       console.error('❌ Failed to send booking cancellation SMS:', result.error)
     }
