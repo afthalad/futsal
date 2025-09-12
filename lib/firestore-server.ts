@@ -180,7 +180,7 @@ export const getAllGroundsWithOwnerInfo = async (): Promise<Ground[]> => {
     const grounds = await getAllGrounds()
     
     // Get all ground owner IDs
-    const ownerIds = [...new Set(grounds.map(ground => ground.ownerId))]
+    const ownerIds = Array.from(new Set(grounds.map(ground => ground.ownerId)))
     
     // Fetch owner information for all owners
     const ownerPromises = ownerIds.map(async (ownerId) => {
