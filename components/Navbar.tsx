@@ -79,7 +79,7 @@ export default function Navbar() {
         <div className="flex justify-between h-14 sm:h-16">
           <div className="flex items-center">
             <Link href="/" className="text-base sm:text-lg lg:text-xl font-bold text-primary-600 truncate">
-              PuttalamGrounds
+              Puttalam Grounds
             </Link>
           </div>
 
