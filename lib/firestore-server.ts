@@ -439,3 +439,5 @@ export const deleteBooking = async (id: string): Promise<void> => {
   const docRef = adminDb.collection('bookings').doc(id)
   await docRef.delete()
 }
+export { adminDb }
+
