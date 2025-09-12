@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Upload, X } from 'lucide-react'
+import { ArrowLeft, Upload, X, Camera, Plus } from 'lucide-react'
 import Navbar from '@/components/Navbar'
+import PhotoSelectionModal from '@/components/PhotoSelectionModal'
+import { compressAndConvertToWebP, validateImageFile, getFileSize } from '@/lib/image-utils'
 import toast from 'react-hot-toast'
 
 export default function NewGroundPage() {
@@ -13,7 +15,7 @@ export default function NewGroundPage() {
     location: '',
     city: '',
     phone: '',
-    email: '',
+    secondaryPhone: '',
     morningPrice: '',
     eveningPrice: '',
     openingTime: '06:00',
@@ -23,6 +25,8 @@ export default function NewGroundPage() {
   })
   const [amenityInput, setAmenityInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPhotoModal, setShowPhotoModal] = useState(false)
+  const [uploadingImages, setUploadingImages] = useState(false)
   const router = useRouter()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -50,43 +54,67 @@ export default function NewGroundPage() {
     }))
   }
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files) {
-      setLoading(true)
-      try {
-        const uploadPromises = Array.from(files).map(async (file) => {
-          const formData = new FormData()
-          formData.append('image', file)
-          
-          const token = localStorage.getItem('token')
-          const response = await fetch('/api/upload/image', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            },
-            body: formData
-          })
-          
-          if (response.ok) {
-            const data = await response.json()
-            return data.imageUrl
-          }
-          throw new Error('Upload failed')
-        })
+  const handlePhotoTaken = async (file: File) => {
+    await processAndUploadImage(file)
+  }
 
-        const uploadedUrls = await Promise.all(uploadPromises)
+  const handleFileSelected = async (file: File) => {
+    await processAndUploadImage(file)
+  }
+
+  const processAndUploadImage = async (file: File) => {
+    setUploadingImages(true)
+    try {
+      // Validate file
+      const validation = validateImageFile(file)
+      if (!validation.valid) {
+        toast.error(validation.error || 'Invalid file')
+        return
+      }
+
+      // Show file size info
+      const originalSize = getFileSize(file.size)
+      toast.loading(`Processing image (${originalSize})...`)
+
+      // Compress and convert to WebP
+      const compressedFile = await compressAndConvertToWebP(file, {
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 0.8
+      })
+
+      const compressedSize = getFileSize(compressedFile.size)
+      toast.loading(`Uploading compressed image (${compressedSize})...`)
+
+      // Upload to server
+      const formData = new FormData()
+      formData.append('image', compressedFile)
+      
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
         setFormData(prev => ({
           ...prev,
-          images: [...prev.images, ...uploadedUrls]
+          images: [...prev.images, data.imageUrl]
         }))
-        toast.success('Images uploaded successfully')
-      } catch (error) {
-        console.error('Image upload error:', error)
-        toast.error('Failed to upload images')
-      } finally {
-        setLoading(false)
+        toast.success(`Image uploaded successfully! (${originalSize} → ${compressedSize})`)
+      } else {
+        throw new Error('Upload failed')
       }
+    } catch (error) {
+      console.error('Image upload error:', error)
+      toast.error('Failed to upload image')
+    } finally {
+      setUploadingImages(false)
+      setShowPhotoModal(false)
     }
   }
 
@@ -130,7 +158,7 @@ export default function NewGroundPage() {
       const data = await response.json()
 
       if (response.ok) {
-        toast.success('Ground added successfully!')
+        toast.success('Ground submitted for review! You will be notified once it\'s approved.')
         router.push('/admin/dashboard')
       } else {
         toast.error(data.error || 'Failed to add ground')
@@ -188,31 +216,8 @@ export default function NewGroundPage() {
                   required
                 >
                   <option value="">Select City</option>
-                  <option value="Colombo">Colombo</option>
-                  <option value="Gampaha">Gampaha</option>
-                  <option value="Kalutara">Kalutara</option>
-                  <option value="Kandy">Kandy</option>
-                  <option value="Matale">Matale</option>
-                  <option value="Nuwara Eliya">Nuwara Eliya</option>
-                  <option value="Galle">Galle</option>
-                  <option value="Matara">Matara</option>
-                  <option value="Hambantota">Hambantota</option>
-                  <option value="Jaffna">Jaffna</option>
-                  <option value="Kilinochchi">Kilinochchi</option>
-                  <option value="Mannar">Mannar</option>
-                  <option value="Vavuniya">Vavuniya</option>
-                  <option value="Mullaitivu">Mullaitivu</option>
-                  <option value="Batticaloa">Batticaloa</option>
-                  <option value="Ampara">Ampara</option>
-                  <option value="Trincomalee">Trincomalee</option>
-                  <option value="Kurunegala">Kurunegala</option>
                   <option value="Puttalam">Puttalam</option>
-                  <option value="Anuradhapura">Anuradhapura</option>
-                  <option value="Polonnaruwa">Polonnaruwa</option>
-                  <option value="Badulla">Badulla</option>
-                  <option value="Monaragala">Monaragala</option>
-                  <option value="Ratnapura">Ratnapura</option>
-                  <option value="Kegalle">Kegalle</option>
+                  
                 </select>
               </div>
 
@@ -243,14 +248,14 @@ export default function NewGroundPage() {
               </div>
 
               <div>
-                <label className="label">Email</label>
+                <label className="label">Secondary Phone</label>
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="tel"
+                  name="secondaryPhone"
+                  value={formData.secondaryPhone}
                   onChange={handleInputChange}
                   className="input-field"
-                  placeholder="Enter email address"
+                  placeholder="Enter secondary phone number"
                 />
               </div>
 
@@ -285,7 +290,7 @@ export default function NewGroundPage() {
                   step="100"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">6:00 AM - 12:00 PM</p>
+                 <p className="text-xs text-gray-500 mt-1">12:00 AM - 5:00 PM</p>
               </div>
 
               <div>
@@ -301,7 +306,7 @@ export default function NewGroundPage() {
                   step="100"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">12:00 PM - 10:00 PM</p>
+                <p className="text-xs text-gray-500 mt-1">5:00 PM - 12:00 AM</p>
               </div>
             </div>
           </div>
@@ -397,22 +402,33 @@ export default function NewGroundPage() {
             </div>
 
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 mb-2">Upload ground images</p>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="image-upload"
-              />
-              <label
-                htmlFor="image-upload"
-                className="btn-outline cursor-pointer"
-              >
-                Choose Images
-              </label>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                <button
+                  onClick={() => setShowPhotoModal(true)}
+                  className="btn-primary flex items-center gap-2"
+                  disabled={uploadingImages}
+                >
+                  <Camera className="h-4 w-4" />
+                  Take Photo
+                </button>
+                <button
+                  onClick={() => setShowPhotoModal(true)}
+                  className="btn-outline flex items-center gap-2"
+                  disabled={uploadingImages}
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload from Gallery
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Images will be automatically compressed and converted to WebP format
+              </p>
+              {uploadingImages && (
+                <div className="mt-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-xs text-gray-600 mt-1">Processing image...</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -435,6 +451,14 @@ export default function NewGroundPage() {
           </div>
         </form>
       </div>
+
+      {/* Photo Selection Modal */}
+      <PhotoSelectionModal
+        isOpen={showPhotoModal}
+        onClose={() => setShowPhotoModal(false)}
+        onPhotoTaken={handlePhotoTaken}
+        onFileSelected={handleFileSelected}
+      />
     </div>
   )
 }

@@ -37,15 +37,15 @@ export function generateTimeSlots(openingTime: string, closingTime: string, slot
   return slots
 }
 
-// Check if a time slot is in the morning (before 12 PM)
+// Check if a time slot is in the morning (before 17:00 / 5:00 PM)
 export function isMorningSlot(time: string): boolean {
   const hour = parseInt(time.split(':')[0])
-  return hour >= 0 && hour < 12
+  return hour >= 0 && hour < 17
 }
 
 export function isEveningSlot(time: string): boolean {
   const hour = parseInt(time.split(':')[0])
-  return hour >= 12 && hour < 24
+  return hour >= 17 && hour < 24
 }
 
 export function formatFirebaseDate(timestamp: any): string {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   MapPin,
@@ -37,7 +37,7 @@ interface Ground {
   location: string;
   city: string;
   phone: string;
-  email: string | null;
+  secondaryPhone: string | null;
   images: string[];
   amenities: string[];
   morningPrice: number;
@@ -46,6 +46,10 @@ interface Ground {
   closingTime: string;
   ownerId: string;
   isActive: boolean;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  rejectionReason?: string;
+  reviewedBy?: string;
+  reviewedAt?: any;
   owner: {
     name: string | null;
     phone: string;
@@ -66,6 +70,7 @@ interface Ground {
 
 export default function GroundDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const [ground, setGround] = useState<Ground | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState("");
@@ -419,6 +424,32 @@ export default function GroundDetailPage() {
     );
   }
 
+  // Check if ground is approved (for non-owners)
+  if (!isOwner && ground.status !== 'APPROVED') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Ground Not Available</h1>
+            <p className="text-gray-600 mb-8">
+              {ground.status === 'PENDING' 
+                ? 'This ground is currently under review and will be available soon.'
+                : 'This ground is not available for booking at the moment.'
+              }
+            </p>
+            <button
+              onClick={() => router.push('/')}
+              className="btn-primary"
+            >
+              Back to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const availableSlots = getAvailableTimeSlots();
   const price = selectedTime
     ? isMorningSlot(selectedTime)
@@ -753,10 +784,10 @@ export default function GroundDetailPage() {
                       <Phone className="h-4 w-4 mr-2 text-gray-500" />
                       <span className="text-sm text-gray-700">{ground.phone}</span>
                     </div>
-                    {ground.email && (
+                    {ground.secondaryPhone && (
                       <div className="flex items-center">
-                        <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="text-sm text-gray-700">{ground.email}</span>
+                        <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                        <span className="text-sm text-gray-700">{ground.secondaryPhone}</span>
                       </div>
                     )}
                    
@@ -771,7 +802,7 @@ export default function GroundDetailPage() {
                         {formatPrice(ground.morningPrice)}
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
-                        Morning (6 AM - 12 PM)
+                        Morning (12 AM - 5 PM)
                       </div>
                     </div>
                     <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -779,7 +810,7 @@ export default function GroundDetailPage() {
                         {formatPrice(ground.eveningPrice)}
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
-                        Evening (12 PM - 10 PM)
+                        Evening (5 PM - 12 AM)
                       </div>
                     </div>
                   </div>
@@ -901,10 +932,10 @@ export default function GroundDetailPage() {
                       <Phone className="h-4 w-4 mr-2 text-gray-500" />
                       <span className="text-sm text-gray-700">{ground.phone}</span>
                     </div>
-                    {ground.email && (
+                    {ground.secondaryPhone && (
                       <div className="flex items-center">
-                        <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="text-sm text-gray-700">{ground.email}</span>
+                        <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                        <span className="text-sm text-gray-700">{ground.secondaryPhone}</span>
                       </div>
                     )}
                    
@@ -919,7 +950,7 @@ export default function GroundDetailPage() {
                         {formatPrice(ground.morningPrice)}
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
-                        Morning (0 AM - 12 PM)
+                        Morning (12 AM - 5 PM)
                       </div>
                     </div>
                     <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -927,7 +958,7 @@ export default function GroundDetailPage() {
                         {formatPrice(ground.eveningPrice)}
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
-                        Evening (12 PM - 10 PM)
+                        Evening (5 PM - 12 AM)
                       </div>
                     </div>
                   </div>

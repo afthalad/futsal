@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Users, MapPin, ToggleLeft, ToggleRight, Eye, Trash2, Edit, Plus, Calendar, Phone, Clock, DollarSign, X } from 'lucide-react'
+import { Shield, Users, MapPin, ToggleLeft, ToggleRight, Eye, Trash2, Edit, Plus, Calendar, Phone, Clock, DollarSign, X, User } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { formatTime, formatFirebaseDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
@@ -486,12 +486,21 @@ export default function SuperAdminPage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex items-center">
-            <Shield className="h-8 w-8 text-purple-600 mr-3" />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Super Admin Panel</h1>
-              <p className="text-gray-600">Manage users and grounds across the platform</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Shield className="h-8 w-8 text-purple-600 mr-3" />
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Super Admin Panel</h1>
+                <p className="text-gray-600">Manage users and grounds across the platform</p>
+              </div>
             </div>
+            <button
+              onClick={() => router.push('/admin/profile')}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Profile Settings
+            </button>
           </div>
         </div>
 
@@ -715,13 +724,22 @@ export default function SuperAdminPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-semibold text-gray-900">Grounds Management</h2>
-                  <button
-                    onClick={() => router.push('/admin/grounds/new')}
-                    className="btn-primary flex items-center gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add New Ground
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => router.push('/superadmin/grounds')}
+                      className="btn-outline flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Review Grounds
+                    </button>
+                    <button
+                      onClick={() => router.push('/admin/grounds/new')}
+                      className="btn-primary flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add New Ground
+                    </button>
+                  </div>
                 </div>
 
                 {loading ? (

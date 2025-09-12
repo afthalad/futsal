@@ -62,12 +62,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // For public access (no token), only show approved grounds
+    if (!token) {
+      filteredGrounds = filteredGrounds.filter(ground => 
+        ground.isActive && ground.status === 'APPROVED'
+      )
+    }
+
     // Process grounds data (without booking counts for performance)
     const processedGrounds = filteredGrounds.map((ground) => {
       return {
         ...ground,
         images: ground.images || [],
         amenities: ground.amenities || [],
+        // Set default status for existing grounds that don't have it
+        status: ground.status || 'PENDING',
         owner:  ground.ownerId,
         _count: {
           bookings: 0 // Skip booking count for performance
@@ -105,7 +114,8 @@ export async function POST(request: NextRequest) {
       ownerId: user.id,
       isActive: true,
       openingTime: data.openingTime || '06:00',
-      closingTime: data.closingTime || '22:00'
+      closingTime: data.closingTime || '22:00',
+      status: 'PENDING'
     })
 
     const ground = {
@@ -116,7 +126,8 @@ export async function POST(request: NextRequest) {
       ownerId: user.id,
       isActive: true,
       openingTime: data.openingTime || '06:00',
-      closingTime: data.closingTime || '22:00'
+      closingTime: data.closingTime || '22:00',
+      status: 'PENDING'
     }
 
     return NextResponse.json({ ground })

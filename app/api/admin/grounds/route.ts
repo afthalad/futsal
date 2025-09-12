@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
         return {
           id: doc.id,
           ...groundData,
+          // Set default status for existing grounds that don't have it
+          status: groundData.status || 'PENDING',
           owner: {
             name: ownerData?.name,
             phone: ownerData?.phone

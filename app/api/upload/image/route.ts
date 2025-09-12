@@ -56,3 +56,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 })
   }
 }
+
+
+// by defult newly added grund sohudl be diabled for review like underreview so super admin shoudl accpet and it shoudl show underreview to ground owner

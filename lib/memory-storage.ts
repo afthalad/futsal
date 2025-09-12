@@ -17,7 +17,7 @@ interface Ground {
   location: string
   city: string
   phone: string
-  email?: string
+  secondaryPhone?: string
   images: string[]
   amenities: string[]
   morningPrice: number
@@ -26,6 +26,10 @@ interface Ground {
   openingTime: string
   closingTime: string
   ownerId: string
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  rejectionReason?: string
+  reviewedBy?: string
+  reviewedAt?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -90,6 +94,7 @@ export const createGroundInMemory = (groundData: Omit<Ground, 'id' | 'createdAt'
   const ground: Ground = {
     id: groundId,
     ...groundData,
+    status: groundData.status || 'PENDING',
     createdAt: new Date(),
     updatedAt: new Date()
   }

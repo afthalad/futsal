@@ -29,6 +29,8 @@ export async function GET(
       ...ground,
       images: ground.images || [],
       amenities: ground.amenities || [],
+      // Set default status for existing grounds that don't have it
+      status: ground.status || 'PENDING',
       owner: {
         name: 'Ground Owner', // We'll need to fetch this separately if needed
         phone: ground.phone
@@ -73,17 +75,31 @@ export async function PUT(
 
     const data = await request.json()
     
-    await updateGround(params.id, {
+    // Get current ground to check status
+    const currentGround = await getGroundById(params.id)
+    
+    // If ground was rejected and owner is editing, reset to PENDING for re-review
+    const updateData = {
       ...data,
       images: data.images || [],
       amenities: data.amenities || []
-    })
+    }
+    
+    // Reset status to PENDING if ground was previously rejected
+    if (currentGround && currentGround.status === 'REJECTED') {
+      updateData.status = 'PENDING'
+      updateData.rejectionReason = null // Clear rejection reason
+      updateData.reviewedBy = null // Clear previous reviewer
+      updateData.reviewedAt = null // Clear review timestamp
+    }
+    
+    await updateGround(params.id, updateData)
 
     const ground = {
       id: params.id,
-      ...data,
-      images: data.images || [],
-      amenities: data.amenities || []
+      ...updateData,
+      images: updateData.images || [],
+      amenities: updateData.amenities || []
     }
 
     return NextResponse.json({ ground })

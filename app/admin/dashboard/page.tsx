@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Eye, Edit, Trash2, Calendar, DollarSign, Users, MapPin, X, CreditCard, ChevronDown, ChevronRight, Filter } from 'lucide-react'
+import { Plus, Eye, Edit, Trash2, Calendar, DollarSign, Users, MapPin, X, CreditCard, ChevronDown, ChevronRight, Filter, User } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { formatPrice, formatTime } from '@/lib/utils'
 import toast from 'react-hot-toast'
@@ -19,6 +19,11 @@ interface Ground {
   morningPrice: number
   eveningPrice: number
   isActive: boolean
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  rejectionReason?: string
+  reviewedBy?: string
+  reviewedAt?: any
+  updatedAt?: any
   _count: {
     bookings: number
   }
@@ -279,8 +284,19 @@ export default function AdminDashboard() {
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm sm:text-base text-gray-600">Manage your futsal grounds and bookings</p>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-sm sm:text-base text-gray-600">Manage your futsal grounds and bookings</p>
+            </div>
+            <button
+              onClick={() => router.push('/admin/profile')}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Profile Settings
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards - Mobile Optimized */}
@@ -405,9 +421,15 @@ export default function AdminDashboard() {
                             <p className="text-sm text-gray-600">{ground.location}, {ground.city}</p>
                           </div>
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            ground.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            ground.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                            ground.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {ground.isActive ? 'Active' : 'Inactive'}
+                            {ground.status === 'APPROVED' ? 'Active' :
+                             ground.status === 'REJECTED' ? 'Rejected' :
+                             (ground.rejectionReason && ground.reviewedAt && ground.updatedAt && 
+                              new Date(ground.updatedAt.toDate ? ground.updatedAt.toDate() : ground.updatedAt) > new Date(ground.reviewedAt.toDate ? ground.reviewedAt.toDate() : ground.reviewedAt)) ? 'Resubmitted' :
+                             'Under Review'}
                           </span>
                         </div>
                         
@@ -424,6 +446,23 @@ export default function AdminDashboard() {
                             <span className="text-gray-600">Bookings:</span>
                             <span className="font-medium">{ground._count.bookings}</span>
                           </div>
+                          
+                          {/* Rejection Reason */}
+                          {ground.status === 'REJECTED' && ground.rejectionReason && (
+                            <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs">
+                              <p className="text-red-800 font-medium">Rejection Reason:</p>
+                              <p className="text-red-700">{ground.rejectionReason}</p>
+                            </div>
+                          )}
+                          
+                          {/* Resubmission Notice */}
+                          {ground.status === 'PENDING' && ground.rejectionReason && ground.reviewedAt && ground.updatedAt && 
+                           new Date(ground.updatedAt.toDate ? ground.updatedAt.toDate() : ground.updatedAt) > new Date(ground.reviewedAt.toDate ? ground.reviewedAt.toDate() : ground.reviewedAt) && (
+                            <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                              <p className="text-blue-800 font-medium">Resubmitted for Review</p>
+                              <p className="text-blue-700">Your changes have been submitted for re-review.</p>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex space-x-2">

@@ -18,7 +18,7 @@ export interface Ground {
   location: string
   city: string
   phone: string
-  email?: string
+  secondaryPhone?: string
   images: string[]
   amenities: string[]
   morningPrice: number
@@ -27,6 +27,10 @@ export interface Ground {
   openingTime: string
   closingTime: string
   ownerId: string
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  rejectionReason?: string
+  reviewedBy?: string
+  reviewedAt?: any
   createdAt: any
   updatedAt: any
 }
@@ -156,10 +160,15 @@ export const getAllGrounds = async (): Promise<Ground[]> => {
     const q = adminDb.collection('grounds')
     const querySnapshot = await q.get()
     
-    const grounds = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Ground[]
+    const grounds = querySnapshot.docs.map(doc => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        // Set default status for existing grounds that don't have it
+        status: data.status || 'PENDING'
+      }
+    }) as Ground[]
 
     // Update cache
     groundsCache = grounds
@@ -215,10 +224,15 @@ export const getGroundsByOwner = async (ownerId: string): Promise<Ground[]> => {
     const q = adminDb.collection('grounds').where('ownerId', '==', ownerId)
     const querySnapshot = await q.get()
     
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Ground[]
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        // Set default status for existing grounds that don't have it
+        status: data.status || 'PENDING'
+      }
+    }) as Ground[]
   } catch (error) {
     console.error('Error getting grounds by owner from Firestore:', error)
     // Fallback to memory storage

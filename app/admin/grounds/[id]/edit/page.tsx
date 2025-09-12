@@ -13,7 +13,7 @@ interface Ground {
   location: string
   city: string
   phone: string
-  email: string | null
+  secondaryPhone: string | null
   morningPrice: number
   eveningPrice: number
   openingTime: string
@@ -22,6 +22,8 @@ interface Ground {
   images: string[]
   ownerId: string
   isActive: boolean
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  rejectionReason?: string
 }
 
 export default function EditGroundPage() {
@@ -34,7 +36,7 @@ export default function EditGroundPage() {
     location: '',
     city: '',
     phone: '',
-    email: '',
+    secondaryPhone: '',
     morningPrice: '',
     eveningPrice: '',
     openingTime: '06:00',
@@ -45,6 +47,7 @@ export default function EditGroundPage() {
   const [amenityInput, setAmenityInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
+  const [wasRejected, setWasRejected] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -63,13 +66,14 @@ export default function EditGroundPage() {
 
       if (response.ok) {
         setGround(data.ground)
+        setWasRejected(data.ground.status === 'REJECTED')
         setFormData({
           name: data.ground.name || '',
           description: data.ground.description || '',
           location: data.ground.location || '',
           city: data.ground.city || '',
           phone: data.ground.phone || '',
-          email: data.ground.email || '',
+          secondaryPhone: data.ground.secondaryPhone || '',
           morningPrice: data.ground.morningPrice?.toString() || '',
           eveningPrice: data.ground.eveningPrice?.toString() || '',
           openingTime: data.ground.openingTime || '06:00',
@@ -195,7 +199,11 @@ export default function EditGroundPage() {
       const data = await response.json()
 
       if (response.ok) {
-        toast.success('Ground updated successfully!')
+        if (wasRejected) {
+          toast.success('Ground updated and resubmitted for review!')
+        } else {
+          toast.success('Ground updated successfully!')
+        }
         router.push('/admin/dashboard')
       } else {
         toast.error(data.error || 'Failed to update ground')
@@ -291,6 +299,28 @@ export default function EditGroundPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Rejection Warning */}
+          {wasRejected && ground?.rejectionReason && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Ground Previously Rejected
+                  </h3>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <p><strong>Rejection Reason:</strong> {ground.rejectionReason}</p>
+                    <p className="mt-1">Making changes will resubmit this ground for review.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
             
@@ -373,14 +403,14 @@ export default function EditGroundPage() {
               </div>
 
               <div>
-                <label className="label">Email</label>
+                <label className="label">Secondary Phone</label>
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="tel"
+                  name="secondaryPhone"
+                  value={formData.secondaryPhone}
                   onChange={handleInputChange}
                   className="input-field"
-                  placeholder="Enter email address"
+                  placeholder="Enter secondary phone number"
                 />
               </div>
 
@@ -415,7 +445,7 @@ export default function EditGroundPage() {
                   step="100"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">6:00 AM - 12:00 PM</p>
+                <p className="text-xs text-gray-500 mt-1">12:00 AM - 5:00 PM</p>
               </div>
 
               <div>
@@ -431,7 +461,7 @@ export default function EditGroundPage() {
                   step="100"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">12:00 PM - 10:00 PM</p>
+                <p className="text-xs text-gray-500 mt-1">5:00 PM - 12:00 AM</p>
               </div>
             </div>
           </div>
