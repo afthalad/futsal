@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Phone, ArrowLeft, User } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
-import { verifyOTP } from '@/lib/firebase-auth'
+import { sendOTP, verifyOTP } from '@/lib/firebase-auth'
 
 export default function LoginPage() {
   const [step, setStep] = useState<'phone' | 'otp' | 'name'>('phone')
@@ -53,21 +53,21 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: formData.phone })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success('OTP sent to your phone number via SMS')
+      console.log('🔥 Sending OTP via Firebase Phone Auth...')
+      
+      // Use Firebase Phone Auth directly (no backend call)
+      const result = await sendOTP(formData.phone)
+      
+      if (result.success) {
+        console.log('✅ Firebase OTP sent successfully')
+        toast.success('OTP sent to your phone number via Firebase')
+        setConfirmationResult(result.confirmationResult)
         setStep('otp')
         setOtpSentTime(Date.now())
         setResendCooldown(30) // 30 second cooldown
       } else {
-        toast.error(data.error || 'Failed to send OTP')
+        console.error('❌ Firebase OTP failed:', result.error)
+        toast.error(result.error || 'Failed to send OTP')
       }
     } catch (error) {
       console.error('Send OTP error:', error)
@@ -91,21 +91,21 @@ export default function LoginPage() {
     setResending(true)
 
     try {
-      const response = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: formData.phone })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success('New OTP sent to your phone number via SMS')
+      console.log('🔥 Resending OTP via Firebase Phone Auth...')
+      
+      // Use Firebase Phone Auth for resend
+      const result = await sendOTP(formData.phone)
+      
+      if (result.success) {
+        console.log('✅ Firebase OTP resent successfully')
+        toast.success('New OTP sent to your phone number via Firebase')
+        setConfirmationResult(result.confirmationResult)
         setOtpSentTime(Date.now())
         setResendCooldown(30) // 30 second cooldown
         setFormData({ ...formData, otp: '' }) // Clear current OTP input
       } else {
-        toast.error(data.error || 'Failed to resend OTP')
+        console.error('❌ Firebase OTP resend failed:', result.error)
+        toast.error(result.error || 'Failed to resend OTP')
       }
     } catch (error) {
       console.error('Resend OTP error:', error)
@@ -123,43 +123,58 @@ export default function LoginPage() {
       return
     }
 
+    if (!confirmationResult) {
+      toast.error('Please request OTP first')
+      return
+    }
+
     setLoading(true)
 
     try {
-      // Verify OTP with backend
-      const response = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          phone: formData.phone,
-          otp: formData.otp,
-          role: 'GROUND_OWNER'
-        })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        localStorage.setItem('token', data.token)
-        toast.success('Login successful!')
+      console.log('🔥 Verifying OTP with Firebase...')
+      
+      // Use Firebase Phone Auth for verification
+      const result = await verifyOTP(confirmationResult, formData.otp)
+      
+      if (result.success && result.idToken) {
+        console.log('✅ Firebase OTP verified successfully')
         
-        // Redirect based on user role
-        if (data.user?.role === 'SUPER_ADMIN') {
-          router.push('/admin/super')
+        // Send Firebase ID token to backend for user creation/authentication
+        const response = await fetch('/api/auth/verify-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            phone: formData.phone,
+            idToken: result.idToken,
+            role: 'GROUND_OWNER'
+          })
+        })
+
+        const data = await response.json()
+
+        if (response.ok) {
+          localStorage.setItem('token', data.token)
+          toast.success('Login successful!')
+          
+          // Redirect based on user role
+          if (data.user?.role === 'SUPER_ADMIN') {
+            router.push('/admin/super')
+          } else {
+            router.push('/admin/dashboard')
+          }
         } else {
-          router.push('/admin/dashboard')
+          if (data.error === 'Name is required for new users' || data.error === 'Name is required for existing users without profile') {
+            toast.success('OTP verified! Please complete your profile')
+            setStep('name')
+          } else {
+            toast.error(data.error || 'Failed to verify OTP')
+          }
         }
       } else {
-        if (data.error === 'Name is required for new users' || data.error === 'Name is required for existing users without profile') {
-          // Store a placeholder confirmation result for users who need to complete profile
-          setConfirmationResult({ isNewUser: true })
-          toast.success('OTP verified! Please complete your profile')
-          setStep('name')
-        } else {
-          toast.error(data.error || 'Failed to verify OTP')
-        }
+        console.error('❌ Firebase OTP verification failed:', result.error)
+        toast.error(result.error || 'Failed to verify OTP')
       }
     } catch (error) {
       console.error('Verify OTP error:', error)
@@ -185,9 +200,10 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // For new users, we don't need to re-verify with Firebase
-      // Just send the name to complete registration
-      if (confirmationResult.isNewUser) {
+      // Re-verify OTP with Firebase for existing users
+      const result = await verifyOTP(confirmationResult, formData.otp)
+      
+      if (result.success && result.idToken) {
         const response = await fetch('/api/auth/verify-otp', {
           method: 'POST',
           headers: {
@@ -195,7 +211,7 @@ export default function LoginPage() {
           },
           body: JSON.stringify({
             phone: formData.phone,
-            otp: formData.otp,
+            idToken: result.idToken,
             name: formData.name,
             role: 'GROUND_OWNER'
           })
@@ -217,42 +233,8 @@ export default function LoginPage() {
           toast.error(data.error || 'Failed to complete registration')
         }
       } else {
-        // Re-verify OTP with Firebase for existing users
-        const result = await verifyOTP(confirmationResult, formData.otp)
-        
-        if (result.success && result.idToken) {
-          const response = await fetch('/api/auth/verify-otp', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              phone: formData.phone,
-              idToken: result.idToken,
-              name: formData.name,
-              role: 'GROUND_OWNER'
-            })
-          })
-
-          const data = await response.json()
-
-          if (response.ok) {
-            localStorage.setItem('token', data.token)
-            toast.success('Registration successful!')
-            
-            // Redirect based on user role
-            if (data.user?.role === 'SUPER_ADMIN') {
-              router.push('/admin/super')
-            } else {
-              router.push('/admin/dashboard')
-            }
-          } else {
-            toast.error(data.error || 'Failed to complete registration')
-          }
-        } else {
-          toast.error('Please verify your phone number again')
-          setStep('otp')
-        }
+        toast.error('Please verify your phone number again')
+        setStep('otp')
       }
     } catch (error) {
       console.error('Complete profile error:', error)
@@ -325,7 +307,9 @@ export default function LoginPage() {
                 </p>
                 {otpSentTime && (
                   <div className="mt-2">
-                   
+                    <p className="text-xs text-blue-600">
+                      OTP sent at {new Date(otpSentTime).toLocaleTimeString()}
+                    </p>
                     <p className="text-xs text-gray-500">
                       OTP is valid for 5 minutes
                     </p>
@@ -358,7 +342,7 @@ export default function LoginPage() {
                 disabled={loading}
               >
                 {loading ? 'Processing...' : 
-                  step === 'phone' ? 'Send OTP' :
+                  step === 'phone' ? 'Send OTP via Firebase' :
                   step === 'otp' ? 'Verify OTP' :
                   'Complete Registration'
                 }

@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed-firestore.js",
-    "setup-admin": "node scripts/setup-super-admin.js"
+    "setup-admin": "node scripts/setup-super-admin.js",
+    "test-firebase": "node scripts/test-firebase-connection.js",
+    "migrate-users": "node scripts/migrate-firebase-users.js",
+    "check-grounds": "node scripts/check-grounds.js"
   },
   "dependencies": {
     "axios": "^1.6.0",

@@ -10,9 +10,40 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const city = searchParams.get('city')
     const search = searchParams.get('search')
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
 
-    // Get all grounds from Firestore with owner info (filters out disabled owners)
-    const grounds = await getAllGroundsWithOwnerInfo()
+    let grounds
+
+    // Check if user is authenticated
+    if (token) {
+      try {
+        const user = await getUserFromToken(token)
+        
+        if (user && user.role === 'GROUND_OWNER') {
+          // Ground owner: only show their own grounds
+          const { getGroundsByOwner } = await import('@/lib/firestore-server')
+          grounds = await getGroundsByOwner(user.id)
+          console.log(`🔒 Ground owner ${user.id} accessing their grounds: ${grounds.length} found`)
+        } else if (user && user.role === 'SUPER_ADMIN') {
+          // Super admin: show all grounds
+          grounds = await getAllGroundsWithOwnerInfo()
+          console.log(`👑 Super admin accessing all grounds: ${grounds.length} found`)
+        } else {
+          // Invalid token or role
+          grounds = await getAllGroundsWithOwnerInfo()
+          console.log(`🌐 Public access to grounds: ${grounds.length} found`)
+        }
+      } catch (error) {
+        console.error('Auth error, falling back to public access:', error)
+        // Fallback to public access
+        grounds = await getAllGroundsWithOwnerInfo()
+        console.log(`🌐 Public access to grounds (fallback): ${grounds.length} found`)
+      }
+    } else {
+      // No token: public access (home page)
+      grounds = await getAllGroundsWithOwnerInfo()
+      console.log(`🌐 Public access to grounds: ${grounds.length} found`)
+    }
 
     // Filter by city if provided
     let filteredGrounds = grounds

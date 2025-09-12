@@ -1,101 +1,116 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { adminAuth } from '@/lib/firebase-admin'
+import { adminDb } from '@/lib/firebase-admin'
+import jwt from 'jsonwebtoken'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
-import { generateToken } from '@/lib/auth'
-import { getUserByPhone, createUser, User } from '@/lib/firestore-server'
-import { getUserByPhoneInMemory, createUserInMemory } from '@/lib/memory-storage'
-import { verifyOTP as verifyOTPSMS } from '@/lib/sms'
-
 export async function POST(request: NextRequest) {
   try {
-    const { phone, otp, name, role = 'GROUND_OWNER' } = await request.json()
+    const { phone, idToken, name, role = 'GROUND_OWNER' } = await request.json()
 
-    if (!phone || !otp) {
-      return NextResponse.json({ error: 'Phone and OTP are required' }, { status: 400 })
+    if (!phone) {
+      return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
     }
 
-    // Verify OTP using SMS service
-    const otpResult = await verifyOTPSMS(phone, otp)
-    
-    if (!otpResult.success) {
-      return NextResponse.json({ error: otpResult.error || 'Invalid OTP' }, { status: 400 })
+    if (!idToken) {
+      return NextResponse.json({ error: 'Firebase ID token is required' }, { status: 400 })
     }
-    
-    console.log('✅ OTP verified successfully')
-    console.log(`📞 Phone: ${phone}`)
 
-    // Find or create user (Firestore with fallback to memory)
-    let user
+    let user: any = null
+    let isNewUser = false
+
     try {
-      user = await getUserByPhone(phone)
-    } catch (error) {
-      console.error('Error getting user from Firestore, using memory storage:', error)
-      user = getUserByPhoneInMemory(phone)
-    }
-    
-    if (!user) {
-      if (!name) {
-        return NextResponse.json({ error: 'Name is required for new users' }, { status: 400 })
-      }
+      // Verify Firebase ID token
+      const decodedToken = await adminAuth.verifyIdToken(idToken)
       
-      try {
-        // Try to create user in Firestore first
-        const userId = await createUser({
+      // Check if phone number matches
+      const expectedPhone = `+94${phone.replace(/^0/, '')}`
+      if (decodedToken.phone_number !== expectedPhone) {
+        return NextResponse.json({ error: 'Phone number mismatch' }, { status: 400 })
+      }
+
+      console.log('✅ Firebase ID token verified successfully')
+      console.log(`📞 Phone: ${phone}`)
+      console.log(`🆔 Firebase UID: ${decodedToken.uid}`)
+
+      // Check if user exists in Firestore
+      const userQuery = await adminDb.collection('users')
+        .where('phone', '==', phone)
+        .limit(1)
+        .get()
+
+      if (userQuery.empty) {
+        // New user - create account
+        isNewUser = true
+        console.log('🆕 Creating new user in Firestore')
+        
+        if (!name) {
+          return NextResponse.json({ error: 'Name is required for new users' }, { status: 400 })
+        }
+
+        const newUser = {
           phone,
           name,
-          role: role as any,
-          isActive: true
-        })
-        
-        user = await getUserByPhone(phone)
+          role,
+          isActive: true,
+          firebaseUid: decodedToken.uid, // Store Firebase UID for reference
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+
+        const userRef = await adminDb.collection('users').add(newUser)
+        user = { id: userRef.id, ...newUser }
         console.log('✅ User created in Firestore:', user)
-      } catch (error) {
-        console.error('Error creating user in Firestore, using memory storage:', error)
-        // Fallback to memory storage
-        const userId = createUserInMemory({
-          phone,
-          name,
-          role: role as any,
-          isActive: true
-        })
+      } else {
+        // Existing user
+        const userDoc = userQuery.docs[0]
+        user = { id: userDoc.id, ...userDoc.data() }
+        console.log('✅ Existing user found:', user)
         
-        user = getUserByPhoneInMemory(phone)
-        console.log('✅ User created in memory:', user)
+        // Check if user needs to complete profile
+        if (!user.name && name) {
+          await adminDb.collection('users').doc(user.id).update({
+            name,
+            firebaseUid: decodedToken.uid, // Update Firebase UID
+            updatedAt: new Date()
+          })
+          user.name = name
+          console.log('✅ User profile updated with name')
+        } else if (!user.name) {
+          return NextResponse.json({ error: 'Name is required for existing users without profile' }, { status: 400 })
+        }
       }
-    } else {
-      console.log('✅ User found:', user)
-      
-      // If user exists but doesn't have a name, require name completion
-      if (!user.name && !name) {
-        return NextResponse.json({ error: 'Name is required for existing users without profile' }, { status: 400 })
-      }
-      
-      // If user exists and has a name, they can proceed directly
-      if (user.name) {
-        console.log('✅ Existing user with complete profile, proceeding to login')
-      }
+    } catch (error) {
+      console.error('Firebase token verification error:', error)
+      return NextResponse.json({ error: 'Invalid Firebase token' }, { status: 400 })
     }
 
     // Generate JWT token
-    const token = generateToken({
-      userId: user!.id,
-      phone: user!.phone,
-      role: user!.role
-    })
+    const token = jwt.sign(
+      { 
+        userId: user.id, 
+        phone: user.phone, 
+        role: user.role 
+      },
+      process.env.JWT_SECRET || 'fallback-secret',
+      { expiresIn: '7d' }
+    )
 
-    return NextResponse.json({
+    return NextResponse.json({ 
+      success: true,
       token,
       user: {
-        id: user!.id,
-        phone: user!.phone,
-        name: user!.name,
-        role: user!.role
+        id: user.id,
+        phone: user.phone,
+        name: user.name,
+        role: user.role,
+        isActive: user.isActive
       }
     })
   } catch (error) {
-    console.error('Verify OTP Error:', error)
+    console.error('Verify OTP error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
