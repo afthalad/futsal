@@ -285,13 +285,14 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-sm sm:text-base text-gray-600">Manage your futsal grounds and bookings</p>
             </div>
+            {/* Profile Settings - Hidden on mobile, shown on desktop */}
             <button
               onClick={() => router.push('/admin/profile')}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="hidden sm:inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <User className="h-4 w-4 mr-2" />
               Profile Settings

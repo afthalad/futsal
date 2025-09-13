@@ -156,19 +156,25 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Navigation - Regular users see button, logged in users see hamburger */}
           <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-primary-600 focus:outline-none focus:text-primary-600 p-2"
-            >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            {!user ? (
+              <Link href="/auth/login" className="btn-outline text-xs px-3 py-2">
+                Ground Owner? Join Us
+              </Link>
+            ) : (
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="text-gray-700 hover:text-primary-600 focus:outline-none focus:text-primary-600 p-2"
+              >
+                {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isOpen && (
+        {/* Mobile Navigation - Only show for logged in users */}
+        {user && isOpen && (
           <div className="md:hidden border-t border-gray-200">
             <div className="px-3 pt-2 pb-3 space-y-1 bg-gray-50">
               <Link
@@ -179,51 +185,57 @@ export default function Navbar() {
                 Home
               </Link>
               
-              {!user ? (
-                <Link
-                  href="/auth/login"
-                  className="btn-outline block text-center mx-3 py-3 text-sm"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Ground Owner? Join Us
-                </Link>
-              ) : (
+              {user.role === 'GROUND_OWNER' && (
                 <>
-                  {user.role === 'GROUND_OWNER' && (
-                    <Link
-                      href="/admin/dashboard"
-                      className="text-gray-700 hover:text-primary-600 block px-3 py-3 rounded-md text-base font-medium transition-colors"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                  )}
-                  {user.role === 'SUPER_ADMIN' && (
-                    <Link
-                      href="/admin/super"
-                      className="text-gray-700 hover:text-primary-600 block px-3 py-3 rounded-md text-base font-medium transition-colors"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Super Admin
-                    </Link>
-                  )}
-                  <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 mt-2">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-5 w-5 text-gray-500" />
-                      <span className="text-sm text-gray-700 truncate">{user.name || user.phone}</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        handleLogout()
-                        setIsOpen(false)
-                      }}
-                      className="text-gray-500 hover:text-gray-700 p-2 transition-colors"
-                    >
-                      <LogOut className="h-5 w-5" />
-                    </button>
-                  </div>
+                  <Link
+                    href="/admin/dashboard"
+                    className="text-gray-700 hover:text-primary-600 block px-3 py-3 rounded-md text-base font-medium transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/admin/profile"
+                    className="text-gray-700 hover:text-primary-600 block px-3 py-3 rounded-md text-base font-medium transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Profile Settings
+                  </Link>
                 </>
               )}
+              {user.role === 'SUPER_ADMIN' && (
+                <>
+                  <Link
+                    href="/admin/super"
+                    className="text-gray-700 hover:text-primary-600 block px-3 py-3 rounded-md text-base font-medium transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Super Admin
+                  </Link>
+                  <Link
+                    href="/admin/profile"
+                    className="text-gray-700 hover:text-primary-600 block px-3 py-3 rounded-md text-base font-medium transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Profile Settings
+                  </Link>
+                </>
+              )}
+              <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 mt-2">
+                <div className="flex items-center space-x-2">
+                  <User className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm text-gray-700 truncate">{user.name || user.phone}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    handleLogout()
+                    setIsOpen(false)
+                  }}
+                  className="text-gray-500 hover:text-gray-700 p-2 transition-colors"
+                >
+                  <LogOut className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
         )}

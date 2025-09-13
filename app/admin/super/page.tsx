@@ -89,11 +89,11 @@ export default function SuperAdminPage() {
     // Commission tab doesn't need to fetch data on tab change as it handles its own data fetching
   }, [activeTab])
 
-  // Load initial data
+  // Load initial data for stats cards
   useEffect(() => {
-    if (activeTab === 'users') {
-      fetchUsers()
-    }
+    fetchUsers()
+    fetchGrounds()
+    fetchBookings()
   }, [])
 
   const checkAuth = async () => {
@@ -485,7 +485,7 @@ export default function SuperAdminPage() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Shield className="h-8 w-8 text-purple-600 mr-3" />
@@ -502,28 +502,10 @@ export default function SuperAdminPage() {
               Profile Settings
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-          
-
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Ground Owners</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {users.filter(u => u.role === 'GROUND_OWNER').length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 rounded-lg">
@@ -547,7 +529,25 @@ export default function SuperAdminPage() {
               </div>
             </div>
           </div>
-        </div> */}
+
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Clock className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Today's Bookings</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {bookings.filter(booking => {
+                    const today = new Date().toDateString()
+                    const bookingDate = new Date(booking.date).toDateString()
+                    return today === bookingDate
+                  }).length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm border">

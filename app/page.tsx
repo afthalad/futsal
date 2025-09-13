@@ -185,3 +185,8 @@ export default function HomePage() {
     </div>
   )
 }
+
+
+// update favicon
+// check url across check
+// check sms text.lk
