@@ -122,11 +122,11 @@ export default function HomePage() {
       <div className="bg-white py-8 sm:py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
           <div className="text-center mb-6 sm:mb-8 lg:mb-12">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
-              Why Choose PuttalamGrounds?
+            <h2 className="text-xl sm:text-1xl md:text-xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 lg:mb-4">
+              Why Choose Puttalam Grounds?
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4">
-              The easiest way to book futsal grounds in Sri Lanka
+              The easiest way to book grounds in Puttalam
             </p>
           </div>
           
@@ -136,10 +136,10 @@ export default function HomePage() {
                 <MapPin className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-primary-600" />
               </div>
               <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 mb-1 sm:mb-2">
-                Multiple Locations
+                Across Puttalam
               </h3>
               <p className="text-xs sm:text-sm md:text-base text-gray-600 px-2">
-                Find futsal grounds across all major cities in Sri Lanka
+                Find grounds across puttalam in few clicks
               </p>
             </div>
             
@@ -151,7 +151,7 @@ export default function HomePage() {
                 Easy Booking
               </h3>
               <p className="text-xs sm:text-sm md:text-base text-gray-600 px-2">
-                Simple and quick booking process with instant confirmations
+                Simple and quick booking process
               </p>
             </div>
             
@@ -163,7 +163,7 @@ export default function HomePage() {
                 Best Prices
               </h3>
               <p className="text-xs sm:text-sm md:text-base text-gray-600 px-2">
-                Competitive pricing with morning and evening rates
+                Competitive morning and evening pricing rates
               </p>
             </div>
           </div>
@@ -173,7 +173,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-4 sm:py-6 md:py-8">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 text-center">
-          <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2">Puttalam Grounds</h3>
+          <h3 className="text-base sm:text-lg md:text-xl font-medium text-gray-400 mb-1 sm:mb-2">Made with ❤️ for puttalam</h3>
           <p className="text-xs sm:text-sm md:text-base text-gray-400">
             Book futsal grounds across puttalam with ease
           </p>

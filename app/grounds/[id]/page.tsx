@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import BookingModal from "@/components/BookingModal";
+import CancellationReasonModal from "@/components/CancellationReasonModal";
 import {
   formatPrice,
   formatTime,
@@ -81,13 +82,13 @@ export default function GroundDetailPage() {
   const [showImageModal, setShowImageModal] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [viewMode, setViewMode] = useState<"calendar" | "time-slots">(
-    "calendar"
+    "time-slots"
   );
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -139,9 +140,11 @@ export default function GroundDetailPage() {
 
   useEffect(() => {
     // Set default date to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setSelectedDate(tomorrow.toISOString().split("T")[0]);
+    // const tomorrow = new Date();
+    // tomorrow.setDate(tomorrow.getDate() + 1);
+    const today = new Date();
+    today.setDate(today.getDate());
+    setSelectedDate(today.toISOString().split("T")[0]);
   }, []);
 
   const fetchGround = async () => {
@@ -256,18 +259,14 @@ export default function GroundDetailPage() {
     setShowCancelModal(true);
   };
 
-  const confirmCancelBooking = async () => {
-    if (!cancelReason.trim()) {
-      toast.error("Please provide a reason for cancellation");
-      return;
-    }
-
+  const confirmCancelBooking = async (reason: string) => {
     if (!selectedBooking?.id) {
       toast.error("No booking selected for cancellation");
       return;
     }
 
     try {
+      setCancelling(true);
       const token = localStorage.getItem("token");
       const response = await fetch(
         `/api/bookings/${selectedBooking.id}/cancel`,
@@ -278,7 +277,7 @@ export default function GroundDetailPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            reason: cancelReason,
+            reason: reason,
           }),
         }
       );
@@ -288,7 +287,6 @@ export default function GroundDetailPage() {
           "Booking cancelled successfully. Customer will be notified via SMS."
         );
         setShowCancelModal(false);
-        setCancelReason("");
         setSelectedBooking(null);
         fetchGround(); // Refresh ground data
       } else {
@@ -298,6 +296,8 @@ export default function GroundDetailPage() {
     } catch (error) {
       console.error("Cancel booking error:", error);
       toast.error("Failed to cancel booking. Please try again.");
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -581,8 +581,8 @@ export default function GroundDetailPage() {
                   {selectedDate ? (
                     <>
                       <div className="flex items-center justify-between my-4">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                          Available Time Slots
+                        <h3 className="text-base sm:text-xs font-semibold text-gray-900">
+                          Available Slots {selectedDate}
                         </h3>
                         <button
                           onClick={() => setViewMode("calendar")}
@@ -1364,80 +1364,25 @@ export default function GroundDetailPage() {
       )}
 
       {/* Cancellation Modal */}
-      {showCancelModal && (
-        <div
-          className="modal-backdrop"
-          onClick={() => setShowCancelModal(false)}
-        >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Cancel Booking
-                </h2>
-                <button
-                  onClick={() => setShowCancelModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              <div className="mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Booking Details
-                </h3>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p>
-                    <strong>Customer:</strong> {selectedBooking?.customerName}
-                  </p>
-                  <p>
-                    <strong>Phone:</strong> {selectedBooking?.customerPhone}
-                  </p>
-                  <p>
-                    <strong>Date:</strong> {selectedBooking?.date}
-                  </p>
-                  <p>
-                    <strong>Time:</strong>{" "}
-                    {selectedBooking?.startTime && selectedBooking?.endTime
-                      ? `${formatTime(
-                          selectedBooking.startTime
-                        )} - ${formatTime(selectedBooking.endTime)}`
-                      : "N/A"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="label">Reason for Cancellation *</label>
-                <textarea
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                  className="input-field"
-                  placeholder="Please provide a reason for cancelling this booking..."
-                  rows={4}
-                  required
-                />
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowCancelModal(false)}
-                  className="btn-secondary flex-1"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmCancelBooking}
-                  className="btn-primary flex-1 bg-red-600 hover:bg-red-700"
-                >
-                  Confirm Cancellation
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <CancellationReasonModal
+        isOpen={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false);
+          setSelectedBooking(null);
+        }}
+        onConfirm={confirmCancelBooking}
+        title="Cancel Booking"
+        bookingDetails={selectedBooking ? {
+          customerName: selectedBooking.customerName,
+          customerPhone: selectedBooking.customerPhone,
+          groundName: ground?.name,
+          date: selectedBooking.date,
+          time: selectedBooking.startTime && selectedBooking.endTime
+            ? `${formatTime(selectedBooking.startTime)} - ${formatTime(selectedBooking.endTime)}`
+            : "N/A"
+        } : undefined}
+        loading={cancelling}
+      />
 
       {/* Image Modal */}
       {showImageModal &&

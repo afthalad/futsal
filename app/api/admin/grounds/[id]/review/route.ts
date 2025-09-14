@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromToken } from '@/lib/auth'
 import { updateGround } from '@/lib/firestore-server'
-import { sendSMS } from '@/lib/sms-service'
+import { sendGroundApprovalSMS, sendGroundRejectionSMS } from '@/lib/sms-service'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,16 +58,12 @@ export async function POST(
       const owner = await getUserById(ground.ownerId)
       
       if (owner) {
-        let smsMessage = ''
-        
-        if (action === 'APPROVE') {
-          smsMessage = `Your ground "${ground.name}" has been approved and is now live on our platform! Thank you for joining us.`
-        } else {
-          smsMessage = `Your ground "${ground.name}" has been rejected. Reason: ${reason}. Please review and resubmit with the necessary changes.`
-        }
-
         try {
-          await sendSMS(owner.phone, smsMessage)
+          if (action === 'APPROVE') {
+            await sendGroundApprovalSMS(owner.phone, ground.name)
+          } else {
+            await sendGroundRejectionSMS(owner.phone, ground.name, reason)
+          }
         } catch (smsError) {
           console.error('Failed to send SMS notification:', smsError)
           // Don't fail the request if SMS fails

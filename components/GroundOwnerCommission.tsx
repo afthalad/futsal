@@ -114,6 +114,11 @@ export default function GroundOwnerCommission() {
     )
   }
 
+  // Don't render the component if commission is 0 or null
+  if (!commission || commission.amount === 0) {
+    return null
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-sm border">
       {/* Header - Always visible */}
@@ -125,7 +130,7 @@ export default function GroundOwnerCommission() {
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-gray-900">Commission Due</h3>
-              <p className="text-xs sm:text-xs text-gray-600">1.5% commission from bookings</p>
+              <p className="text-xs sm:text-xs text-gray-600">1% commission from bookings</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

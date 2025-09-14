@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 import { getUserFromToken } from '@/lib/auth'
 import { getBookingById, updateBooking, getGroundById, updateCommissionAmount } from '@/lib/firestore-server'
 import { getBookingByIdInMemory, updateBookingInMemory, getGroundByIdInMemory } from '@/lib/memory-storage'
-import { sendBookingCancellationSMS } from '@/lib/sms'
+import { sendBookingCancellationToCustomer } from '@/lib/sms-service'
 
 export async function POST(
   request: NextRequest,
@@ -85,9 +85,10 @@ export async function POST(
       // Don't fail the cancellation if commission calculation fails
     }
 
-    // Send cancellation SMS to customer
+    // Send SMS notification only to customer
     try {
-      await sendBookingCancellationSMS(
+      // Send cancellation SMS to customer
+      await sendBookingCancellationToCustomer(
         booking.customerPhone,
         booking.customerName,
         ground.name,
@@ -102,7 +103,7 @@ export async function POST(
     }
 
     return NextResponse.json({ 
-      message: 'Booking cancelled successfully',
+      message: 'Booking cancelled successfully. SMS notification sent to customer.',
       booking: updatedBooking
     })
   } catch (error) {

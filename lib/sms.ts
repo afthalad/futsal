@@ -113,11 +113,11 @@ import {
 } from './sms-service'
 
 // SMS notification functions for booking confirmations
-export async function sendBookingNotification(phone: string, groundName: string, date: string, time: string) {
+export async function sendBookingNotification(phone: string, groundName: string, date: string, startTime: string, endTime: string) {
   try {
     // Use the new SMS service
-    const result = await sendBookingNotificationSMS(phone, groundName, date, time)
-    
+    const result = await sendBookingNotificationSMS(phone, groundName, date, startTime, endTime)
+      
     if (result.success) {
       console.log(`✅ Booking notification sent via ${result.provider}`)
     } else {
@@ -131,10 +131,10 @@ export async function sendBookingNotification(phone: string, groundName: string,
   }
 }
 
-export async function sendBookingConfirmation(phone: string, groundName: string, date: string, time: string) {
+export async function sendBookingConfirmation(phone: string, groundName: string, date: string, startTime: string, endTime: string) {
   try {
     // Use the new SMS service
-    const result = await sendBookingConfirmationSMS(phone, groundName, date, time)
+    const result = await sendBookingConfirmationSMS(phone, groundName, date, startTime, endTime)
     
     if (result.success) {
       console.log(`✅ Booking confirmation sent via ${result.provider}`)
@@ -149,9 +149,9 @@ export async function sendBookingConfirmation(phone: string, groundName: string,
   }
 }
 
-export async function sendBookingConfirmationToCustomer(phone: string, groundName: string, date: string, time: string, price: number) {
+export async function sendBookingConfirmationToCustomer(phone: string, groundName: string, date: string, startTime: string, endTime: string, price: number) {
   try {
-    const result = await sendBookingConfirmationToCustomerSMS(phone, groundName, date, time, price)
+    const result = await sendBookingConfirmationToCustomerSMS(phone, groundName, date, startTime, endTime, price)
     
     if (result.success) {
       console.log(`✅ Booking confirmation sent to customer via ${result.provider}`)
@@ -166,9 +166,9 @@ export async function sendBookingConfirmationToCustomer(phone: string, groundNam
   }
 }
 
-export async function sendBookingConfirmationToOwner(phone: string, groundName: string, date: string, time: string, customerName: string, customerPhone: string, price: number) {
+export async function sendBookingConfirmationToOwner(phone: string, groundName: string, date: string, startTime: string, endTime: string, customerName: string, customerPhone: string, price: number) {
   try {
-    const result = await sendBookingConfirmationToOwnerSMS(phone, groundName, date, time, customerName, customerPhone, price)
+    const result = await sendBookingConfirmationToOwnerSMS(phone, groundName, date, startTime, endTime, customerName, customerPhone, price)
     
     if (result.success) {
       console.log(`✅ Booking confirmation sent to owner via ${result.provider}`)

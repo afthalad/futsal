@@ -9,6 +9,7 @@ import toast from 'react-hot-toast'
 import ResponsiveTable from '@/components/ResponsiveTable'
 import GroundOwnerCommission from '@/components/GroundOwnerCommission'
 import Tooltip from '@/components/Tooltip'
+import CancellationReasonModal from '@/components/CancellationReasonModal'
 
 interface Ground {
   id: string
@@ -53,7 +54,6 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState< 'bookings'|'grounds'>('bookings')
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
-  const [cancelReason, setCancelReason] = useState('')
   const [cancelling, setCancelling] = useState(false)
   const [expandedSections, setExpandedSections] = useState({
     otherBookings: false,
@@ -217,9 +217,9 @@ export default function AdminDashboard() {
     setShowCancelModal(true)
   }
 
-  const confirmCancelBooking = async () => {
-    if (!selectedBooking || !cancelReason.trim()) {
-      toast.error('Please provide a cancellation reason')
+  const confirmCancelBooking = async (reason: string) => {
+    if (!selectedBooking) {
+      toast.error('No booking selected for cancellation')
       return
     }
 
@@ -232,7 +232,7 @@ export default function AdminDashboard() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ reason: cancelReason })
+        body: JSON.stringify({ reason: reason })
       })
 
       if (response.ok) {
@@ -242,13 +242,12 @@ export default function AdminDashboard() {
         setBookings(prevBookings => 
           prevBookings.map(booking => 
             booking.id === selectedBooking.id 
-              ? { ...booking, status: 'CANCELLED' }
+              ? { ...booking, status: 'CANCELLED', cancellationReason: reason }
               : booking
           )
         )
         
         setShowCancelModal(false)
-        setCancelReason('')
         setSelectedBooking(null)
         
         // Also refresh from server to ensure consistency
@@ -406,7 +405,7 @@ export default function AdminDashboard() {
                     <p className="text-gray-600 mb-4">Get started by adding your first futsal ground</p>
                     <button
                       onClick={() => router.push('/admin/grounds/new')}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center mx-auto"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Your First Ground
@@ -665,77 +664,23 @@ export default function AdminDashboard() {
       </div>
 
       {/* Cancellation Modal */}
-      {showCancelModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Cancel Booking</h3>
-              <button
-                onClick={() => {
-                  setShowCancelModal(false)
-                  setCancelReason('')
-                  setSelectedBooking(null)
-                }}
-                disabled={cancelling}
-                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {selectedBooking && (
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-2">Booking Details</h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>Customer:</strong> {selectedBooking.customerName}</p>
-                  <p><strong>Phone:</strong> {selectedBooking.customerPhone}</p>
-                  <p><strong>Ground:</strong> {selectedBooking.ground.name}</p>
-                  <p><strong>Date:</strong> {new Date(selectedBooking.date).toLocaleDateString('en-LK')}</p>
-                  <p><strong>Time:</strong> {formatTime(selectedBooking.startTime)} - {formatTime(selectedBooking.endTime)}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reason for Cancellation *
-              </label>
-              <textarea
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                disabled={cancelling}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="Please provide a reason for cancelling this booking..."
-                rows={3}
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowCancelModal(false)
-                  setCancelReason('')
-                  setSelectedBooking(null)
-                }}
-                disabled={cancelling}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmCancelBooking}
-                disabled={cancelling}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                {cancelling && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                )}
-                {cancelling ? 'Cancelling...' : 'Confirm Cancellation'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CancellationReasonModal
+        isOpen={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false);
+          setSelectedBooking(null);
+        }}
+        onConfirm={confirmCancelBooking}
+        title="Cancel Booking"
+        bookingDetails={selectedBooking ? {
+          customerName: selectedBooking.customerName,
+          customerPhone: selectedBooking.customerPhone,
+          groundName: selectedBooking.ground.name,
+          date: new Date(selectedBooking.date).toLocaleDateString('en-LK'),
+          time: `${formatTime(selectedBooking.startTime)} - ${formatTime(selectedBooking.endTime)}`
+        } : undefined}
+        loading={cancelling}
+      />
     </div>
   )
 }

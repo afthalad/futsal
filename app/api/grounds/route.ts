@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllGrounds, getAllGroundsWithOwnerInfo, createGround, getBookingsByGround } from '@/lib/firestore-server'
 import { getUserFromToken } from '@/lib/auth'
+import { sendGroundSubmissionSMS } from '@/lib/sms-service'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -128,6 +129,14 @@ export async function POST(request: NextRequest) {
       openingTime: data.openingTime || '06:00',
       closingTime: data.closingTime || '22:00',
       status: 'PENDING'
+    }
+
+    // Send SMS notification to ground owner
+    try {
+      await sendGroundSubmissionSMS(user.phone, data.name)
+    } catch (smsError) {
+      console.error('SMS notification error:', smsError)
+      // Don't fail the ground creation if SMS fails
     }
 
     return NextResponse.json({ ground })

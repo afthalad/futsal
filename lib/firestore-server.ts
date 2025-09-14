@@ -376,7 +376,7 @@ export const updateCommissionAmount = async (ownerId: string, bookingAmount: num
     const commissionRef = adminDb.collection('commission').doc(ownerId)
     const commissionDoc = await commissionRef.get()
     
-    const commissionAmount = bookingAmount * 0.015 // 1.5% commission
+    const commissionAmount = bookingAmount * 0.01 // 1.5% commission
     
     if (commissionDoc.exists) {
       const currentData = commissionDoc.data()

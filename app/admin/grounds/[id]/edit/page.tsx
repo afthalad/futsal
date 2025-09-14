@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Upload, X, Save, Trash2 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
+import UploadProgressBar from '@/components/UploadProgressBar'
 import toast from 'react-hot-toast'
 
 interface Ground {
@@ -48,6 +49,9 @@ export default function EditGroundPage() {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   const [wasRejected, setWasRejected] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadMessage, setUploadMessage] = useState('')
+  const [showProgressBar, setShowProgressBar] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -123,8 +127,18 @@ export default function EditGroundPage() {
     const files = e.target.files
     if (files) {
       setLoading(true)
+      setShowProgressBar(true)
+      setUploadProgress(0)
+      
       try {
-        const uploadPromises = Array.from(files).map(async (file) => {
+        const fileArray = Array.from(files)
+        const uploadedUrls: string[] = []
+        
+        for (let i = 0; i < fileArray.length; i++) {
+          const file = fileArray[i]
+          setUploadMessage(`Uploading image ${i + 1} of ${fileArray.length}...`)
+          setUploadProgress((i / fileArray.length) * 80)
+          
           const formData = new FormData()
           formData.append('image', file)
           
@@ -139,12 +153,15 @@ export default function EditGroundPage() {
           
           if (response.ok) {
             const data = await response.json()
-            return data.imageUrl
+            uploadedUrls.push(data.imageUrl)
+          } else {
+            throw new Error('Upload failed')
           }
-          throw new Error('Upload failed')
-        })
-
-        const uploadedUrls = await Promise.all(uploadPromises)
+        }
+        
+        setUploadMessage('Upload completed!')
+        setUploadProgress(100)
+        
         setFormData(prev => ({
           ...prev,
           images: [...prev.images, ...uploadedUrls]
@@ -153,6 +170,7 @@ export default function EditGroundPage() {
       } catch (error) {
         console.error('Error uploading images:', error)
         toast.error('Failed to upload images')
+        setShowProgressBar(false)
       } finally {
         setLoading(false)
       }
@@ -273,46 +291,47 @@ export default function EditGroundPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
           <button
             onClick={() => router.back()}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center text-gray-600 hover:text-gray-900 mb-4 text-sm sm:text-base"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </button>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Edit Ground</h1>
-              <p className="text-gray-600">Update the details of your futsal ground</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Edit Ground</h1>
+              <p className="text-sm sm:text-base text-gray-600">Update the details of your futsal ground</p>
             </div>
             <button
               onClick={handleDelete}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               disabled={loading}
             >
               <Trash2 className="h-4 w-4" />
-              Delete Ground
+              <span className="hidden sm:inline">Delete Ground</span>
+              <span className="sm:hidden">Delete</span>
             </button>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
           {/* Rejection Warning */}
           {wasRejected && ground?.rejectionReason && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">
+                  <h3 className="text-xs sm:text-sm font-medium text-yellow-800">
                     Ground Previously Rejected
                   </h3>
-                  <div className="mt-2 text-sm text-yellow-700">
+                  <div className="mt-2 text-xs sm:text-sm text-yellow-700">
                     <p><strong>Rejection Reason:</strong> {ground.rejectionReason}</p>
                     <p className="mt-1">Making changes will resubmit this ground for review.</p>
                   </div>
@@ -321,125 +340,103 @@ export default function EditGroundPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="label">Ground Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Ground Name *</label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Enter ground name"
                   required
                 />
               </div>
 
               <div>
-                <label className="label">City *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">City *</label>
                 <select
                   name="city"
                   value={formData.city}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   required
                 >
                   <option value="">Select City</option>
-                  <option value="Colombo">Colombo</option>
-                  <option value="Gampaha">Gampaha</option>
-                  <option value="Kalutara">Kalutara</option>
-                  <option value="Kandy">Kandy</option>
-                  <option value="Matale">Matale</option>
-                  <option value="Nuwara Eliya">Nuwara Eliya</option>
-                  <option value="Galle">Galle</option>
-                  <option value="Matara">Matara</option>
-                  <option value="Hambantota">Hambantota</option>
-                  <option value="Jaffna">Jaffna</option>
-                  <option value="Kilinochchi">Kilinochchi</option>
-                  <option value="Mannar">Mannar</option>
-                  <option value="Vavuniya">Vavuniya</option>
-                  <option value="Mullaitivu">Mullaitivu</option>
-                  <option value="Batticaloa">Batticaloa</option>
-                  <option value="Ampara">Ampara</option>
-                  <option value="Trincomalee">Trincomalee</option>
-                  <option value="Kurunegala">Kurunegala</option>
+                  
                   <option value="Puttalam">Puttalam</option>
-                  <option value="Anuradhapura">Anuradhapura</option>
-                  <option value="Polonnaruwa">Polonnaruwa</option>
-                  <option value="Badulla">Badulla</option>
-                  <option value="Monaragala">Monaragala</option>
-                  <option value="Ratnapura">Ratnapura</option>
-                  <option value="Kegalle">Kegalle</option>
+                  
                 </select>
               </div>
 
               <div className="md:col-span-2">
-                <label className="label">Location *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Location *</label>
                 <input
                   type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Enter full address"
                   required
                 />
               </div>
 
               <div>
-                <label className="label">Contact Phone *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Contact Phone *</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Enter phone number"
                   required
                 />
               </div>
 
               <div>
-                <label className="label">Secondary Phone</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Secondary Phone</label>
                 <input
                   type="tel"
                   name="secondaryPhone"
                   value={formData.secondaryPhone}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Enter secondary phone number"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="label">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Description</label>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={3}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Describe your ground facilities and features"
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Pricing</h2>
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Pricing</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="label">Morning Price (LKR) *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Morning Price (LKR) *</label>
                 <input
                   type="number"
                   name="morningPrice"
                   value={formData.morningPrice}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Enter morning price"
                   min="0"
                   step="100"
@@ -449,13 +446,13 @@ export default function EditGroundPage() {
               </div>
 
               <div>
-                <label className="label">Evening Price (LKR) *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Evening Price (LKR) *</label>
                 <input
                   type="number"
                   name="eveningPrice"
                   value={formData.eveningPrice}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Enter evening price"
                   min="0"
                   step="100"
@@ -466,48 +463,48 @@ export default function EditGroundPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Operating Hours</h2>
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Operating Hours</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="label">Opening Time</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Opening Time</label>
                 <input
                   type="time"
                   name="openingTime"
                   value={formData.openingTime}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 />
               </div>
 
               <div>
-                <label className="label">Closing Time</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Closing Time</label>
                 <input
                   type="time"
                   name="closingTime"
                   value={formData.closingTime}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Amenities</h2>
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Amenities</h2>
             
             <div className="flex flex-wrap gap-2 mb-4">
               {formData.amenities.map((amenity, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-primary-100 text-primary-800 text-sm rounded-full flex items-center"
+                  className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 text-xs sm:text-sm rounded-full flex items-center"
                 >
                   {amenity}
                   <button
                     type="button"
                     onClick={() => handleRemoveAmenity(amenity)}
-                    className="ml-2 text-primary-600 hover:text-primary-800"
+                    className="ml-1 sm:ml-2 text-blue-600 hover:text-blue-800"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -515,40 +512,40 @@ export default function EditGroundPage() {
               ))}
             </div>
 
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <input
                 type="text"
                 value={amenityInput}
                 onChange={(e) => setAmenityInput(e.target.value)}
-                className="input-field flex-1"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 placeholder="Add amenity (e.g., Parking, Changing Room, Water)"
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAmenity())}
               />
               <button
                 type="button"
                 onClick={handleAddAmenity}
-                className="btn-secondary"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
               >
                 Add
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Images</h2>
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Images</h2>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mb-4">
               {formData.images.map((image, index) => (
                 <div key={index} className="relative">
                   <img
                     src={image}
                     alt={`Ground ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-lg"
+                    className="w-full h-20 sm:h-24 object-cover rounded-lg"
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -556,9 +553,9 @@ export default function EditGroundPage() {
               ))}
             </div>
 
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 mb-2">Upload additional ground images</p>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center">
+              <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-xs sm:text-sm text-gray-600 mb-2">Upload additional ground images</p>
               <input
                 type="file"
                 multiple
@@ -569,25 +566,25 @@ export default function EditGroundPage() {
               />
               <label
                 htmlFor="image-upload"
-                className="btn-outline cursor-pointer"
+                className="inline-block px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 cursor-pointer text-sm sm:text-base"
               >
                 Choose Images
               </label>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4">
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
             <button
               type="button"
               onClick={() => router.back()}
-              className="btn-secondary px-6 py-2"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-primary flex items-center gap-2 px-6 py-2"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-2 text-sm sm:text-base"
               disabled={loading}
             >
               <Save className="h-4 w-4" />
@@ -596,6 +593,14 @@ export default function EditGroundPage() {
           </div>
         </form>
       </div>
+
+      {/* Upload Progress Bar */}
+      <UploadProgressBar
+        isVisible={showProgressBar}
+        progress={uploadProgress}
+        message={uploadMessage}
+        onComplete={() => setShowProgressBar(false)}
+      />
     </div>
   )
 }

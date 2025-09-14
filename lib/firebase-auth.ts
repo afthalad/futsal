@@ -21,15 +21,17 @@ export const sendOTP = async (phoneNumber: string): Promise<{ success: boolean; 
     
     console.log('📱 Sending OTP via Firebase to:', formattedPhone)
     
-    // Check if reCAPTCHA container exists
-    let recaptchaContainer = document.getElementById('recaptcha-container')
-    if (!recaptchaContainer) {
-      // Create reCAPTCHA container if it doesn't exist
-      recaptchaContainer = document.createElement('div')
-      recaptchaContainer.id = 'recaptcha-container'
-      recaptchaContainer.style.display = 'none'
-      document.body.appendChild(recaptchaContainer)
+    // Clean up any existing reCAPTCHA containers
+    const existingContainer = document.getElementById('recaptcha-container')
+    if (existingContainer) {
+      existingContainer.remove()
     }
+    
+    // Create fresh reCAPTCHA container
+    const recaptchaContainer = document.createElement('div')
+    recaptchaContainer.id = 'recaptcha-container'
+    recaptchaContainer.style.display = 'none'
+    document.body.appendChild(recaptchaContainer)
     
     // Initialize reCAPTCHA verifier (invisible)
     const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
@@ -57,8 +59,20 @@ export const sendOTP = async (phoneNumber: string): Promise<{ success: boolean; 
         error: error.message || 'Failed to send OTP' 
       }
     } finally {
-      // Clean up reCAPTCHA verifier
-      recaptchaVerifier.clear()
+      // Clean up reCAPTCHA verifier and container
+      try {
+        recaptchaVerifier.clear()
+      } catch (e) {
+        console.log('reCAPTCHA verifier already cleared')
+      }
+      
+      // Remove the container after a short delay to ensure cleanup
+      setTimeout(() => {
+        const container = document.getElementById('recaptcha-container')
+        if (container) {
+          container.remove()
+        }
+      }, 1000)
     }
   } catch (error: any) {
     console.error('Firebase sendOTP error:', error)

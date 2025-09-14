@@ -75,7 +75,9 @@ export default function BookingModal({
       const data = await response.json()
 
       if (response.ok) {
-        toast.success('Booking confirmed! You will receive a confirmation SMS shortly.')
+        toast.success('Booking confirmed! You will receive a confirmation SMS shortly.',{
+          duration: 1000,
+        })
         onClose()
         setFormData({ customerName: '', customerPhone: '' })
         // Refresh the parent component data
@@ -162,7 +164,7 @@ export default function BookingModal({
                 required
               />
               <p className="text-xs text-gray-500 mt-1">
-                Enter your Sri Lankan phone number (10 digits starting with 0)
+                Enter your phone number (10 digits starting with 0)
               </p>
             </div>
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Upload, X, Camera, Plus } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import PhotoSelectionModal from '@/components/PhotoSelectionModal'
+import UploadProgressBar from '@/components/UploadProgressBar'
 import { compressAndConvertToWebP, validateImageFile, getFileSize } from '@/lib/image-utils'
 import toast from 'react-hot-toast'
 
@@ -27,6 +28,9 @@ export default function NewGroundPage() {
   const [loading, setLoading] = useState(false)
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [uploadingImages, setUploadingImages] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadMessage, setUploadMessage] = useState('')
+  const [showProgressBar, setShowProgressBar] = useState(false)
   const router = useRouter()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -64,6 +68,9 @@ export default function NewGroundPage() {
 
   const processAndUploadImage = async (file: File) => {
     setUploadingImages(true)
+    setShowProgressBar(true)
+    setUploadProgress(0)
+    
     try {
       // Validate file
       const validation = validateImageFile(file)
@@ -74,7 +81,8 @@ export default function NewGroundPage() {
 
       // Show file size info
       const originalSize = getFileSize(file.size)
-      toast.loading(`Processing image (${originalSize})...`)
+      setUploadMessage(`Processing image (${originalSize})...`)
+      setUploadProgress(20)
 
       // Compress and convert to WebP
       const compressedFile = await compressAndConvertToWebP(file, {
@@ -84,7 +92,8 @@ export default function NewGroundPage() {
       })
 
       const compressedSize = getFileSize(compressedFile.size)
-      toast.loading(`Uploading compressed image (${compressedSize})...`)
+      setUploadMessage(`Uploading compressed image (${compressedSize})...`)
+      setUploadProgress(60)
 
       // Upload to server
       const formData = new FormData()
@@ -99,12 +108,16 @@ export default function NewGroundPage() {
         body: formData
       })
       
+      setUploadProgress(90)
+      
       if (response.ok) {
         const data = await response.json()
         setFormData(prev => ({
           ...prev,
           images: [...prev.images, data.imageUrl]
         }))
+        setUploadMessage('Upload completed!')
+        setUploadProgress(100)
         toast.success(`Image uploaded successfully! (${originalSize} → ${compressedSize})`)
       } else {
         throw new Error('Upload failed')
@@ -112,6 +125,7 @@ export default function NewGroundPage() {
     } catch (error) {
       console.error('Image upload error:', error)
       toast.error('Failed to upload image')
+      setShowProgressBar(false)
     } finally {
       setUploadingImages(false)
       setShowPhotoModal(false)
@@ -458,6 +472,14 @@ export default function NewGroundPage() {
         onClose={() => setShowPhotoModal(false)}
         onPhotoTaken={handlePhotoTaken}
         onFileSelected={handleFileSelected}
+      />
+
+      {/* Upload Progress Bar */}
+      <UploadProgressBar
+        isVisible={showProgressBar}
+        progress={uploadProgress}
+        message={uploadMessage}
+        onComplete={() => setShowProgressBar(false)}
       />
     </div>
   )

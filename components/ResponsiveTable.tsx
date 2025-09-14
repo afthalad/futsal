@@ -68,7 +68,7 @@ export default function ResponsiveTable({ bookings, onCancelBooking }: Responsiv
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  {booking.cancellationReason}
+                  {booking.ground.name}
                 </p>
                 {/* <p className="text-sm text-gray-500 mt-1">
                   {booking.ground.name}

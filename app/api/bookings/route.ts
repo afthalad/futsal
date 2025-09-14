@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllBookings, getBookingsByUser, getBookingsByGround, createBooking, getGroundById, getGroundsByOwner, updateCommissionAmount } from '@/lib/firestore-server'
 import { getUserFromToken } from '@/lib/auth'
-import { sendBookingConfirmationToCustomer, sendBookingConfirmationToOwner } from '@/lib/sms'
+import { sendBookingConfirmationToCustomer, sendBookingConfirmationToOwner } from '@/lib/sms-service'
 import { isMorningSlot } from '@/lib/utils'
 
 // Force dynamic rendering for this route
@@ -139,7 +139,8 @@ export async function POST(request: NextRequest) {
         customerPhone,
         ground.name,
         date,
-        `${startTime} - ${endTime}`,
+        startTime,
+        endTime,
         price
       )
 
@@ -148,7 +149,8 @@ export async function POST(request: NextRequest) {
         ground.phone, // Using ground phone as owner contact
         ground.name,
         date,
-        `${startTime} - ${endTime}`,
+        startTime,
+        endTime,
         customerName,
         customerPhone,
         price

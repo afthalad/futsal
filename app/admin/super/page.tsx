@@ -8,6 +8,7 @@ import { formatTime, formatFirebaseDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import SuperAdminTopUpSystem from '@/components/SuperAdminTopUpSystem'
 import DisableReasonModal from '@/components/DisableReasonModal'
+import CancellationReasonModal from '@/components/CancellationReasonModal'
 import Tooltip from '@/components/Tooltip'
 
 interface User {
@@ -70,8 +71,13 @@ export default function SuperAdminPage() {
   const [disabling, setDisabling] = useState(false)
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
-  const [cancelReason, setCancelReason] = useState('')
   const [cancelling, setCancelling] = useState(false)
+  const [commissionStats, setCommissionStats] = useState({
+    totalCommissionDue: 0,
+    totalGroundOwners: 0,
+    groundOwnersWithDues: 0,
+    pendingCommissions: 0
+  })
   const router = useRouter()
 
   useEffect(() => {
@@ -94,6 +100,7 @@ export default function SuperAdminPage() {
     fetchUsers()
     fetchGrounds()
     fetchBookings()
+    fetchCommissionStats()
   }, [])
 
   const checkAuth = async () => {
@@ -220,6 +227,31 @@ export default function SuperAdminPage() {
       toast.error('Failed to load bookings')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCommissionStats = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/admin/commission', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCommissionStats({
+          totalCommissionDue: data.totalAmount || 0,
+          totalGroundOwners: data.commissions?.length || 0,
+          groundOwnersWithDues: data.commissions?.filter((c: any) => c.amount > 0).length || 0,
+          pendingCommissions: data.pendingCount || 0
+        })
+      } else {
+        console.error('Failed to fetch commission stats')
+      }
+    } catch (error) {
+      console.error('Error fetching commission stats:', error)
     }
   }
 
@@ -422,9 +454,9 @@ export default function SuperAdminPage() {
     setShowCancelBookingModal(true)
   }
 
-  const confirmCancelBooking = async () => {
-    if (!selectedBooking || !cancelReason.trim()) {
-      toast.error('Please provide a reason for cancellation')
+  const confirmCancelBooking = async (reason: string) => {
+    if (!selectedBooking) {
+      toast.error('No booking selected for cancellation')
       return
     }
 
@@ -437,13 +469,12 @@ export default function SuperAdminPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ reason: cancelReason })
+        body: JSON.stringify({ reason: reason })
       })
 
       if (response.ok) {
         toast.success('Booking cancelled successfully. SMS notifications sent to customer and ground owner.')
         setShowCancelBookingModal(false)
-        setCancelReason('')
         setSelectedBooking(null)
         fetchBookings() // Refresh bookings
       } else {
@@ -505,45 +536,83 @@ export default function SuperAdminPage() {
         </div> */}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 rounded-lg">
-                <MapPin className="h-6 w-6 text-orange-600" />
+                <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Grounds</p>
-                <p className="text-2xl font-bold text-gray-900">{grounds.length}</p>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Grounds</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{grounds.length}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
               <div className="p-2 bg-indigo-100 rounded-lg">
-                <Calendar className="h-6 w-6 text-indigo-600" />
+                <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Bookings</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{bookings.length}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
-                <Clock className="h-6 w-6 text-green-600" />
+                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Today's Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Today's Bookings</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">
                   {bookings.filter(booking => {
                     const today = new Date().toDateString()
                     const bookingDate = new Date(booking.date).toDateString()
                     return today === bookingDate
                   }).length}
                 </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              </div>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Commission Due</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">
+                  Rs. {commissionStats.totalCommissionDue.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+              </div>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Ground Owners</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{commissionStats.totalGroundOwners}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <User className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+              </div>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">With Dues</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{commissionStats.groundOwnersWithDues}</p>
               </div>
             </div>
           </div>
@@ -625,19 +694,19 @@ export default function SuperAdminPage() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             User
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="hidden sm:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Role
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Last Updated
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -645,22 +714,27 @@ export default function SuperAdminPage() {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {users.sort((a, b) => b.createdAt._seconds - a.createdAt._seconds).map((user) => (
                           <tr key={user.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <div>
                                 <div className="text-sm font-medium text-gray-900">
                                   {user.name || 'No name'}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-xs sm:text-sm text-gray-500">
                                   {user.phone}
+                                </div>
+                                <div className="sm:hidden mt-1">
+                                  <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>
+                                    {user.role}
+                                  </span>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="hidden sm:table-cell px-3 sm:px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>
                                 {user.role}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <Tooltip content={user.disableReason ? `Disabled reason: ${user.disableReason}` : ''}>
                                 <span className={`px-2 py-1 text-xs rounded-full ${
                                   user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -669,10 +743,10 @@ export default function SuperAdminPage() {
                                 </span>
                               </Tooltip>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td className="hidden md:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {formatFirebaseDate(user.updatedAt || user.createdAt)}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
                                 <button
                                   onClick={() => handleToggleUser(user.id, user.name || user.phone, user.isActive)}
@@ -757,19 +831,19 @@ export default function SuperAdminPage() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Ground
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="hidden sm:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Owner
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Location
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -777,12 +851,20 @@ export default function SuperAdminPage() {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {grounds.sort((a, b) => b.createdAt._seconds - a.createdAt._seconds).map((ground) => (
                           <tr key={ground.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-gray-900">
                                 {ground.name}
                               </div>
+                              <div className="sm:hidden mt-1">
+                                <div className="text-xs text-gray-500">
+                                  {ground.owner.name || 'No name'} - {ground.owner.phone}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {ground.location}, {ground.city}
+                                </div>
+                              </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="hidden sm:table-cell px-3 sm:px-6 py-4 whitespace-nowrap">
                               <div>
                                 <div className="text-sm font-medium text-gray-900">
                                   {ground.owner.name || 'No name'}
@@ -792,17 +874,17 @@ export default function SuperAdminPage() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td className="hidden md:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {ground.location}, {ground.city}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 py-1 text-xs rounded-full ${
                                 ground.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                               }`}>
                                 {ground.isActive ? 'Active' : 'Disabled'}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
                                 <button
                                   onClick={() => router.push(`/grounds/${ground.id}`)}
@@ -870,28 +952,28 @@ export default function SuperAdminPage() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Customer
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="hidden sm:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Ground
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Date & Time
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Price
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="hidden lg:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Reason
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="hidden xl:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Last Updated
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -899,18 +981,26 @@ export default function SuperAdminPage() {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {bookings.sort((a, b) => b.createdAt._seconds - a.createdAt._seconds).map((booking) => (
                           <tr key={booking.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <div>
                                 <div className="text-sm font-normal text-gray-900">
                                   {booking.customerName}
                                 </div>
-                                <div className="text-sm text-gray-500 flex items-center">
+                                <div className="text-xs sm:text-sm text-gray-500 flex items-center">
                                   <Phone className="h-3 w-3 mr-1" />
                                   {booking.customerPhone}
                                 </div>
+                                <div className="sm:hidden mt-1">
+                                  <div className="text-xs text-gray-500">
+                                    {booking.ground?.name || 'Ground not found'}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Rs. {booking.price.toLocaleString()}
+                                  </div>
+                                </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="hidden sm:table-cell px-3 sm:px-6 py-4 whitespace-nowrap">
                               <div>
                                 <div className="text-sm font-normal text-gray-900">
                                   {booking.ground?.name || 'Ground not found'}
@@ -920,20 +1010,20 @@ export default function SuperAdminPage() {
                                 </div>
                               </div>
                             </td>
-                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                             <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                <div>
                                  {new Date(booking.date).toLocaleDateString('en-LK')}
                                </div>
-                               <div className="text-sm text-gray-500 flex items-center">
+                               <div className="text-xs sm:text-sm text-gray-500 flex items-center">
                                  <Clock className="h-3 w-3 mr-1" />
                                  {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                                </div>
                              </td>
 
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                            <td className="hidden md:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                               Rs. {booking.price.toLocaleString()}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 py-1 text-xs rounded-full ${
                                 booking.status === 'CANCELLED' || booking.status === 'cancelled'
                                   ? 'bg-red-100 text-red-800'
@@ -942,7 +1032,7 @@ export default function SuperAdminPage() {
                                 {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? 'Cancelled' : 'Active'}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td className="hidden lg:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               <Tooltip content={booking.cancellationReason || 'No reason provided'}>
                                 <div className="truncate max-w-xs cursor-help">
                                   {booking.cancellationReason ? (booking.cancellationReason.length > 10 ? booking.cancellationReason.substring(0, 10) + '...' : booking.cancellationReason) : '-'}
@@ -951,27 +1041,27 @@ export default function SuperAdminPage() {
                             </td>
                       
 
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <td className="hidden xl:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {formatFirebaseDate(booking.updatedAt || booking.createdAt)}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div className="flex space-x-2">
+                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
                                   <button
                                     onClick={() => router.push(`/admin/bookings/${booking.id}/edit`)}
-                                    className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                                    className="text-blue-600 hover:text-blue-900 flex items-center justify-center gap-1 px-2 py-1 rounded text-xs bg-blue-50 hover:bg-blue-100"
                                     title="Edit Booking"
                                   >
-                                    <Edit className="h-4 w-4" />
-                                    Edit
+                                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                                    <span className="hidden sm:inline">Edit</span>
                                   </button>
                                   {booking.status !== 'CANCELLED' && booking.status !== 'cancelled' && (
                                     <button
                                       onClick={() => handleCancelBooking(booking)}
-                                      className="text-red-600 hover:text-red-900 flex items-center gap-1"
+                                      className="text-red-600 hover:text-red-900 flex items-center justify-center gap-1 px-2 py-1 rounded text-xs bg-red-50 hover:bg-red-100"
                                       title="Cancel Booking"
                                     >
-                                      <X className="h-4 w-4" />
-                                      Cancel
+                                      <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                                      <span className="hidden sm:inline">Cancel</span>
                                     </button>
                                   )}
                                 </div>
@@ -1007,76 +1097,23 @@ export default function SuperAdminPage() {
       />
 
       {/* Booking Cancellation Modal */}
-      {showCancelBookingModal && selectedBooking && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Cancel Booking</h3>
-              <button
-                onClick={() => {
-                  setShowCancelBookingModal(false)
-                  setCancelReason('')
-                  setSelectedBooking(null)
-                }}
-                disabled={cancelling}
-                className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="font-medium text-gray-900 mb-2">Booking Details</h4>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p><strong>Customer:</strong> {selectedBooking.customerName}</p>
-                <p><strong>Phone:</strong> {selectedBooking.customerPhone}</p>
-                <p><strong>Ground:</strong> {selectedBooking.ground?.name || 'Ground not found'}</p>
-                <p><strong>Date:</strong> {new Date(selectedBooking.date).toLocaleDateString('en-LK')}</p>
-                <p><strong>Time:</strong> {formatTime(selectedBooking.startTime)} - {formatTime(selectedBooking.endTime)}</p>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reason for Cancellation *
-              </label>
-              <textarea
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                disabled={cancelling}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:opacity-50"
-                placeholder="Please provide a reason for cancelling this booking..."
-                rows={3}
-                required
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowCancelBookingModal(false)
-                  setCancelReason('')
-                  setSelectedBooking(null)
-                }}
-                disabled={cancelling}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmCancelBooking}
-                disabled={cancelling || !cancelReason.trim()}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                {cancelling && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                )}
-                {cancelling ? 'Cancelling...' : 'Confirm Cancellation'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CancellationReasonModal
+        isOpen={showCancelBookingModal}
+        onClose={() => {
+          setShowCancelBookingModal(false);
+          setSelectedBooking(null);
+        }}
+        onConfirm={confirmCancelBooking}
+        title="Cancel Booking"
+        bookingDetails={selectedBooking ? {
+          customerName: selectedBooking.customerName,
+          customerPhone: selectedBooking.customerPhone,
+          groundName: selectedBooking.ground?.name || 'Ground not found',
+          date: new Date(selectedBooking.date).toLocaleDateString('en-LK'),
+          time: `${formatTime(selectedBooking.startTime)} - ${formatTime(selectedBooking.endTime)}`
+        } : undefined}
+        loading={cancelling}
+      />
     </div>
   )
 }
