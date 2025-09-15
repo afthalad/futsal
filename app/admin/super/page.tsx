@@ -599,7 +599,7 @@ export default function SuperAdminPage() {
                 <Users className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
               </div>
               <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Ground Owners</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Owners</p>
                 <p className="text-lg sm:text-2xl font-bold text-gray-900">{commissionStats.totalGroundOwners}</p>
               </div>
             </div>
