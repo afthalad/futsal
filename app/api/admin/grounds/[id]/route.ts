@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 
 import { getUserFromToken } from '@/lib/auth'
-import { deleteGround, getGroundById } from '@/lib/firestore-server'
+import { deleteGround, getGroundById, getBookingsByGround } from '@/lib/firestore-server'
 import { deleteGroundInMemory, getGroundByIdInMemory } from '@/lib/memory-storage'
 
 export async function DELETE(
@@ -20,7 +20,12 @@ export async function DELETE(
 
     const user = await getUserFromToken(token)
     
+    // Debug logging
+    console.log('Delete Ground - User:', user)
+    console.log('Delete Ground - User Role:', user?.role)
+    
     if (!user || user.role !== 'SUPER_ADMIN') {
+      console.log('Delete Ground - Access denied. User role:', user?.role, 'Expected: SUPER_ADMIN')
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -34,6 +39,19 @@ export async function DELETE(
 
     if (!targetGround) {
       return NextResponse.json({ error: 'Ground not found' }, { status: 404 })
+    }
+
+    // Check if ground has any bookings
+    try {
+      const bookings = await getBookingsByGround(params.id)
+      if (bookings && bookings.length > 0) {
+        return NextResponse.json({ 
+          error: 'Cannot delete ground with existing bookings. Please cancel all bookings first.' 
+        }, { status: 400 })
+      }
+    } catch (error) {
+      console.error('Error checking bookings:', error)
+      // Continue with deletion if we can't check bookings
     }
 
     // Delete ground

@@ -75,6 +75,8 @@ export async function POST(
     })
 
     // Send SMS notifications using Text.lk
+    // DISABLED: SMS notifications temporarily disabled for release
+    /*
     try {
       // SMS to customer
       if (bookingData?.customerPhone) {
@@ -123,10 +125,11 @@ export async function POST(
       console.error('SMS notification failed:', smsError)
       // Don't fail the cancellation if SMS fails
     }
+    */
 
     return NextResponse.json({ 
       success: true,
-      message: 'Booking cancelled successfully. SMS notifications sent to customer, ground owner, and super admin.'
+      message: 'Booking cancelled successfully.'
     })
   } catch (error) {
     console.error('Cancel Booking Error:', error)

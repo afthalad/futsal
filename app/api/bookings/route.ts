@@ -133,6 +133,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Send SMS notifications to both customer and ground owner
+    // DISABLED: SMS notifications temporarily disabled for release
+    /*
     try {
       // Send confirmation SMS to customer
       await sendBookingConfirmationToCustomer(
@@ -159,6 +161,7 @@ export async function POST(request: NextRequest) {
       console.error('SMS notification error:', smsError)
       // Don't fail the booking if SMS fails
     }
+    */
 
     return NextResponse.json({ booking })
   } catch (error) {

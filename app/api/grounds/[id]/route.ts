@@ -126,6 +126,24 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    // Check if ground exists and belongs to the user
+    const ground = await getGroundById(params.id)
+    if (!ground) {
+      return NextResponse.json({ error: 'Ground not found' }, { status: 404 })
+    }
+
+    if (ground.ownerId !== user.id) {
+      return NextResponse.json({ error: 'You can only delete your own grounds' }, { status: 403 })
+    }
+
+    // Check if ground has any bookings
+    const bookings = await getBookingsByGround(params.id)
+    if (bookings && bookings.length > 0) {
+      return NextResponse.json({ 
+        error: 'Cannot delete ground with existing bookings. Please cancel all bookings first.' 
+      }, { status: 400 })
+    }
+
     await deleteGround(params.id)
 
     return NextResponse.json({ message: 'Ground deleted successfully' })

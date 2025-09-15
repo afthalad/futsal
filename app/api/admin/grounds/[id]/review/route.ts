@@ -58,6 +58,8 @@ export async function POST(
       const owner = await getUserById(ground.ownerId)
       
       if (owner) {
+        // DISABLED: SMS notifications temporarily disabled for release
+        /*
         try {
           if (action === 'APPROVE') {
             await sendGroundApprovalSMS(owner.phone, ground.name)
@@ -68,6 +70,7 @@ export async function POST(
           console.error('Failed to send SMS notification:', smsError)
           // Don't fail the request if SMS fails
         }
+        */
       }
     }
 

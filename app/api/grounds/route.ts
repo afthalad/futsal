@@ -132,12 +132,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Send SMS notification to ground owner
+    // DISABLED: SMS notifications temporarily disabled for release
+    /*
     try {
       await sendGroundSubmissionSMS(user.phone, data.name)
     } catch (smsError) {
       console.error('SMS notification error:', smsError)
       // Don't fail the ground creation if SMS fails
     }
+    */
 
     return NextResponse.json({ ground })
   } catch (error) {

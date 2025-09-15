@@ -86,6 +86,8 @@ export async function POST(
     }
 
     // Send SMS notification only to customer
+    // DISABLED: SMS notifications temporarily disabled for release
+    /*
     try {
       // Send cancellation SMS to customer
       await sendBookingCancellationToCustomer(
@@ -101,9 +103,10 @@ export async function POST(
       console.error('Error sending cancellation SMS:', error)
       // Don't fail the request if SMS fails
     }
+    */
 
     return NextResponse.json({ 
-      message: 'Booking cancelled successfully. SMS notification sent to customer.',
+      message: 'Booking cancelled successfully.',
       booking: updatedBooking
     })
   } catch (error) {
