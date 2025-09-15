@@ -301,8 +301,18 @@ export default function AdminDashboard() {
   }
 
   const handleViewGround = (ground: Ground) => {
-    setSelectedGroundForView(ground)
-    setShowGroundViewModal(true)
+    if (ground.status === 'PENDING') {
+      // Show modal for under review grounds
+      setSelectedGroundForView(ground)
+      setShowGroundViewModal(true)
+    } else if (ground.status === 'APPROVED') {
+      // Redirect to public ground details page for approved grounds
+      router.push(`/grounds/${ground.id}`)
+    } else {
+      // For rejected grounds, show modal
+      setSelectedGroundForView(ground)
+      setShowGroundViewModal(true)
+    }
   }
 
   const totalRevenue = bookings.reduce((sum, booking) => sum + booking.price, 0)
