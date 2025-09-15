@@ -437,7 +437,7 @@ export default function NewGroundPage() {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Images will be automatically compressed and converted to WebP format
+                Images will be uploaded 
               </p>
               {uploadingImages && (
                 <div className="mt-2">
