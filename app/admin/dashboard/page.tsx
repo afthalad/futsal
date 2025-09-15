@@ -410,13 +410,15 @@ export default function AdminDashboard() {
               <div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3">
                   <h2 className="text-base sm:text-lg font-semibold text-gray-900">My Grounds</h2>
+
+                  {grounds.length !== 0 && (
                   <button
                     onClick={() => router.push('/admin/grounds/new')}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center"
                   >
                     <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Add New Ground
-                  </button>
+                  </button>)}
                 </div>
 
                 {groundsLoading ? (
