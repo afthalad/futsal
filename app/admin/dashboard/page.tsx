@@ -66,13 +66,29 @@ export default function AdminDashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    checkAuth()
+    const initializeDashboard = async () => {
+      await checkAuth()
+      // Only fetch data after authentication is successful
+      fetchGrounds()
+      fetchBookings()
+    }
+    initializeDashboard()
   }, [])
 
+  // Set main loading to false when both data fetches are complete
   useEffect(() => {
-    // Load both grounds and bookings on page load
-    fetchGrounds()
-    fetchBookings()
+    if (!groundsLoading && !bookingsLoading) {
+      setLoading(false)
+    }
+  }, [groundsLoading, bookingsLoading])
+
+  // Fallback: Set loading to false after a timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setLoading(false)
+    }, 10000) // 10 second timeout
+
+    return () => clearTimeout(timeout)
   }, [])
 
   useEffect(() => {
@@ -135,8 +151,11 @@ export default function AdminDashboard() {
         router.push('/')
         return
       }
+
+      // Authentication successful, allow data fetching to proceed
+      // The loading state will be set to false when data fetching completes
     } catch (error) {
-      console.error('Auth check failed:', error)
+      // console.error('Auth check failed:', error)
       router.push('/auth/login')
     }
   }
@@ -153,10 +172,12 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         const data = await response.json()
-        setGrounds(data.grounds)
+        setGrounds(data.grounds || [])
+      } else {
+        console.error('Failed to fetch grounds:', response.status)
       }
     } catch (error) {
-      // console.error('Error fetching grounds:', error)
+      console.error('Error fetching grounds:', error)
     } finally {
       setGroundsLoading(false)
     }
@@ -175,7 +196,7 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json()
         // Sort bookings to show today's bookings first
-        const sortedBookings = data.bookings.sort((a: Booking, b: Booking) => {
+        const sortedBookings = (data.bookings || []).sort((a: Booking, b: Booking) => {
           const today = new Date().toDateString()
           const aDate = new Date(a.date).toDateString()
           const bDate = new Date(b.date).toDateString()
@@ -200,9 +221,11 @@ export default function AdminDashboard() {
         })
         
         setBookings(sortedBookings)
+      } else {
+        console.error('Failed to fetch bookings:', response.status)
       }
     } catch (error) {
-      // console.error('Error fetching bookings:', error)
+      console.error('Error fetching bookings:', error)
     } finally {
       setBookingsLoading(false)
     }
