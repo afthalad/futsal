@@ -68,13 +68,14 @@ export default function ResponsiveTable({ bookings, onCancelBooking }: Responsiv
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  {booking.ground.name}
+                  {booking.customerPhone}
                 </p>
                 {/* <p className="text-sm text-gray-500 mt-1">
                   {booking.ground.name}
                 </p> */}
                 <p className="text-sm font-medium text-primary-600 mt-1">
-                  {formatPrice(booking.price)}
+                  {/* {formatPrice(booking.price)} */}
+                  {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -96,13 +97,13 @@ export default function ResponsiveTable({ bookings, onCancelBooking }: Responsiv
               <div className="pt-4 space-y-3">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500">Phone:</span>
-                    <p className="font-medium text-gray-900">{booking.customerPhone}</p>
+                    <span className="text-gray-500">Ground:</span>
+                    <p className="font-medium text-gray-900">{booking.ground.name}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">Time:</span>
+                    <span className="text-gray-500">Price:</span>
                     <p className="font-medium text-gray-900">
-                      {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                       {formatPrice(booking.price)}
                     </p>
                   </div>
                 </div>

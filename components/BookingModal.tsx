@@ -75,7 +75,7 @@ export default function BookingModal({
       const data = await response.json()
 
       if (response.ok) {
-        toast.success('Booking confirmed! You will receive a confirmation SMS shortly.',{
+        toast.success('Booking confirmed!',{
           duration: 1000,
         })
         onClose()
