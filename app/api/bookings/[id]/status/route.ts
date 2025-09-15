@@ -62,14 +62,14 @@ export async function PATCH(
     }
 
     // Send confirmation SMS to customer if accepted
-    if (status === 'ACCEPTED') {
-      await sendBookingConfirmation(
-        booking.customerPhone,
-        ground.name,
-        booking.date,
-        `${booking.startTime} - ${booking.endTime}`
-      )
-    }
+    // if (status === 'ACCEPTED') {
+    //   await sendBookingConfirmation(
+    //     booking.customerPhone,
+    //     ground.name,
+    //     booking.date,
+    //     `${booking.startTime} - ${booking.endTime}`
+    //   )
+    // }
 
     return NextResponse.json({ booking: updatedBooking })
   } catch (error) {
