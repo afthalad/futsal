@@ -53,46 +53,46 @@ export function formatFirebaseDate(timestamp: any): string {
     if (!timestamp) return 'N/A'
     
     // Debug log to see the structure
-    console.log('Timestamp structure:', timestamp, 'Type:', typeof timestamp)
+    // console.log('Timestamp structure:', timestamp, 'Type:', typeof timestamp)
     
     // Handle Firebase timestamp with toDate method
     if (timestamp.toDate && typeof timestamp.toDate === 'function') {
       const date = timestamp.toDate()
-      console.log('Using toDate method, result:', date)
+      // console.log('Using toDate method, result:', date)
       return new Date(date).toLocaleDateString('en-LK')
     }
     
     // Handle Firebase timestamp with _seconds property
     if (timestamp._seconds && typeof timestamp._seconds === 'number') {
       const date = new Date(timestamp._seconds * 1000)
-      console.log('Using _seconds property, result:', date)
+      // console.log('Using _seconds property, result:', date)
       return date.toLocaleDateString('en-LK')
     }
     
     // Handle regular Date object
     if (timestamp instanceof Date) {
-      console.log('Using Date object directly')
+      // console.log('Using Date object directly')
       return timestamp.toLocaleDateString('en-LK')
     }
     
     // Handle string timestamp
     if (typeof timestamp === 'string') {
       const date = new Date(timestamp)
-      console.log('Using string conversion, result:', date)
+      // console.log('Using string conversion, result:', date)
       return date.toLocaleDateString('en-LK')
     }
     
     // Handle number timestamp (milliseconds)
     if (typeof timestamp === 'number') {
       const date = new Date(timestamp)
-      console.log('Using number conversion, result:', date)
+      // console.log('Using number conversion, result:', date)
       return date.toLocaleDateString('en-LK')
     }
     
-    console.log('No matching format found for timestamp:', timestamp)
+    // 0console.log('No matching format found for timestamp:', timestamp)
     return 'N/A'
   } catch (error) {
-    console.error('Error formatting Firebase date:', error, 'Timestamp:', timestamp)
+    // console.error('Error formatting Firebase date:', error, 'Timestamp:', timestamp)
     return 'N/A'
   }
 }
