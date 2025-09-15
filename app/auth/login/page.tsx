@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const [confirmationResult, setConfirmationResult] = useState<any>(null)
+  const [idToken, setIdToken] = useState<string | null>(null)
   const [otpSentTime, setOtpSentTime] = useState<number | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
   const router = useRouter()
@@ -45,6 +46,10 @@ export default function LoginPage() {
       toast.error('Please enter your phone number')
       return
     }
+
+    // Reset any previous state
+    setIdToken(null)
+    setConfirmationResult(null)
 
     // Validate Sri Lankan phone number
     const phoneRegex = /^(0|94)[0-9]{9}$/
@@ -169,6 +174,8 @@ export default function LoginPage() {
           }
         } else {
           if (data.error === 'Name is required for new users' || data.error === 'Name is required for existing users without profile') {
+            // Store the ID token for profile completion
+            setIdToken(result.idToken)
             toast.success('OTP verified! Please complete your profile')
             setStep('name')
           } else {
@@ -215,7 +222,7 @@ export default function LoginPage() {
       return
     }
 
-    if (!confirmationResult) {
+    if (!idToken) {
       toast.error('Please complete phone verification first')
       return
     }
@@ -223,41 +230,34 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // Re-verify OTP with Firebase for existing users
-      const result = await verifyOTP(confirmationResult, formData.otp)
-      
-      if (result.success && result.idToken) {
-        const response = await fetch('/api/auth/verify-otp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            phone: formData.phone,
-            idToken: result.idToken,
-            name: formData.name,
-            role: 'GROUND_OWNER'
-          })
+      // Use the stored ID token from the previous verification
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone: formData.phone,
+          idToken: idToken,
+          name: formData.name,
+          role: 'GROUND_OWNER'
         })
+      })
 
-        const data = await response.json()
+      const data = await response.json()
 
-        if (response.ok) {
-          localStorage.setItem('token', data.token)
-          toast.success('Registration successful!')
-          
-          // Redirect based on user role
-          if (data.user?.role === 'SUPER_ADMIN') {
-            router.push('/admin/super')
-          } else {
-            router.push('/admin/dashboard')
-          }
+      if (response.ok) {
+        localStorage.setItem('token', data.token)
+        toast.success('Registration successful!')
+        
+        // Redirect based on user role
+        if (data.user?.role === 'SUPER_ADMIN') {
+          router.push('/admin/super')
         } else {
-          toast.error(data.error || 'Failed to complete registration')
+          router.push('/admin/dashboard')
         }
       } else {
-        toast.error('Please verify your phone number again')
-        setStep('otp')
+        toast.error(data.error || 'Failed to complete registration')
       }
     } catch (error) {
       // console.error('Complete profile error:', error)

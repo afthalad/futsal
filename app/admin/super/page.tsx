@@ -81,10 +81,6 @@ export default function SuperAdminPage() {
   const router = useRouter()
 
   useEffect(() => {
-    checkAuth()
-  }, [])
-
-  useEffect(() => {
     if (activeTab === 'users') {
       fetchUsers()
     } else if (activeTab === 'grounds') {
@@ -103,41 +99,6 @@ export default function SuperAdminPage() {
     fetchCommissionStats()
   }, [])
 
-  const checkAuth = async () => {
-    try {
-      // Check if we're on the client side
-      if (typeof window === 'undefined') {
-        return
-      }
-      
-      const token = localStorage.getItem('token')
-      if (!token) {
-        router.push('/auth/login')
-        return
-      }
-
-      const response = await fetch('/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (!response.ok) {
-        localStorage.removeItem('token')
-        router.push('/auth/login')
-        return
-      }
-
-      const data = await response.json()
-      if (data.user.role !== 'SUPER_ADMIN') {
-        router.push('/')
-        return
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      router.push('/auth/login')
-    }
-  }
 
   const fetchUsers = async () => {
     try {
