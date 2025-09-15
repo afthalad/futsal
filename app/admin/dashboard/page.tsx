@@ -34,7 +34,7 @@ interface Booking {
   id: string
   customerName: string
   customerPhone: string
-  cancellationReason:string
+  cancellationReason: string
   date: string
   startTime: string
   endTime: string
@@ -53,7 +53,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [groundsLoading, setGroundsLoading] = useState(false)
   const [bookingsLoading, setBookingsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState< 'bookings'|'grounds'>('bookings')
+  const [activeTab, setActiveTab] = useState<'bookings' | 'grounds'>('bookings')
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [cancelling, setCancelling] = useState(false)
@@ -200,26 +200,26 @@ export default function AdminDashboard() {
           const today = new Date().toDateString()
           const aDate = new Date(a.date).toDateString()
           const bDate = new Date(b.date).toDateString()
-          
+
           // If both are today, sort by time (earliest first)
           if (aDate === today && bDate === today) {
             return a.startTime.localeCompare(b.startTime)
           }
-          
+
           // If only a is today, a comes first
           if (aDate === today && bDate !== today) {
             return -1
           }
-          
+
           // If only b is today, b comes first
           if (bDate === today && aDate !== today) {
             return 1
           }
-          
+
           // If neither is today, sort by date (earliest first)
           return new Date(a.date).getTime() - new Date(b.date).getTime()
         })
-        
+
         setBookings(sortedBookings)
       } else {
         console.error('Failed to fetch bookings:', response.status)
@@ -262,19 +262,19 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         toast.success('Booking cancelled successfully. Customer will be notified via SMS.')
-        
+
         // Immediately update the booking status in local state
-        setBookings(prevBookings => 
-          prevBookings.map(booking => 
-            booking.id === selectedBooking.id 
+        setBookings(prevBookings =>
+          prevBookings.map(booking =>
+            booking.id === selectedBooking.id
               ? { ...booking, status: 'CANCELLED', cancellationReason: reason }
               : booking
           )
         )
-        
+
         setShowCancelModal(false)
         setSelectedBooking(null)
-        
+
         // Also refresh from server to ensure consistency
         fetchBookings()
       } else {
@@ -305,7 +305,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
@@ -377,317 +377,310 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-4 sm:space-x-8 px-3 sm:px-6 overflow-x-auto">
-             
-              <button
-                onClick={() => setActiveTab('bookings')}
-                className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
-                  activeTab === 'bookings'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Bookings
-              </button>
-              <button
-                onClick={() => setActiveTab('grounds')}
-                className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
-                  activeTab === 'grounds'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                My Grounds
-              </button>
-              
-            </nav>
+        {grounds.length === 0 ? (
+          <div className="text-center py-8">
+            <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No grounds yet</h3>
+            <p className="text-gray-600 mb-4">Get started by adding your first futsal ground</p>
+            <button
+              onClick={() => router.push('/admin/grounds/new')}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center mx-auto"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Your First Ground
+            </button>
           </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm border">
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-4 sm:space-x-8 px-3 sm:px-6 overflow-x-auto">
+                <button
+                  onClick={() => setActiveTab('bookings')}
+                  className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${activeTab === 'bookings'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                >
+                  Bookings
+                </button>
+                <button
+                  onClick={() => setActiveTab('grounds')}
+                  className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${activeTab === 'grounds'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                >
+                  My Grounds
+                </button>
+              </nav>
+            </div>
 
-          <div className="p-3 sm:p-6">
-            {activeTab === 'grounds' ? (
-              <div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3">
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">My Grounds</h2>
-
-                  {grounds.length !== 0 && (
-                  <button
-                    onClick={() => router.push('/admin/grounds/new')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center"
-                  >
-                    <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    Add New Ground
-                  </button>)}
-                </div>
-
-                {groundsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
-                ) : grounds.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No grounds yet</h3>
-                    <p className="text-gray-600 mb-4">Get started by adding your first futsal ground</p>
+            <div className="p-3 sm:p-6">
+              {activeTab === 'grounds' ? (
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-900">My Grounds</h2>
+                    {/* The button to add a new ground should always be present if grounds exist and this tab is active */}
                     <button
                       onClick={() => router.push('/admin/grounds/new')}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center mx-auto"
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Your First Ground
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      Add New Ground
                     </button>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {grounds.map((ground) => (
-                      <div key={ground.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{ground.name}</h3>
-                            <p className="text-sm text-gray-600">{ground.location}, {ground.city}</p>
-                          </div>
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            ground.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                            ground.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {ground.status === 'APPROVED' ? 'Active' :
-                             ground.status === 'REJECTED' ? 'Rejected' :
-                             (ground.rejectionReason && ground.reviewedAt && ground.updatedAt && 
-                              new Date(ground.updatedAt.toDate ? ground.updatedAt.toDate() : ground.updatedAt) > new Date(ground.reviewedAt.toDate ? ground.reviewedAt.toDate() : ground.reviewedAt)) ? 'Resubmitted' :
-                             'Under Review'}
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-2 mb-4">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Morning:</span>
-                            <span className="font-medium">{formatPrice(ground.morningPrice)}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Evening:</span>
-                            <span className="font-medium">{formatPrice(ground.eveningPrice)}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Bookings:</span>
-                            <span className="font-medium">{ground._count.bookings}</span>
-                          </div>
-                          
-                          {/* Rejection Reason */}
-                          {ground.status === 'REJECTED' && ground.rejectionReason && (
-                            <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs">
-                              <p className="text-red-800 font-medium">Rejection Reason:</p>
-                              <p className="text-red-700">{ground.rejectionReason}</p>
-                            </div>
-                          )}
-                          
-                          {/* Resubmission Notice */}
-                          {ground.status === 'PENDING' && ground.rejectionReason && ground.reviewedAt && ground.updatedAt && 
-                           new Date(ground.updatedAt.toDate ? ground.updatedAt.toDate() : ground.updatedAt) > new Date(ground.reviewedAt.toDate ? ground.reviewedAt.toDate() : ground.reviewedAt) && (
-                            <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
-                              <p className="text-blue-800 font-medium">Resubmitted for Review</p>
-                              <p className="text-blue-700">Your changes have been submitted for re-review.</p>
-                            </div>
-                          )}
-                        </div>
 
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => router.push(`/grounds/${ground.id}`)}
-                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm flex items-center justify-center py-2 rounded-lg transition-colors"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </button>
-                          <button
-                            onClick={() => router.push(`/admin/grounds/${ground.id}/edit`)}
-                            className="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm flex items-center justify-center py-2 rounded-lg transition-colors"
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : activeTab === 'bookings' ? (
-              <div>
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Ground</label>
-                    <select
-                      value={selectedGround}
-                      onChange={(e) => setSelectedGround(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="all">All Grounds</option>
+                  {groundsLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : (
+                    // If not loading, and we are in this branch (grounds.length > 0), display the grounds grid
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {grounds.map((ground) => (
-                        <option key={ground.id} value={ground.name}>
-                          {ground.name}
-                        </option>
+                        <div key={ground.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{ground.name}</h3>
+                              <p className="text-sm text-gray-600">{ground.location}, {ground.city}</p>
+                            </div>
+                            <span className={`px-2 py-1 text-xs rounded-full ${ground.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                ground.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                  'bg-yellow-100 text-yellow-800'
+                              }`}>
+                              {ground.status === 'APPROVED' ? 'Active' :
+                                ground.status === 'REJECTED' ? 'Rejected' :
+                                  (ground.rejectionReason && ground.reviewedAt && ground.updatedAt &&
+                                    new Date(ground.updatedAt.toDate ? ground.updatedAt.toDate() : ground.updatedAt) > new Date(ground.reviewedAt.toDate ? ground.reviewedAt.toDate() : ground.reviewedAt)) ? 'Resubmitted' :
+                                    'Under Review'}
+                            </span>
+                          </div>
+
+                          <div className="space-y-2 mb-4">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Morning:</span>
+                              <span className="font-medium">{formatPrice(ground.morningPrice)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Evening:</span>
+                              <span className="font-medium">{formatPrice(ground.eveningPrice)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Bookings:</span>
+                              <span className="font-medium">{ground._count.bookings}</span>
+                            </div>
+
+                            {/* Rejection Reason */}
+                            {ground.status === 'REJECTED' && ground.rejectionReason && (
+                              <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs">
+                                <p className="text-red-800 font-medium">Rejection Reason:</p>
+                                <p className="text-red-700">{ground.rejectionReason}</p>
+                              </div>
+                            )}
+
+                            {/* Resubmission Notice */}
+                            {ground.status === 'PENDING' && ground.rejectionReason && ground.reviewedAt && ground.updatedAt &&
+                              new Date(ground.updatedAt.toDate ? ground.updatedAt.toDate() : ground.updatedAt) > new Date(ground.reviewedAt.toDate ? ground.reviewedAt.toDate() : ground.reviewedAt) && (
+                                <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                                  <p className="text-blue-800 font-medium">Resubmitted for Review</p>
+                                  <p className="text-blue-700">Your changes have been submitted for re-review.</p>
+                                </div>
+                              )}
+                          </div>
+
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => router.push(`/grounds/${ground.id}`)}
+                              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm flex items-center justify-center py-2 rounded-lg transition-colors"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </button>
+                            <button
+                              onClick={() => router.push(`/admin/grounds/${ground.id}/edit`)}
+                              className="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm flex items-center justify-center py-2 rounded-lg transition-colors"
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </button>
+                          </div>
+                        </div>
                       ))}
-                    </select>
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Date</label>
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <button
-                      onClick={() => {
-                        setSelectedGround('all')
-                        setSelectedDate('')
-                      }}
-                      className="px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
-                    >
-                      <Filter className="h-4 w-4" />
-                      Clear Filters
-                    </button>
-                  </div>
+                    </div>
+                  )}
                 </div>
-
-                {bookingsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
-                ) : filteredBookings.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      {bookings.length === 0 ? 'No bookings yet' : 'No bookings match your filters'}
-                    </h3>
-                    <p className="text-gray-600">
-                      {bookings.length === 0 
-                        ? 'Bookings will appear here when customers book your grounds'
-                        : 'Try adjusting your filters to see more bookings'
-                      }
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        All Bookings ({filteredBookings.length})
-                      </h3>
+              ) : activeTab === 'bookings' ? (
+                <div>
+                  {/* Filters */}
+                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Ground</label>
+                      <select
+                        value={selectedGround}
+                        onChange={(e) => setSelectedGround(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="all">All Grounds</option>
+                        {grounds.map((ground) => (
+                          <option key={ground.id} value={ground.name}>
+                            {ground.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    
-                    {/* Desktop Table */}
-                    <div className="hidden md:block overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Customer
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date & Time
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Price
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Reason
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Status
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {filteredBookings.map((booking) => (
-                            <tr key={booking.id}> 
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div>
-                                  <div className="text-sm font-normal text-gray-900">
-                                    {booking.customerName}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {booking.customerPhone}
-                                  </div>
-                                </div>
-                              </td>
-                              {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {booking.ground.name}
-                              </td> */}
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    {new Date(booking.date).toLocaleDateString('en-LK')}
-                                    {isToday(booking.date)}
-                                  </div>
-                                  <div className="text-gray-500">
-                                    {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-normal text-gray-900">
-                                {formatPrice(booking.price)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              <Tooltip content={booking.cancellationReason || 'No reason provided'}>
-                                <div className="truncate max-w-xs cursor-help">
-                                  {booking.cancellationReason ? (booking.cancellationReason.length > 10 ? booking.cancellationReason.substring(0, 10) + '...' : booking.cancellationReason) : '-'}
-                                </div>
-                              </Tooltip>
-                            </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 py-1 text-xs rounded-full ${
-                                  booking.status === 'CANCELLED' || booking.status === 'cancelled'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-green-100 text-green-800'
-                                }`}>
-                                  {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? 'Cancelled' : 'Active'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? (
-                                  <span ></span>
-                                ) : (
-                                  <button
-                                    onClick={() => handleCancelBooking(booking)}
-                                    className="text-red-600 hover:text-red-900 flex items-center gap-1"
-                                  >
-                                    <X className="h-4 w-4" />
-                                    Cancel
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Mobile Cards */}
-                    <div className="md:hidden">
-                      <ResponsiveTable 
-                        bookings={filteredBookings.map(booking => ({
-                          ...booking,
-                          status: booking.status || 'ACTIVE',
-                          // Ensure cancellationReason is a primitive string, not a String object
-                          cancellationReason: String(booking.cancellationReason) 
-                        }))} 
-                        onCancelBooking={handleCancelBooking}
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Date</label>
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                  </>
-                )}
-              </div>
-            ) : null}
+                    <div className="flex items-end">
+                      <button
+                        onClick={() => {
+                          setSelectedGround('all')
+                          setSelectedDate('')
+                        }}
+                        className="px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                      >
+                        <Filter className="h-4 w-4" />
+                        Clear Filters
+                      </button>
+                    </div>
+                  </div>
+
+                  {bookingsLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : filteredBookings.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        {bookings.length === 0 ? 'No bookings yet' : 'No bookings match your filters'}
+                      </h3>
+                      <p className="text-gray-600">
+                        {bookings.length === 0
+                          ? 'Bookings will appear here when customers book your grounds'
+                          : 'Try adjusting your filters to see more bookings'
+                        }
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          All Bookings ({filteredBookings.length})
+                        </h3>
+                      </div>
+
+                      {/* Desktop Table */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Customer
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date & Time
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Price
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Reason
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {filteredBookings.map((booking) => (
+                              <tr key={booking.id}>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div>
+                                    <div className="text-sm font-normal text-gray-900">
+                                      {booking.customerName}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      {booking.customerPhone}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      {new Date(booking.date).toLocaleDateString('en-LK')}
+                                      {isToday(booking.date)}
+                                    </div>
+                                    <div className="text-gray-500">
+                                      {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-normal text-gray-900">
+                                  {formatPrice(booking.price)}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  <Tooltip content={booking.cancellationReason || 'No reason provided'}>
+                                    <div className="truncate max-w-xs cursor-help">
+                                      {booking.cancellationReason ? (booking.cancellationReason.length > 10 ? booking.cancellationReason.substring(0, 10) + '...' : booking.cancellationReason) : '-'}
+                                    </div>
+                                  </Tooltip>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className={`px-2 py-1 text-xs rounded-full ${booking.status === 'CANCELLED' || booking.status === 'cancelled'
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-green-100 text-green-800'
+                                    }`}>
+                                    {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? 'Cancelled' : 'Active'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                  {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? (
+                                    <span ></span>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleCancelBooking(booking)}
+                                      className="text-red-600 hover:text-red-900 flex items-center gap-1"
+                                    >
+                                      <X className="h-4 w-4" />
+                                      Cancel
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Mobile Cards */}
+                      <div className="md:hidden">
+                        <ResponsiveTable
+                          bookings={filteredBookings.map(booking => ({
+                            ...booking,
+                            status: booking.status || 'ACTIVE',
+                            // Ensure cancellationReason is a primitive string, not a String object
+                            cancellationReason: String(booking.cancellationReason)
+                          }))}
+                          onCancelBooking={handleCancelBooking}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : null}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Cancellation Modal */}
