@@ -24,8 +24,8 @@ export async function POST(
 
     const { action, reason } = await request.json()
     
-    if (!action || !['APPROVE', 'REJECT'].includes(action)) {
-      return NextResponse.json({ error: 'Invalid action. Must be APPROVE or REJECT' }, { status: 400 })
+    if (!action || !['APPROVE', 'REJECT', 'SEND_TO_REVIEW'].includes(action)) {
+      return NextResponse.json({ error: 'Invalid action. Must be APPROVE, REJECT, or SEND_TO_REVIEW' }, { status: 400 })
     }
 
     if (action === 'REJECT' && !reason) {
@@ -33,17 +33,26 @@ export async function POST(
     }
 
     const groundId = params.id
-    const status = action === 'APPROVE' ? 'APPROVED' : 'REJECTED'
-    
-    // Update ground status
-    const updateData: any = {
-      status,
+    let status: string
+    let updateData: any = {
       reviewedBy: user.id,
       reviewedAt: new Date()
     }
 
-    if (action === 'REJECT') {
+    if (action === 'APPROVE') {
+      status = 'APPROVED'
+      updateData.status = status
+    } else if (action === 'REJECT') {
+      status = 'REJECTED'
+      updateData.status = status
       updateData.rejectionReason = reason
+    } else if (action === 'SEND_TO_REVIEW') {
+      status = 'PENDING'
+      updateData.status = status
+      // Clear previous review data when sending back to review
+      updateData.rejectionReason = null
+      updateData.reviewedBy = null
+      updateData.reviewedAt = null
     }
 
     await updateGround(groundId, updateData)
@@ -74,9 +83,16 @@ export async function POST(
       }
     }
 
+    let message: string
+    if (action === 'SEND_TO_REVIEW') {
+      message = 'Ground sent back to review successfully'
+    } else {
+      message = `Ground ${action.toLowerCase()}d successfully`
+    }
+
     return NextResponse.json({ 
       success: true, 
-      message: `Ground ${action.toLowerCase()}d successfully` 
+      message 
     })
   } catch (error) {
     // console.error('Ground review error:', error)

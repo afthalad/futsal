@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Users, MapPin, ToggleLeft, ToggleRight, Eye, Trash2, Edit, Plus, Calendar, Phone, Clock, DollarSign, X, User, CheckCircle } from 'lucide-react'
+import { Shield, Users, MapPin, ToggleLeft, ToggleRight, Eye, Trash2, Edit, Plus, Calendar, Phone, Clock, DollarSign, X, User, CheckCircle, RotateCcw } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { formatTime, formatFirebaseDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
@@ -10,6 +10,7 @@ import SuperAdminTopUpSystem from '@/components/SuperAdminTopUpSystem'
 import DisableReasonModal from '@/components/DisableReasonModal'
 import CancellationReasonModal from '@/components/CancellationReasonModal'
 import GroundReviewModal from '@/components/GroundReviewModal'
+import GroundViewModal from '@/components/GroundViewModal'
 import Tooltip from '@/components/Tooltip'
 
 interface User {
@@ -89,6 +90,8 @@ export default function SuperAdminPage() {
   const [showGroundReviewModal, setShowGroundReviewModal] = useState(false)
   const [selectedGround, setSelectedGround] = useState<Ground | null>(null)
   const [reviewing, setReviewing] = useState(false)
+  const [showGroundViewModal, setShowGroundViewModal] = useState(false)
+  const [selectedGroundForView, setSelectedGroundForView] = useState<Ground | null>(null)
   const [commissionStats, setCommissionStats] = useState({
     totalCommissionDue: 0,
     totalGroundOwners: 0,
@@ -532,6 +535,43 @@ export default function SuperAdminPage() {
     }
   }
 
+  const handleViewGround = (ground: Ground) => {
+    setSelectedGroundForView(ground)
+    setShowGroundViewModal(true)
+  }
+
+  const handleSendToReview = async (groundId: string, groundName: string) => {
+    if (!confirm(`Are you sure you want to send "${groundName}" back to review? This will change its status from approved to pending.`)) {
+      return
+    }
+
+    setReviewing(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/grounds/${groundId}/review`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'SEND_TO_REVIEW' })
+      })
+
+      if (response.ok) {
+        toast.success('Ground sent back to review successfully!')
+        fetchGrounds() // Refresh grounds
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Failed to send ground to review')
+      }
+    } catch (error) {
+      console.error('Send to review error:', error)
+      toast.error('Failed to send ground to review. Please try again.')
+    } finally {
+      setReviewing(false)
+    }
+  }
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'SUPER_ADMIN': return 'bg-purple-100 text-purple-800'
@@ -948,8 +988,18 @@ export default function SuperAdminPage() {
                                     <CheckCircle className="h-4 w-4" />
                                   </button>
                                 )}
+                                {ground.status === 'APPROVED' && (
+                                  <button
+                                    onClick={() => handleSendToReview(ground.id, ground.name)}
+                                    className="text-orange-600 hover:text-orange-900"
+                                    title="Send to Review"
+                                    disabled={reviewing}
+                                  >
+                                    <RotateCcw className="h-4 w-4" />
+                                  </button>
+                                )}
                                 <button
-                                  onClick={() => router.push(`/grounds/${ground.id}`)}
+                                  onClick={() => handleViewGround(ground)}
                                   className="text-blue-600 hover:text-blue-900"
                                   title="View Ground"
                                 >
@@ -1188,6 +1238,17 @@ export default function SuperAdminPage() {
         onApprove={handleApproveGround}
         onReject={handleRejectGround}
         isProcessing={reviewing}
+      />
+
+      {/* Ground View Modal */}
+      <GroundViewModal
+        isOpen={showGroundViewModal}
+        onClose={() => {
+          setShowGroundViewModal(false)
+          setSelectedGroundForView(null)
+        }}
+        ground={selectedGroundForView}
+        userRole="SUPER_ADMIN"
       />
     </div>
   )

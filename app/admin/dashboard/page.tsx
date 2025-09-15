@@ -10,21 +10,30 @@ import ResponsiveTable from '@/components/ResponsiveTable'
 import GroundOwnerCommission from '@/components/GroundOwnerCommission'
 import Tooltip from '@/components/Tooltip'
 import CancellationReasonModal from '@/components/CancellationReasonModal'
+import GroundViewModal from '@/components/GroundViewModal'
 
 interface Ground {
   id: string
   name: string
+  description?: string
   location: string
   city: string
+  phone: string
+  secondaryPhone?: string
   images: string[]
+  amenities: string[]
   morningPrice: number
   eveningPrice: number
+  openingTime: string
+  closingTime: string
   isActive: boolean
+  ownerId: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   rejectionReason?: string
   reviewedBy?: string
   reviewedAt?: any
-  updatedAt?: any
+  createdAt: any
+  updatedAt: any
   _count: {
     bookings: number
   }
@@ -57,6 +66,8 @@ export default function AdminDashboard() {
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [cancelling, setCancelling] = useState(false)
+  const [showGroundViewModal, setShowGroundViewModal] = useState(false)
+  const [selectedGroundForView, setSelectedGroundForView] = useState<Ground | null>(null)
   const [expandedSections, setExpandedSections] = useState({
     otherBookings: false,
     commission: false
@@ -289,6 +300,11 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleViewGround = (ground: Ground) => {
+    setSelectedGroundForView(ground)
+    setShowGroundViewModal(true)
+  }
+
   const totalRevenue = bookings.reduce((sum, booking) => sum + booking.price, 0)
 
   if (loading) {
@@ -490,7 +506,7 @@ export default function AdminDashboard() {
 
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => router.push(`/grounds/${ground.id}`)}
+                              onClick={() => handleViewGround(ground)}
                               className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm flex items-center justify-center py-2 rounded-lg transition-colors"
                             >
                               <Eye className="h-4 w-4 mr-1" />
@@ -700,6 +716,17 @@ export default function AdminDashboard() {
           time: `${formatTime(selectedBooking.startTime)} - ${formatTime(selectedBooking.endTime)}`
         } : undefined}
         loading={cancelling}
+      />
+
+      {/* Ground View Modal */}
+      <GroundViewModal
+        isOpen={showGroundViewModal}
+        onClose={() => {
+          setShowGroundViewModal(false)
+          setSelectedGroundForView(null)
+        }}
+        ground={selectedGroundForView}
+        userRole="GROUND_OWNER"
       />
     </div>
   )
