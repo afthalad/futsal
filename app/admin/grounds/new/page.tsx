@@ -418,6 +418,7 @@ export default function NewGroundPage() {
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
                 <button
+                  type="button"
                   onClick={() => setShowPhotoModal(true)}
                   className="btn-primary flex items-center gap-2"
                   disabled={uploadingImages}
@@ -426,6 +427,7 @@ export default function NewGroundPage() {
                   Take Photo
                 </button>
                 <button
+                  type="button"
                   onClick={() => setShowPhotoModal(true)}
                   className="btn-outline flex items-center gap-2"
                   disabled={uploadingImages}
