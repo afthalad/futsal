@@ -51,6 +51,8 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
+  const [groundsLoading, setGroundsLoading] = useState(false)
+  const [bookingsLoading, setBookingsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState< 'bookings'|'grounds'>('bookings')
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
@@ -141,7 +143,7 @@ export default function AdminDashboard() {
 
   const fetchGrounds = async () => {
     try {
-      setLoading(true)
+      setGroundsLoading(true)
       const token = localStorage.getItem('token')
       const response = await fetch('/api/grounds', {
         headers: {
@@ -154,15 +156,15 @@ export default function AdminDashboard() {
         setGrounds(data.grounds)
       }
     } catch (error) {
-      console.error('Error fetching grounds:', error)
+      // console.error('Error fetching grounds:', error)
     } finally {
-      setLoading(false)
+      setGroundsLoading(false)
     }
   }
 
   const fetchBookings = async () => {
     try {
-      setLoading(true)
+      setBookingsLoading(true)
       const token = localStorage.getItem('token')
       const response = await fetch('/api/bookings', {
         headers: {
@@ -200,9 +202,9 @@ export default function AdminDashboard() {
         setBookings(sortedBookings)
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error)
+      // console.error('Error fetching bookings:', error)
     } finally {
-      setLoading(false)
+      setBookingsLoading(false)
     }
   }
 
@@ -266,7 +268,7 @@ export default function AdminDashboard() {
 
   const totalRevenue = bookings.reduce((sum, booking) => sum + booking.price, 0)
 
-  if (loading && grounds.length === 0 && bookings.length === 0) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -394,7 +396,7 @@ export default function AdminDashboard() {
                   </button>
                 </div>
 
-                {loading ? (
+                {groundsLoading ? (
                   <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
@@ -528,7 +530,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {loading ? (
+                {bookingsLoading ? (
                   <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
