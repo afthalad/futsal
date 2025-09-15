@@ -216,18 +216,33 @@ export default function GroundReviewModal({
           {/* Images */}
           {ground.images && ground.images.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Ground Images</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span>Ground Images</span>
+                <span className="text-sm font-normal text-gray-500">({ground.images.length} image{ground.images.length !== 1 ? 's' : ''})</span>
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {ground.images.map((image, index) => (
-                  <div key={index} className="relative">
+                  <div key={index} className="relative group">
                     <img
                       src={image}
                       alt={`${ground.name} - Image ${index + 1}`}
-                      className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                      className="w-full h-48 object-cover rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={() => window.open(image, '_blank')}
                     />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                      <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm font-medium">
+                        Click to view full size
+                      </span>
+                    </div>
+                    <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                      {index + 1}
+                    </div>
                   </div>
                 ))}
               </div>
+              <p className="text-sm text-gray-600 mt-2">
+                Click on any image to view it in full size. Review all images carefully before making your decision.
+              </p>
             </div>
           )}
 
