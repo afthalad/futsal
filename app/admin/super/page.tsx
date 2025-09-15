@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Users, MapPin, ToggleLeft, ToggleRight, Eye, Trash2, Edit, Plus, Calendar, Phone, Clock, DollarSign, X, User } from 'lucide-react'
+import { Shield, Users, MapPin, ToggleLeft, ToggleRight, Eye, Trash2, Edit, Plus, Calendar, Phone, Clock, DollarSign, X, User, CheckCircle } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { formatTime, formatFirebaseDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import SuperAdminTopUpSystem from '@/components/SuperAdminTopUpSystem'
 import DisableReasonModal from '@/components/DisableReasonModal'
 import CancellationReasonModal from '@/components/CancellationReasonModal'
+import GroundReviewModal from '@/components/GroundReviewModal'
 import Tooltip from '@/components/Tooltip'
 
 interface User {
@@ -27,10 +28,23 @@ interface User {
 interface Ground {
   id: string
   name: string
+  description?: string
   location: string
   city: string
+  phone: string
+  secondaryPhone?: string
+  images: string[]
+  amenities: string[]
+  morningPrice: number
+  eveningPrice: number
+  openingTime: string
+  closingTime: string
   isActive: boolean
   ownerId: string
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  rejectionReason?: string
+  reviewedBy?: string
+  reviewedAt?: any
   createdAt: any
   updatedAt: any
   owner: {
@@ -72,6 +86,9 @@ export default function SuperAdminPage() {
   const [showCancelBookingModal, setShowCancelBookingModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [cancelling, setCancelling] = useState(false)
+  const [showGroundReviewModal, setShowGroundReviewModal] = useState(false)
+  const [selectedGround, setSelectedGround] = useState<Ground | null>(null)
+  const [reviewing, setReviewing] = useState(false)
   const [commissionStats, setCommissionStats] = useState({
     totalCommissionDue: 0,
     totalGroundOwners: 0,
@@ -447,6 +464,71 @@ export default function SuperAdminPage() {
       toast.error('Failed to cancel booking. Please try again.')
     } finally {
       setCancelling(false)
+    }
+  }
+
+  const handleReviewGround = (ground: Ground) => {
+    setSelectedGround(ground)
+    setShowGroundReviewModal(true)
+  }
+
+  const handleApproveGround = async (groundId: string) => {
+    setReviewing(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/grounds/${groundId}/review`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'APPROVE' })
+      })
+
+      if (response.ok) {
+        toast.success('Ground approved successfully!')
+        setShowGroundReviewModal(false)
+        setSelectedGround(null)
+        fetchGrounds() // Refresh grounds
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Failed to approve ground')
+      }
+    } catch (error) {
+      console.error('Approve ground error:', error)
+      toast.error('Failed to approve ground. Please try again.')
+    } finally {
+      setReviewing(false)
+    }
+  }
+
+  const handleRejectGround = async (groundId: string, reason: string) => {
+    setReviewing(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/grounds/${groundId}/review`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'REJECT', reason })
+      })
+
+      if (response.ok) {
+        toast.success('Ground rejected successfully!')
+        setShowGroundReviewModal(false)
+        setSelectedGround(null)
+        fetchGrounds() // Refresh grounds
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Failed to reject ground')
+      }
+    } catch (error) {
+      console.error('Reject ground error:', error)
+      toast.error('Failed to reject ground. Please try again.')
+    } finally {
+      setReviewing(false)
     }
   }
 
@@ -839,14 +921,33 @@ export default function SuperAdminPage() {
                               {ground.location}, {ground.city}
                             </td>
                             <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                ground.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                                {ground.isActive ? 'Active' : 'Disabled'}
-                              </span>
+                              <div className="flex flex-col gap-1">
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  ground.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                  ground.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {ground.status === 'PENDING' ? 'Under Review' :
+                                   ground.status === 'APPROVED' ? 'Approved' : 'Rejected'}
+                                </span>
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  ground.isActive ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {ground.isActive ? 'Active' : 'Disabled'}
+                                </span>
+                              </div>
                             </td>
                             <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
+                                {ground.status === 'PENDING' && (
+                                  <button
+                                    onClick={() => handleReviewGround(ground)}
+                                    className="text-green-600 hover:text-green-900"
+                                    title="Review Ground"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => router.push(`/grounds/${ground.id}`)}
                                   className="text-blue-600 hover:text-blue-900"
@@ -1074,6 +1175,19 @@ export default function SuperAdminPage() {
           time: `${formatTime(selectedBooking.startTime)} - ${formatTime(selectedBooking.endTime)}`
         } : undefined}
         loading={cancelling}
+      />
+
+      {/* Ground Review Modal */}
+      <GroundReviewModal
+        isOpen={showGroundReviewModal}
+        onClose={() => {
+          setShowGroundReviewModal(false)
+          setSelectedGround(null)
+        }}
+        ground={selectedGround}
+        onApprove={handleApproveGround}
+        onReject={handleRejectGround}
+        isProcessing={reviewing}
       />
     </div>
   )
