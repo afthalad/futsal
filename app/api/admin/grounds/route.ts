@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ grounds })
   } catch (error) {
-    console.error('Get Grounds Error:', error)
+    // console.error('Get Grounds Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

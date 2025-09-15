@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
   } catch (error) {
-    console.error('Test SMS Error:', error)
+    // console.error('Test SMS Error:', error)
     return NextResponse.json({
       error: 'Failed to send SMS. Please try again later.'
     }, { status: 500 })

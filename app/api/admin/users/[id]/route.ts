@@ -38,7 +38,7 @@ export async function GET(
       user: { id: userDoc.id, ...userData }
     })
   } catch (error) {
-    console.error('Get User Error:', error)
+    // console.error('Get User Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -126,7 +126,7 @@ export async function PUT(
       message: 'User updated successfully'
     })
   } catch (error) {
-    console.error('Update User Error:', error)
+    // console.error('Update User Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

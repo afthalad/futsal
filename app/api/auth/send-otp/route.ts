@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
   } catch (error) {
-    console.error('Send OTP Error:', error)
+    // console.error('Send OTP Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

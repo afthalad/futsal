@@ -192,7 +192,7 @@ export const initializeMemoryStorage = () => {
       role: 'SUPER_ADMIN',
       isActive: true
     })
-    console.log('✅ Super Admin initialized in memory storage')
+    // console.log('✅ Super Admin initialized in memory storage')
   }
 }
 

@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ bookings: bookingsWithGrounds })
   } catch (error) {
-    console.error('Get Bookings Error:', error)
+    // console.error('Get Bookings Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -126,9 +126,9 @@ export async function POST(request: NextRequest) {
     // Update commission for ground owner
     try {
       await updateCommissionAmount(ground.ownerId, price, 'add')
-      console.log(`Added commission for owner ${ground.ownerId}: ${price * 0.01}`)
+      // console.log(`Added commission for owner ${ground.ownerId}: ${price * 0.01}`)
     } catch (commissionError) {
-      console.error('Commission update error:', commissionError)
+      // console.error('Commission update error:', commissionError)
       // Don't fail the booking if commission calculation fails
     }
 
@@ -158,14 +158,14 @@ export async function POST(request: NextRequest) {
         price
       )
     } catch (smsError) {
-      console.error('SMS notification error:', smsError)
+      // console.error('SMS notification error:', smsError)
       // Don't fail the booking if SMS fails
     }
     */
 
     return NextResponse.json({ booking })
   } catch (error) {
-    console.error('Create Booking Error:', error)
+    // console.error('Create Booking Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

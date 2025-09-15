@@ -53,7 +53,7 @@ export async function getUserFromToken(token: string) {
       isActive: firestoreUser.isActive
     }
   } catch (error) {
-    console.error('Error getting user from Firestore:', error)
+    // console.error('Error getting user from Firestore:', error)
     return null
   }
 }

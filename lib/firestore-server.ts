@@ -66,7 +66,7 @@ export const createUser = async (userData: Omit<User, 'id' | 'createdAt' | 'upda
     })
     return docRef.id
   } catch (error) {
-    console.error('Error creating user in Firestore:', error)
+    // console.error('Error creating user in Firestore:', error)
     // Fallback to memory storage
     const { createUserInMemory } = await import('./memory-storage')
     return createUserInMemory(userData)
@@ -83,7 +83,7 @@ export const getUserById = async (id: string): Promise<User | null> => {
     }
     return null
   } catch (error) {
-    console.error('Error getting user by ID from Firestore:', error)
+    // console.error('Error getting user by ID from Firestore:', error)
     // Fallback to memory storage
     const { getUserByIdInMemory } = await import('./memory-storage')
     return getUserByIdInMemory(id)
@@ -101,7 +101,7 @@ export const getUserByPhone = async (phone: string): Promise<User | null> => {
     }
     return null
   } catch (error) {
-    console.error('Error getting user by phone from Firestore:', error)
+    // console.error('Error getting user by phone from Firestore:', error)
     // Fallback to memory storage
     const { getUserByPhoneInMemory } = await import('./memory-storage')
     return getUserByPhoneInMemory(phone)
@@ -126,7 +126,7 @@ export const createGround = async (groundData: Omit<Ground, 'id' | 'createdAt' |
     })
     return docRef.id
   } catch (error) {
-    console.error('Error creating ground in Firestore:', error)
+    // console.error('Error creating ground in Firestore:', error)
     // Fallback to memory storage
     const { createGroundInMemory } = await import('./memory-storage')
     return createGroundInMemory(groundData)
@@ -176,7 +176,7 @@ export const getAllGrounds = async (): Promise<Ground[]> => {
 
     return grounds
   } catch (error) {
-    console.error('Error getting all grounds from Firestore:', error)
+    // console.error('Error getting all grounds from Firestore:', error)
     // Fallback to memory storage
     const { getAllGroundsInMemory } = await import('./memory-storage')
     return getAllGroundsInMemory()
@@ -213,7 +213,7 @@ export const getAllGroundsWithOwnerInfo = async (): Promise<Ground[]> => {
     
     return filteredGrounds
   } catch (error) {
-    console.error('Error getting grounds with owner info:', error)
+    // console.error('Error getting grounds with owner info:', error)
     // Fallback to regular getAllGrounds
     return getAllGrounds()
   }
@@ -234,7 +234,7 @@ export const getGroundsByOwner = async (ownerId: string): Promise<Ground[]> => {
       }
     }) as Ground[]
   } catch (error) {
-    console.error('Error getting grounds by owner from Firestore:', error)
+    // console.error('Error getting grounds by owner from Firestore:', error)
     // Fallback to memory storage
     const { getGroundsByOwnerInMemory } = await import('./memory-storage')
     return getGroundsByOwnerInMemory(ownerId)
@@ -256,7 +256,7 @@ export const updateGround = async (id: string, data: Partial<Ground>): Promise<v
       }
     }
   } catch (error) {
-    console.error('Error updating ground in Firestore:', error)
+    // console.error('Error updating ground in Firestore:', error)
     // Fallback to memory storage
     const { updateGroundInMemory } = await import('./memory-storage')
     updateGroundInMemory(id, data)
@@ -272,7 +272,7 @@ export const deleteGround = async (id: string): Promise<void> => {
       groundsCache = groundsCache.filter(g => g.id !== id)
     }
   } catch (error) {
-    console.error('Error deleting ground from Firestore:', error)
+    // console.error('Error deleting ground from Firestore:', error)
     // Fallback to memory storage
     const { deleteGroundInMemory } = await import('./memory-storage')
     deleteGroundInMemory(id)
@@ -283,7 +283,7 @@ export const deleteUser = async (id: string): Promise<void> => {
   try {
     await adminDb.collection('users').doc(id).delete()
   } catch (error) {
-    console.error('Error deleting user from Firestore:', error)
+    // console.error('Error deleting user from Firestore:', error)
     // Fallback to memory storage
     const { deleteUserInMemory } = await import('./memory-storage')
     deleteUserInMemory(id)
@@ -302,7 +302,7 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt
     })
     return docRef.id
   } catch (error) {
-    console.error('Error creating booking in Firestore:', error)
+    // console.error('Error creating booking in Firestore:', error)
     // Fallback to memory storage
     const { createBookingInMemory } = await import('./memory-storage')
     return createBookingInMemory(bookingData)
@@ -319,7 +319,7 @@ export const getBookingById = async (id: string): Promise<Booking | null> => {
     }
     return null
   } catch (error) {
-    console.error('Error getting booking from Firestore:', error)
+    // console.error('Error getting booking from Firestore:', error)
     // Fallback to memory storage
     const { getBookingByIdInMemory } = await import('./memory-storage')
     return getBookingByIdInMemory(id) as Booking | null
@@ -363,7 +363,7 @@ export const updateBooking = async (id: string, updates: Partial<Booking>): Prom
       updatedAt: new Date()
     })
   } catch (error) {
-    console.error('Error updating booking in Firestore:', error)
+    // console.error('Error updating booking in Firestore:', error)
     // Fallback to memory storage
     const { updateBookingInMemory } = await import('./memory-storage')
     updateBookingInMemory(id, updates)
@@ -400,7 +400,7 @@ export const updateCommissionAmount = async (ownerId: string, bookingAmount: num
       })
     }
   } catch (error) {
-    console.error('Error updating commission amount:', error)
+    // console.error('Error updating commission amount:', error)
     throw error
   }
 }
@@ -415,7 +415,7 @@ export const getCommissionByOwner = async (ownerId: string): Promise<any> => {
     }
     return null
   } catch (error) {
-    console.error('Error getting commission:', error)
+    // console.error('Error getting commission:', error)
     return null
   }
 }
@@ -430,7 +430,7 @@ export const markCommissionAsPaid = async (ownerId: string): Promise<void> => {
       lastUpdated: new Date()
     })
   } catch (error) {
-    console.error('Error marking commission as paid:', error)
+    // console.error('Error marking commission as paid:', error)
     throw error
   }
 }

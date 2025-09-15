@@ -30,7 +30,7 @@ export async function POST(
       paidAt: new Date().toISOString()
     })
   } catch (error) {
-    console.error('Mark Commission Paid Error:', error)
+    // console.error('Mark Commission Paid Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

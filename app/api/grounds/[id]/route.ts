@@ -51,7 +51,7 @@ export async function GET(
 
     return NextResponse.json({ ground: processedGround })
   } catch (error) {
-    console.error('Get Ground Error:', error)
+    // console.error('Get Ground Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -104,7 +104,7 @@ export async function PUT(
 
     return NextResponse.json({ ground })
   } catch (error) {
-    console.error('Update Ground Error:', error)
+    // console.error('Update Ground Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -148,7 +148,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Ground deleted successfully' })
   } catch (error) {
-    console.error('Delete Ground Error:', error)
+    // console.error('Delete Ground Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

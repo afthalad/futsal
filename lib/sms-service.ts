@@ -81,7 +81,7 @@ class MockSMSProvider implements SMSProvider {
       
       return { success: true }
     } catch (error: any) {
-      console.error('Mock SMS error:', error)
+      // console.error('Mock SMS error:', error)
       return { success: false, error: error.message }
     }
   }

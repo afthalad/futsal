@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Get Commission Error:', error)
+    // console.error('Get Commission Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

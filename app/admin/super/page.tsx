@@ -509,7 +509,7 @@ export default function SuperAdminPage() {
     )
   }
 
-  console.log('SuperAdminPage rendering, loading:', loading, 'users:', users.length, 'grounds:', grounds.length)
+  // console.log('SuperAdminPage rendering, loading:', loading, 'users:', users.length, 'grounds:', grounds.length)
 
   return (
     <div className="min-h-screen bg-gray-50">

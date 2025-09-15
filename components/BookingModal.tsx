@@ -88,7 +88,7 @@ export default function BookingModal({
         toast.error(data.error || 'Failed to submit booking')
       }
     } catch (error) {
-      console.error('Booking error:', error)
+      // console.error('Booking error:', error)
       toast.error('Failed to submit booking. Please try again.')
     } finally {
       setLoading(false)

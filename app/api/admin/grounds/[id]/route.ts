@@ -21,11 +21,11 @@ export async function DELETE(
     const user = await getUserFromToken(token)
     
     // Debug logging
-    console.log('Delete Ground - User:', user)
-    console.log('Delete Ground - User Role:', user?.role)
+    // console.log('Delete Ground - User:', user)
+    // console.log('Delete Ground - User Role:', user?.role)
     
     if (!user || user.role !== 'SUPER_ADMIN') {
-      console.log('Delete Ground - Access denied. User role:', user?.role, 'Expected: SUPER_ADMIN')
+      // console.log('Delete Ground - Access denied. User role:', user?.role, 'Expected: SUPER_ADMIN')
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -50,7 +50,7 @@ export async function DELETE(
         }, { status: 400 })
       }
     } catch (error) {
-      console.error('Error checking bookings:', error)
+      // console.error('Error checking bookings:', error)
       // Continue with deletion if we can't check bookings
     }
 
@@ -58,13 +58,13 @@ export async function DELETE(
     try {
       await deleteGround(params.id)
     } catch (error) {
-      console.error('Error deleting ground from Firestore, using memory storage:', error)
+      // console.error('Error deleting ground from Firestore, using memory storage:', error)
       deleteGroundInMemory(params.id)
     }
 
     return NextResponse.json({ message: 'Ground deleted successfully' })
   } catch (error) {
-    console.error('Delete Ground Error:', error)
+    // console.error('Delete Ground Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

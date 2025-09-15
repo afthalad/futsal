@@ -9,7 +9,7 @@ export const sendOTP = async (phoneNumber: string): Promise<{ success: boolean; 
   try {
     // Check if we're in browser environment
     if (!isBrowser) {
-      console.log('🚫 Firebase phone auth not available on server side')
+      // console.log('🚫 Firebase phone auth not available on server side')
       return { 
         success: false, 
         error: 'Phone authentication is only available in browser environment' 
@@ -19,7 +19,7 @@ export const sendOTP = async (phoneNumber: string): Promise<{ success: boolean; 
     // Format phone number for Firebase
     const formattedPhone = phoneNumber.startsWith('+94') ? phoneNumber : `+94${phoneNumber.replace(/^0/, '')}`
     
-    console.log('📱 Sending OTP via Firebase to:', formattedPhone)
+    // console.log('📱 Sending OTP via Firebase to:', formattedPhone)
     
     // Clean up any existing reCAPTCHA containers
     const existingContainer = document.getElementById('recaptcha-container')
@@ -37,23 +37,23 @@ export const sendOTP = async (phoneNumber: string): Promise<{ success: boolean; 
     const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
       size: 'invisible',
       callback: (response: any) => {
-        console.log('reCAPTCHA solved')
+        // console.log('reCAPTCHA solved')
       },
       'expired-callback': () => {
-        console.log('reCAPTCHA expired')
+        // console.log('reCAPTCHA expired')
       }
     })
     
     try {
       const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier)
       
-      console.log('✅ OTP sent successfully via Firebase')
+      // console.log('✅ OTP sent successfully via Firebase')
       return { 
         success: true, 
         confirmationResult 
       }
     } catch (error: any) {
-      console.error('Firebase sendOTP error:', error)
+      // console.error('Firebase sendOTP error:', error)
       return { 
         success: false, 
         error: error.message || 'Failed to send OTP' 
@@ -63,7 +63,7 @@ export const sendOTP = async (phoneNumber: string): Promise<{ success: boolean; 
       try {
         recaptchaVerifier.clear()
       } catch (e) {
-        console.log('reCAPTCHA verifier already cleared')
+        // console.log('reCAPTCHA verifier already cleared')
       }
       
       // Remove the container after a short delay to ensure cleanup
@@ -75,14 +75,14 @@ export const sendOTP = async (phoneNumber: string): Promise<{ success: boolean; 
       }, 1000)
     }
   } catch (error: any) {
-    console.error('Firebase sendOTP error:', error)
+    // console.error('Firebase sendOTP error:', error)
     return { success: false, error: error.message || 'Failed to send OTP' }
   }
 }
 
 export const verifyOTP = async (confirmationResult: ConfirmationResult, otp: string): Promise<{ success: boolean; error?: string; idToken?: string }> => {
   try {
-    console.log('🔍 Verifying OTP with Firebase...')
+    // console.log('🔍 Verifying OTP with Firebase...')
     
     // Verify OTP with Firebase
     const result = await confirmationResult.confirm(otp)
@@ -91,7 +91,7 @@ export const verifyOTP = async (confirmationResult: ConfirmationResult, otp: str
       // Get the ID token
       const idToken = await result.user.getIdToken()
       
-      console.log('✅ OTP verified successfully with Firebase')
+      // console.log('✅ OTP verified successfully with Firebase')
       
       return { 
         success: true, 
@@ -101,7 +101,7 @@ export const verifyOTP = async (confirmationResult: ConfirmationResult, otp: str
       return { success: false, error: 'No user returned from verification' }
     }
   } catch (error: any) {
-    console.error('Firebase verification error:', error)
+    // console.error('Firebase verification error:', error)
     return { 
       success: false, 
       error: error.message || 'Failed to verify OTP' 
@@ -114,7 +114,7 @@ export const signOut = async () => {
     await auth.signOut()
     return { success: true }
   } catch (error: any) {
-    console.error('Sign out error:', error)
+    // console.error('Sign out error:', error)
     return { success: false, error: error.message }
   }
 }

@@ -91,9 +91,9 @@ export async function POST(
         )
         
         if (customerResult.success) {
-          console.log(`✅ Booking cancellation SMS sent to customer via ${customerResult.provider}`)
+          // console.log(`✅ Booking cancellation SMS sent to customer via ${customerResult.provider}`)
         } else {
-          console.error('❌ Failed to send cancellation SMS to customer:', customerResult.error)
+          // console.error('❌ Failed to send cancellation SMS to customer:', customerResult.error)
         }
       }
 
@@ -111,9 +111,9 @@ export async function POST(
         )
         
         if (ownerResult.success) {
-          console.log(`✅ Booking cancellation SMS sent to ground owner via ${ownerResult.provider}`)
+          // console.log(`✅ Booking cancellation SMS sent to ground owner via ${ownerResult.provider}`)
         } else {
-          console.error('❌ Failed to send cancellation SMS to ground owner:', ownerResult.error)
+          // console.error('❌ Failed to send cancellation SMS to ground owner:', ownerResult.error)
         }
       }
 
@@ -122,7 +122,7 @@ export async function POST(
       
      
     } catch (smsError) {
-      console.error('SMS notification failed:', smsError)
+      // console.error('SMS notification failed:', smsError)
       // Don't fail the cancellation if SMS fails
     }
     */
@@ -132,7 +132,7 @@ export async function POST(
       message: 'Booking cancelled successfully.'
     })
   } catch (error) {
-    console.error('Cancel Booking Error:', error)
+    // console.error('Cancel Booking Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

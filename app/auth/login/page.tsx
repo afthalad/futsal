@@ -56,24 +56,24 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      console.log('🔥 Sending OTP via Firebase Phone Auth...')
+      // console.log('🔥 Sending OTP via Firebase Phone Auth...')
       
       // Use Firebase Phone Auth directly (no backend call)
       const result = await sendOTP(formData.phone)
       
       if (result.success) {
-        console.log('✅ Firebase OTP sent successfully')
+        // console.log('✅ Firebase OTP sent successfully')
         toast.success('OTP sent to your phone number via Firebase')
         setConfirmationResult(result.confirmationResult)
         setStep('otp')
         setOtpSentTime(Date.now())
         setResendCooldown(30) // 30 second cooldown
       } else {
-        console.error('❌ Firebase OTP failed:', result.error)
+        // console.error('❌ Firebase OTP failed:', result.error)
         toast.error(result.error || 'Failed to send OTP')
       }
     } catch (error) {
-      console.error('Send OTP error:', error)
+      // console.error('Send OTP error:', error)
       toast.error('Failed to send OTP. Please try again.')
     } finally {
       setLoading(false)
@@ -94,24 +94,24 @@ export default function LoginPage() {
     setResending(true)
 
     try {
-      console.log('🔥 Resending OTP via Firebase Phone Auth...')
+      // console.log('🔥 Resending OTP via Firebase Phone Auth...')
       
       // Use Firebase Phone Auth for resend
       const result = await sendOTP(formData.phone)
       
       if (result.success) {
-        console.log('✅ Firebase OTP resent successfully')
+        // console.log('✅ Firebase OTP resent successfully')
         toast.success('New OTP sent to your phone number via Firebase')
         setConfirmationResult(result.confirmationResult)
         setOtpSentTime(Date.now())
         setResendCooldown(30) // 30 second cooldown
         setFormData({ ...formData, otp: '' }) // Clear current OTP input
       } else {
-        console.error('❌ Firebase OTP resend failed:', result.error)
+        // console.error('❌ Firebase OTP resend failed:', result.error)
         toast.error(result.error || 'Failed to resend OTP')
       }
     } catch (error) {
-      console.error('Resend OTP error:', error)
+      // console.error('Resend OTP error:', error)
       toast.error('Failed to resend OTP. Please try again.')
     } finally {
       setResending(false)
@@ -134,13 +134,13 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      console.log('🔥 Verifying OTP with Firebase...')
+      // console.log('🔥 Verifying OTP with Firebase...')
       
       // Use Firebase Phone Auth for verification
       const result = await verifyOTP(confirmationResult, formData.otp)
       
       if (result.success && result.idToken) {
-        console.log('✅ Firebase OTP verified successfully')
+        // console.log('✅ Firebase OTP verified successfully')
         
         // Send Firebase ID token to backend for user creation/authentication
         const response = await fetch('/api/auth/verify-otp', {
@@ -176,12 +176,32 @@ export default function LoginPage() {
           }
         }
       } else {
-        console.error('❌ Firebase OTP verification failed:', result.error)
-        toast.error(result.error || 'Failed to verify OTP')
+        // console.error('❌ Firebase OTP verification failed:', result.error)
+        // Show user-friendly error message for OTP verification failures
+        if (result.error && (
+          result.error.includes('invalid-verification-code') || 
+          result.error.includes('invalid-credential') ||
+          result.error.includes('code-expired') ||
+          result.error.includes('expired-action-code')
+        )) {
+          toast.error('Incorrect OTP. Please check and try again.')
+        } else {
+          toast.error(result.error || 'Failed to verify OTP')
+        }
       }
-    } catch (error) {
-      console.error('Verify OTP error:', error)
-      toast.error('Failed to verify OTP. Please try again.')
+    } catch (error: any) {
+      // console.error('Verify OTP error:', error)
+      // Handle Firebase auth errors with user-friendly messages
+      if (error?.message && (
+        error.message.includes('invalid-verification-code') || 
+        error.message.includes('invalid-credential') ||
+        error.message.includes('code-expired') ||
+        error.message.includes('expired-action-code')
+      )) {
+        toast.error('Incorrect OTP. Please check and try again.')
+      } else {
+        toast.error('Failed to verify OTP. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -240,7 +260,7 @@ export default function LoginPage() {
         setStep('otp')
       }
     } catch (error) {
-      console.error('Complete profile error:', error)
+      // console.error('Complete profile error:', error)
       toast.error('Failed to complete registration. Please try again.')
     } finally {
       setLoading(false)

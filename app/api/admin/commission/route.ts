@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
             }
           }
         } catch (error) {
-          console.error(`Error processing owner ${ownerId}:`, error)
+          // console.error(`Error processing owner ${ownerId}:`, error)
           return null
         }
       })
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       pendingCount: validCommissions.filter(c => c.status === 'PENDING').length
     })
   } catch (error) {
-    console.error('Get Commissions Error:', error)
+    // console.error('Get Commissions Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

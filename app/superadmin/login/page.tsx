@@ -37,7 +37,7 @@ export default function SuperAdminLogin() {
         toast.error(data.error || 'Failed to send OTP')
       }
     } catch (error) {
-      console.error('Error sending OTP:', error)
+      // console.error('Error sending OTP:', error)
       toast.error('Failed to send OTP')
     } finally {
       setLoading(false)
@@ -70,7 +70,7 @@ export default function SuperAdminLogin() {
         toast.error(data.error || 'Invalid OTP')
       }
     } catch (error) {
-      console.error('Error verifying OTP:', error)
+      // console.error('Error verifying OTP:', error)
       toast.error('Failed to verify OTP')
     } finally {
       setLoading(false)

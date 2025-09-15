@@ -48,7 +48,7 @@ export async function POST(
       updateDate: new Date(updateDate).toISOString()
     })
   } catch (error) {
-    console.error('Update Due Date Error:', error)
+    // console.error('Update Due Date Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -10,12 +10,12 @@ export async function sendOTP(phone: string): Promise<{ success: boolean; error?
     // Generate a 6-digit OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
     
-    console.log('='.repeat(60))
-    console.log('📱 FIREBASE PHONE AUTHENTICATION (REAL MODE)')
-    console.log('='.repeat(60))
-    console.log(`📞 Phone: ${formattedPhone}`)
-    console.log(`🔢 Generated OTP: ${otpCode}`)
-    console.log('='.repeat(60))
+    // // console.log('='.repeat(60))
+    // // console.log('📱 FIREBASE PHONE AUTHENTICATION (REAL MODE)')
+    // // console.log('='.repeat(60))
+    // // console.log(`📞 Phone: ${formattedPhone}`)
+    // // console.log(`🔢 Generated OTP: ${otpCode}`)
+    // // console.log('='.repeat(60))
     
     // Send OTP via SMS service (Text.lk)
     const smsResult = await sendOTPSMS(formattedPhone, otpCode)
@@ -36,11 +36,11 @@ export async function sendOTP(phone: string): Promise<{ success: boolean; error?
         verificationId: `firebase_${Date.now()}` 
       }
     } else {
-      console.error('❌ Failed to send OTP via SMS:', smsResult.error)
+      // console.error('❌ Failed to send OTP via SMS:', smsResult.error)
       return { success: false, error: smsResult.error || 'Failed to send OTP' }
     }
   } catch (error: any) {
-    console.error('Firebase OTP Error:', error)
+    // console.error('Firebase OTP Error:', error)
     
     let errorMessage = 'Failed to send OTP'
     
@@ -63,16 +63,16 @@ export async function verifyOTP(phone: string, otp: string): Promise<{ success: 
     // Format phone number
     const formattedPhone = phone.startsWith('+94') ? phone : `+94${phone.replace(/^0/, '')}`
     
-    console.log('🔍 Verifying OTP with Firebase (REAL MODE)...')
-    console.log(`📞 Phone: ${formattedPhone}`)
-    console.log(`🔢 OTP: ${otp}`)
+    // console.log('🔍 Verifying OTP with Firebase (REAL MODE)...')
+    // console.log(`📞 Phone: ${formattedPhone}`)
+    // console.log(`🔢 OTP: ${otp}`)
     
     // This function is now handled by the client-side Firebase authentication
     // The actual verification happens in the login page using Firebase's confirmationResult
     
     // For now, we'll accept the OTP and let the client-side handle the verification
     if (otp.length === 6 && /^\d{6}$/.test(otp)) {
-      console.log('✅ OTP format validated - client will handle Firebase verification')
+      // console.log('✅ OTP format validated - client will handle Firebase verification')
       
       // Generate a temporary token - the real verification happens client-side
       const idToken = `firebase_token_${Date.now()}_${formattedPhone}`
@@ -88,7 +88,7 @@ export async function verifyOTP(phone: string, otp: string): Promise<{ success: 
       }
     }
   } catch (error: any) {
-    console.error('Firebase verification error:', error)
+    // console.error('Firebase verification error:', error)
     
     let errorMessage = 'Invalid or expired verification code'
     
@@ -119,14 +119,14 @@ export async function sendBookingNotification(phone: string, groundName: string,
     const result = await sendBookingNotificationSMS(phone, groundName, date, startTime, endTime)
       
     if (result.success) {
-      console.log(`✅ Booking notification sent via ${result.provider}`)
+      // console.log(`✅ Booking notification sent via ${result.provider}`)
     } else {
-      console.error('❌ Failed to send booking notification:', result.error)
+      // console.error('❌ Failed to send booking notification:', result.error)
     }
     
     return result
   } catch (error: any) {
-    console.error('Booking notification error:', error)
+    // console.error('Booking notification error:', error)
     return { success: false, error: error.message }
   }
 }
@@ -137,14 +137,14 @@ export async function sendBookingConfirmation(phone: string, groundName: string,
     const result = await sendBookingConfirmationSMS(phone, groundName, date, startTime, endTime)
     
     if (result.success) {
-      console.log(`✅ Booking confirmation sent via ${result.provider}`)
+      // console.log(`✅ Booking confirmation sent via ${result.provider}`)
     } else {
-      console.error('❌ Failed to send booking confirmation:', result.error)
+      // console.error('❌ Failed to send booking confirmation:', result.error)
     }
     
     return result
   } catch (error:any) {
-    console.error('Booking confirmation error:', error)
+    // console.error('Booking confirmation error:', error)
     return { success: false, error: error.message }
   }
 }
@@ -154,14 +154,14 @@ export async function sendBookingConfirmationToCustomer(phone: string, groundNam
     const result = await sendBookingConfirmationToCustomerSMS(phone, groundName, date, startTime, endTime, price)
     
     if (result.success) {
-      console.log(`✅ Booking confirmation sent to customer via ${result.provider}`)
+      // console.log(`✅ Booking confirmation sent to customer via ${result.provider}`)
     } else {
-      console.error('❌ Failed to send booking confirmation to customer:', result.error)
+      // console.error('❌ Failed to send booking confirmation to customer:', result.error)
     }
     
     return result
   } catch (error: any) {
-    console.error('Customer booking confirmation error:', error)
+    // console.error('Customer booking confirmation error:', error)
     return { success: false, error: error.message }
   }
 }
@@ -171,14 +171,14 @@ export async function sendBookingConfirmationToOwner(phone: string, groundName: 
     const result = await sendBookingConfirmationToOwnerSMS(phone, groundName, date, startTime, endTime, customerName, customerPhone, price)
     
     if (result.success) {
-      console.log(`✅ Booking confirmation sent to owner via ${result.provider}`)
+      // console.log(`✅ Booking confirmation sent to owner via ${result.provider}`)
     } else {
-      console.error('❌ Failed to send booking confirmation to owner:', result.error)
+      // console.error('❌ Failed to send booking confirmation to owner:', result.error)
     }
     
     return result
   } catch (error: any) {
-    console.error('Owner booking confirmation error:', error)
+    // console.error('Owner booking confirmation error:', error)
     return { success: false, error: error.message }
   }
 }
@@ -190,14 +190,14 @@ export async function sendBookingCancellationSMS(phone: string, customerName: st
     const result = await sendBookingCancellationToCustomer(phone, customerName, groundName, date, startTime, endTime, reason)
     
     if (result.success) {
-      console.log(`✅ Booking cancellation SMS sent to ${phone} via ${result.provider}`)
+      // console.log(`✅ Booking cancellation SMS sent to ${phone} via ${result.provider}`)
     } else {
-      console.error('❌ Failed to send booking cancellation SMS:', result.error)
+      // console.error('❌ Failed to send booking cancellation SMS:', result.error)
     }
     
     return result
   } catch (error: any) {
-    console.error('Booking cancellation SMS error:', error)
+    // console.error('Booking cancellation SMS error:', error)
     return { success: false, error: error.message }
   }
 }

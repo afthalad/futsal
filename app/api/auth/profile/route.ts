@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ user })
   } catch (error) {
-    console.error('Get Profile Error:', error)
+    // console.error('Get Profile Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -80,7 +80,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ user: updatedUser })
   } catch (error) {
-    console.error('Update Profile Error:', error)
+    // console.error('Update Profile Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -100,7 +100,7 @@ async function getUserByPhone(phone: string) {
       ...userDoc.data()
     }
   } catch (error) {
-    console.error('Error getting user by phone:', error)
+    // console.error('Error getting user by phone:', error)
     return null
   }
 }
@@ -120,7 +120,7 @@ async function getUserByName(name: string) {
       ...userDoc.data()
     }
   } catch (error) {
-    console.error('Error getting user by name:', error)
+    // console.error('Error getting user by name:', error)
     return null
   }
 }

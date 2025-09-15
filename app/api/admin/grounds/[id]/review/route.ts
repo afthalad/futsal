@@ -67,7 +67,7 @@ export async function POST(
             await sendGroundRejectionSMS(owner.phone, ground.name, reason)
           }
         } catch (smsError) {
-          console.error('Failed to send SMS notification:', smsError)
+          // console.error('Failed to send SMS notification:', smsError)
           // Don't fail the request if SMS fails
         }
         */
@@ -79,7 +79,7 @@ export async function POST(
       message: `Ground ${action.toLowerCase()}d successfully` 
     })
   } catch (error) {
-    console.error('Ground review error:', error)
+    // console.error('Ground review error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

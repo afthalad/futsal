@@ -72,16 +72,16 @@ export async function POST(
     try {
       await updateBooking(params.id, updatedBooking)
     } catch (error) {
-      console.error('Error updating booking in Firestore, using memory storage:', error)
+      // console.error('Error updating booking in Firestore, using memory storage:', error)
       updateBookingInMemory(params.id, updatedBooking)
     }
 
     // Update commission for ground owner (subtract the cancelled booking's commission)
     try {
       await updateCommissionAmount(ground.ownerId, booking.price, 'subtract')
-      console.log(`Subtracted commission for cancelled booking for owner ${ground.ownerId}: ${booking.price * 0.01}`)
+      // console.log(`Subtracted commission for cancelled booking for owner ${ground.ownerId}: ${booking.price * 0.01}`)
     } catch (commissionError) {
-      console.error('Commission update error after cancellation:', commissionError)
+      // console.error('Commission update error after cancellation:', commissionError)
       // Don't fail the cancellation if commission calculation fails
     }
 
@@ -100,7 +100,7 @@ export async function POST(
         reason
       )
     } catch (error) {
-      console.error('Error sending cancellation SMS:', error)
+      // console.error('Error sending cancellation SMS:', error)
       // Don't fail the request if SMS fails
     }
     */
@@ -110,7 +110,7 @@ export async function POST(
       booking: updatedBooking
     })
   } catch (error) {
-    console.error('Cancel Booking Error:', error)
+    // console.error('Cancel Booking Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

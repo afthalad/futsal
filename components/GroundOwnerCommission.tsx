@@ -72,10 +72,10 @@ export default function GroundOwnerCommission() {
         const data = await response.json()
         setCommission(data.commission)
       } else {
-        console.error('Failed to fetch commission')
+        // console.error('Failed to fetch commission')
       }
     } catch (error) {
-      console.error('Error fetching commission:', error)
+      // console.error('Error fetching commission:', error)
     } finally {
       setLoading(false)
       setRefreshing(false)

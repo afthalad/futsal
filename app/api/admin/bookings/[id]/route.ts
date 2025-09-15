@@ -51,7 +51,7 @@ export async function GET(
       }
     })
   } catch (error) {
-    console.error('Get Booking Error:', error)
+    // console.error('Get Booking Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -118,7 +118,7 @@ export async function PUT(
       message: 'Booking updated successfully'
     })
   } catch (error) {
-    console.error('Update Booking Error:', error)
+    // console.error('Update Booking Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

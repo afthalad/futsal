@@ -60,7 +60,7 @@ export async function PATCH(
       isActive: newStatus 
     })
   } catch (error) {
-    console.error('Toggle Ground Status Error:', error)
+    // console.error('Toggle Ground Status Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

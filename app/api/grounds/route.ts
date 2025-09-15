@@ -24,26 +24,26 @@ export async function GET(request: NextRequest) {
           // Ground owner: only show their own grounds
           const { getGroundsByOwner } = await import('@/lib/firestore-server')
           grounds = await getGroundsByOwner(user.id)
-          console.log(`🔒 Ground owner ${user.id} accessing their grounds: ${grounds.length} found`)
+          // console.log(`🔒 Ground owner ${user.id} accessing their grounds: ${grounds.length} found`)
         } else if (user && user.role === 'SUPER_ADMIN') {
           // Super admin: show all grounds
           grounds = await getAllGroundsWithOwnerInfo()
-          console.log(`👑 Super admin accessing all grounds: ${grounds.length} found`)
+          // console.log(`👑 Super admin accessing all grounds: ${grounds.length} found`)
         } else {
           // Invalid token or role
           grounds = await getAllGroundsWithOwnerInfo()
-          console.log(`🌐 Public access to grounds: ${grounds.length} found`)
+          // console.log(`🌐 Public access to grounds: ${grounds.length} found`)
         }
       } catch (error) {
-        console.error('Auth error, falling back to public access:', error)
+        // console.error('Auth error, falling back to public access:', error)
         // Fallback to public access
         grounds = await getAllGroundsWithOwnerInfo()
-        console.log(`🌐 Public access to grounds (fallback): ${grounds.length} found`)
+        // console.log(`🌐 Public access to grounds (fallback): ${grounds.length} found`)
       }
     } else {
       // No token: public access (home page)
       grounds = await getAllGroundsWithOwnerInfo()
-      console.log(`🌐 Public access to grounds: ${grounds.length} found`)
+      // console.log(`🌐 Public access to grounds: ${grounds.length} found`)
     }
 
     // Filter by city if provided
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ grounds: processedGrounds })
   } catch (error) {
-    console.error('Get Grounds Error:', error)
+    // console.error('Get Grounds Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -137,14 +137,14 @@ export async function POST(request: NextRequest) {
     try {
       await sendGroundSubmissionSMS(user.phone, data.name)
     } catch (smsError) {
-      console.error('SMS notification error:', smsError)
+      // console.error('SMS notification error:', smsError)
       // Don't fail the ground creation if SMS fails
     }
     */
 
     return NextResponse.json({ ground })
   } catch (error) {
-    console.error('Create Ground Error:', error)
+    // console.error('Create Ground Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

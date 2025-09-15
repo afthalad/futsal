@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ bookings: bookingsWithGrounds })
   } catch (error) {
-    console.error('Get Bookings Error:', error)
+    // console.error('Get Bookings Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

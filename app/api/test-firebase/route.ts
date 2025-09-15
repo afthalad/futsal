@@ -14,11 +14,11 @@ export async function GET(request: NextRequest) {
       NEXT_PUBLIC_FIREBASE_PROJECT_ID: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     }
 
-    console.log('🔍 Firebase Environment Check:')
-    console.log('FIREBASE_PROJECT_ID:', envCheck.FIREBASE_PROJECT_ID)
-    console.log('FIREBASE_CLIENT_EMAIL:', envCheck.FIREBASE_CLIENT_EMAIL)
-    console.log('FIREBASE_PRIVATE_KEY:', envCheck.FIREBASE_PRIVATE_KEY)
-    console.log('NEXT_PUBLIC_FIREBASE_PROJECT_ID:', envCheck.NEXT_PUBLIC_FIREBASE_PROJECT_ID)
+    // console.log('🔍 Firebase Environment Check:')
+    // console.log('FIREBASE_PROJECT_ID:', envCheck.FIREBASE_PROJECT_ID)
+    // console.log('FIREBASE_CLIENT_EMAIL:', envCheck.FIREBASE_CLIENT_EMAIL)
+    // console.log('FIREBASE_PRIVATE_KEY:', envCheck.FIREBASE_PRIVATE_KEY)
+    // console.log('NEXT_PUBLIC_FIREBASE_PROJECT_ID:', envCheck.NEXT_PUBLIC_FIREBASE_PROJECT_ID)
 
     return NextResponse.json({
       success: true,
