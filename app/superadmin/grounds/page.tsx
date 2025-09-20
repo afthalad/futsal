@@ -255,18 +255,27 @@ export default function SuperAdminGroundsPage() {
                 </div>
 
                 {/* Pricing */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-1">
                   <div className="text-center p-2 bg-green-50 rounded">
                     <div className="text-sm font-bold text-green-600">
                       {formatPrice(ground.morningPrice)}
                     </div>
                     <div className="text-xs text-gray-600">Morning</div>
+                    <div className="text-xs text-gray-500">06AM-04PM</div>
                   </div>
-                  <div className="text-center p-2 bg-blue-50 rounded">
-                    <div className="text-sm font-bold text-blue-600">
+                  <div className="text-center p-2 bg-yellow-50 rounded">
+                    <div className="text-sm font-bold text-yellow-600">
                       {formatPrice(ground.eveningPrice)}
                     </div>
                     <div className="text-xs text-gray-600">Evening</div>
+                    <div className="text-xs text-gray-500">04PM-06PM</div>
+                  </div>
+                  <div className="text-center p-2 bg-blue-50 rounded">
+                    <div className="text-sm font-bold text-blue-600">
+                      {formatPrice(ground.nightPrice)}
+                    </div>
+                    <div className="text-xs text-gray-600">Night</div>
+                    <div className="text-xs text-gray-500">06PM-02AM</div>
                   </div>
                 </div>
 

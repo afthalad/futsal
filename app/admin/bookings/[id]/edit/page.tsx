@@ -238,8 +238,14 @@ export default function EditBookingPage() {
       const selectedGround = grounds.find(g => g.id === value)
       if (selectedGround && formData.startTime) {
         const hour = parseInt(formData.startTime.split(':')[0])
-        const isMorning = hour >= 0 && hour < 12
-        const price = isMorning ? selectedGround.morningPrice : selectedGround.eveningPrice
+        let price = 0
+        if (hour >= 6 && hour < 16) {
+          price = selectedGround.morningPrice
+        } else if (hour >= 16 && hour < 18) {
+          price = selectedGround.eveningPrice
+        } else {
+          price = selectedGround.nightPrice
+        }
         setFormData(prev => ({ ...prev, price }))
       }
     }
@@ -437,7 +443,8 @@ export default function EditBookingPage() {
                 {selectedGround && (
                   <p className="text-xs text-gray-500 mt-1">
                     Morning: Rs. {selectedGround.morningPrice.toLocaleString()} | 
-                    Evening: Rs. {selectedGround.eveningPrice.toLocaleString()}
+                    Evening: Rs. {selectedGround.eveningPrice.toLocaleString()} | 
+                    Night: Rs. {selectedGround.nightPrice.toLocaleString()}
                   </p>
                 )}
               </div>

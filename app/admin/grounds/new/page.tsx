@@ -146,8 +146,8 @@ export default function NewGroundPage() {
       return
     }
 
-    if (!formData.morningPrice || !formData.eveningPrice) {
-      toast.error('Please enter both morning and evening prices')
+    if (!formData.morningPrice || !formData.eveningPrice || !formData.nightPrice) {
+      toast.error('Please enter all three prices (morning, evening, and night)')
       return
     }
 
@@ -164,7 +164,8 @@ export default function NewGroundPage() {
         body: JSON.stringify({
           ...formData,
           morningPrice: parseFloat(formData.morningPrice),
-          eveningPrice: parseFloat(formData.eveningPrice)
+          eveningPrice: parseFloat(formData.eveningPrice),
+          nightPrice: parseFloat(formData.nightPrice)
         })
       })
 

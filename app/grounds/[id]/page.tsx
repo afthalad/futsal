@@ -803,33 +803,33 @@ export default function GroundDetailPage() {
                       <div className="text-sm font-bold text-green-600">
                         {formatPrice(ground.morningPrice)}
                       </div>
-                      <div className="text-xs text-gray-600">
+                      {/* <div className="text-xs text-gray-600">
                         Morning
-                      </div>
+                      </div> */}
                       <div className="text-xs text-gray-500">
-                        06AM-04PM
+                        6AM - 4PM
                       </div>
                     </div>
                     <div className="text-center p-2 bg-yellow-50 rounded border border-yellow-200">
                       <div className="text-sm font-bold text-yellow-600">
                         {formatPrice(ground.eveningPrice)}
                       </div>
-                      <div className="text-xs text-gray-600">
+                      {/* <div className="text-xs text-gray-600">
                         Evening
-                      </div>
+                      </div> */}
                       <div className="text-xs text-gray-500">
-                        04PM-06PM
+                        4PM - 6PM
                       </div>
                     </div>
                     <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
                       <div className="text-sm font-bold text-blue-600">
                         {formatPrice(ground.nightPrice)}
                       </div>
-                      <div className="text-xs text-gray-600">
+                      {/* <div className="text-xs text-gray-600">
                         Night
-                      </div>
+                      </div> */}
                       <div className="text-xs text-gray-500">
-                        06PM-02AM
+                        6 PM
                       </div>
                     </div>
                   </div>

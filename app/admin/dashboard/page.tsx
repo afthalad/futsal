@@ -491,6 +491,10 @@ export default function AdminDashboard() {
                               <span className="font-medium">{formatPrice(ground.eveningPrice)}</span>
                             </div>
                             <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Night:</span>
+                              <span className="font-medium">{formatPrice(ground.nightPrice)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
                               <span className="text-gray-600">Bookings:</span>
                               <span className="font-medium">{ground._count.bookings}</span>
                             </div>
