@@ -4,8 +4,98 @@ import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 
 import { getUserFromToken } from '@/lib/auth'
-import { deleteGround, getGroundById, getBookingsByGround } from '@/lib/firestore-server'
+import { deleteGround, getGroundById, getBookingsByGround, updateGround } from '@/lib/firestore-server'
 import { deleteGroundInMemory, getGroundByIdInMemory } from '@/lib/memory-storage'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
+    
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const user = await getUserFromToken(token)
+    
+    if (!user || user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const ground = await getGroundById(params.id)
+
+    if (!ground) {
+      return NextResponse.json({ error: 'Ground not found' }, { status: 404 })
+    }
+
+    // Process ground data for super admin view
+    const processedGround = {
+      ...ground,
+      images: ground.images || [],
+      amenities: ground.amenities || [],
+      status: ground.status || 'PENDING'
+    }
+
+    return NextResponse.json({ ground: processedGround })
+  } catch (error) {
+    // console.error('Get Ground Error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
+    
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const user = await getUserFromToken(token)
+    
+    if (!user || user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const data = await request.json()
+    
+    // Get current ground to check if it exists
+    const currentGround = await getGroundById(params.id)
+    
+    if (!currentGround) {
+      return NextResponse.json({ error: 'Ground not found' }, { status: 404 })
+    }
+    
+    // Prepare update data
+    const updateData = {
+      ...data,
+      images: data.images || [],
+      amenities: data.amenities || [],
+      updatedAt: new Date()
+    }
+    
+    // Super admin can edit any ground without changing its status
+    // The status remains as is unless explicitly changed
+    await updateGround(params.id, updateData)
+
+    const updatedGround = {
+      id: params.id,
+      ...updateData,
+      images: updateData.images || [],
+      amenities: updateData.amenities || []
+    }
+
+    return NextResponse.json({ ground: updatedGround })
+  } catch (error) {
+    // console.error('Update Ground Error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
 
 export async function DELETE(
   request: NextRequest,

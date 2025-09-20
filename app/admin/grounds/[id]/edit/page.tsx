@@ -52,18 +52,47 @@ export default function EditGroundPage() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadMessage, setUploadMessage] = useState('')
   const [showProgressBar, setShowProgressBar] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
     if (params.id) {
-      fetchGround()
+      fetchUserRole()
     }
   }, [params.id])
+
+  useEffect(() => {
+    if (params.id && userRole) {
+      fetchGround()
+    }
+  }, [params.id, userRole])
+
+  const fetchUserRole = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await response.json()
+      
+      if (response.ok) {
+        setUserRole(data.user.role)
+      }
+    } catch (error) {
+      // console.error('Error fetching user role:', error)
+    }
+  }
 
   const fetchGround = async () => {
     try {
       setFetching(true)
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/grounds/${params.id}`, {
+      
+      // Use admin endpoint for super admins, regular endpoint for ground owners
+      const endpoint = userRole === 'SUPER_ADMIN' 
+        ? `/api/admin/grounds/${params.id}` 
+        : `/api/grounds/${params.id}`
+      
+      const response = await fetch(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
@@ -201,7 +230,13 @@ export default function EditGroundPage() {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/grounds/${params.id}`, {
+      
+      // Use admin endpoint for super admins, regular endpoint for ground owners
+      const endpoint = userRole === 'SUPER_ADMIN' 
+        ? `/api/admin/grounds/${params.id}` 
+        : `/api/grounds/${params.id}`
+      
+      const response = await fetch(endpoint, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -243,7 +278,13 @@ export default function EditGroundPage() {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/grounds/${params.id}`, {
+      
+      // Use admin endpoint for super admins, regular endpoint for ground owners
+      const endpoint = userRole === 'SUPER_ADMIN' 
+        ? `/api/admin/grounds/${params.id}` 
+        : `/api/grounds/${params.id}`
+      
+      const response = await fetch(endpoint, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
