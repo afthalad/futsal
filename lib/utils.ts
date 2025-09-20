@@ -6,7 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Format price to display with currency
-export function formatPrice(price: number): string {
+export function formatPrice(price: number | undefined): string {
+  if (!price || isNaN(price)) return 'Rs.0'
   return `Rs.${price.toLocaleString()}`
 }
 
@@ -31,15 +32,22 @@ export function generateTimeSlots(): string[] {
   return slots
 }
 
-// Check if a time slot is in the morning (before 17:00 / 5:00 PM)
+// Check if a time slot is in the morning (06:00 AM - 04:00 PM)
 export function isMorningSlot(time: string): boolean {
   const hour = parseInt(time.split(':')[0])
-  return hour >= 0 && hour < 17
+  return hour >= 6 && hour < 16
 }
 
+// Check if a time slot is in the evening (04:00 PM - 06:00 PM)
 export function isEveningSlot(time: string): boolean {
   const hour = parseInt(time.split(':')[0])
-  return hour >= 17 && hour < 24
+  return hour >= 16 && hour < 18
+}
+
+// Check if a time slot is in the night (06:00 PM - 02:00 AM)
+export function isNightSlot(time: string): boolean {
+  const hour = parseInt(time.split(':')[0])
+  return hour >= 18 || hour < 6
 }
 
 export function formatFirebaseDate(timestamp: any): string {

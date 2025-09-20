@@ -24,6 +24,8 @@ import {
   formatTime,
   generateTimeSlots,
   isMorningSlot,
+  isEveningSlot,
+  isNightSlot,
 } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,7 @@ interface Ground {
   amenities: string[];
   morningPrice: number;
   eveningPrice: number;
+  nightPrice: number;
   ownerId: string;
   isActive: boolean;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -133,7 +136,9 @@ export default function GroundDetailPage() {
   const availableSlots = useMemo(() => getAvailableTimeSlots(), [getAvailableTimeSlots]);
   const price = useMemo(() => {
     if (!selectedTime || !ground) return 0;
-    return isMorningSlot(selectedTime) ? ground.morningPrice : ground.eveningPrice;
+    if (isMorningSlot(selectedTime)) return ground.morningPrice;
+    if (isEveningSlot(selectedTime)) return ground.eveningPrice;
+    return ground.nightPrice;
   }, [selectedTime, ground]);
 
   const checkCurrentUser = useCallback(async () => {
@@ -759,15 +764,15 @@ export default function GroundDetailPage() {
           {/* Ground Details Section - Mobile */}
           <Card >
             <CardHeader className="bg-grey-50 border-b border-blue-100">
-              <CardTitle className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900">
-                Ground Details
+              <CardTitle className="text-lg sm:text-lg md:text-xl font-semibold text-gray-900">
+                Ground Details  
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
               <div className="space-y-4 sm:space-y-6">
                 {/* Ground Header */}
                 <div className="border-b border-gray-200 pb-4">
-                  <h1 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                  <h1 className="text-sm sm:text-lg font-bold text-gray-900 mb-2">
                     {ground.name}
                   </h1>
                   <div className="flex items-center text-gray-600 mb-3">
@@ -793,21 +798,38 @@ export default function GroundDetailPage() {
 
                 {/* Pricing */}
                 <div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="text-lg font-bold text-green-600">
+                  <div className="grid grid-cols-3 gap-1 sm:gap-2">
+                    <div className="text-center p-2 bg-green-50 rounded border border-green-200">
+                      <div className="text-sm font-bold text-green-600">
                         {formatPrice(ground.morningPrice)}
                       </div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        Morning (12AM - 5PM)
+                      <div className="text-xs text-gray-600">
+                        Morning
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        06AM-04PM
                       </div>
                     </div>
-                    <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="text-lg font-bold text-blue-600">
+                    <div className="text-center p-2 bg-yellow-50 rounded border border-yellow-200">
+                      <div className="text-sm font-bold text-yellow-600">
                         {formatPrice(ground.eveningPrice)}
                       </div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        Evening (5PM - 12AM)
+                      <div className="text-xs text-gray-600">
+                        Evening
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        04PM-06PM
+                      </div>
+                    </div>
+                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
+                      <div className="text-sm font-bold text-blue-600">
+                        {formatPrice(ground.nightPrice)}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Night
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        06PM-02AM
                       </div>
                     </div>
                   </div>
@@ -942,21 +964,38 @@ export default function GroundDetailPage() {
 
                 {/* Pricing */}
                 <div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="text-lg font-bold text-green-600">
+                  <div className="grid grid-cols-3 gap-1 sm:gap-2">
+                    <div className="text-center p-2 bg-green-50 rounded border border-green-200">
+                      <div className="text-sm font-bold text-green-600">
                         {formatPrice(ground.morningPrice)}
                       </div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        Morning (12 AM - 5 PM)
+                      <div className="text-xs text-gray-600">
+                        Morning
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        06AM-04PM
                       </div>
                     </div>
-                    <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="text-lg font-bold text-blue-600">
+                    <div className="text-center p-2 bg-yellow-50 rounded border border-yellow-200">
+                      <div className="text-sm font-bold text-yellow-600">
                         {formatPrice(ground.eveningPrice)}
                       </div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        Evening (5 PM - 12 AM)
+                      <div className="text-xs text-gray-600">
+                        Evening
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        04PM-06PM
+                      </div>
+                    </div>
+                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
+                      <div className="text-sm font-bold text-blue-600">
+                        {formatPrice(ground.nightPrice)}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Night
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        06PM-02AM
                       </div>
                     </div>
                   </div>
@@ -1351,6 +1390,7 @@ export default function GroundDetailPage() {
             name: ground!.name,
             morningPrice: ground!.morningPrice,
             eveningPrice: ground!.eveningPrice,
+            nightPrice: ground!.nightPrice,
           }}
           selectedDate={selectedDate}
           selectedTime={selectedTime}

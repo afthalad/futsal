@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { X, Calendar, Clock, User, Phone } from 'lucide-react'
-import { formatPrice, formatTime, isMorningSlot } from '@/lib/utils'
+import { formatPrice, formatTime, isMorningSlot, isEveningSlot, isNightSlot } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 interface BookingModalProps {
@@ -13,6 +13,7 @@ interface BookingModalProps {
     name: string
     morningPrice: number
     eveningPrice: number
+    nightPrice: number
   }
   selectedDate: string
   selectedTime: string
@@ -37,7 +38,9 @@ export default function BookingModal({
 
   if (!isOpen) return null
 
-  const price = isMorningSlot(selectedTime) ? ground.morningPrice : ground.eveningPrice
+  const price = isMorningSlot(selectedTime) ? ground.morningPrice : 
+                isEveningSlot(selectedTime) ? ground.eveningPrice : 
+                ground.nightPrice
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

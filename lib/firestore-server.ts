@@ -23,6 +23,7 @@ export interface Ground {
   amenities: string[]
   morningPrice: number
   eveningPrice: number
+  nightPrice: number
   isActive: boolean
   ownerId: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'

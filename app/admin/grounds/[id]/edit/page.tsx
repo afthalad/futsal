@@ -17,6 +17,7 @@ interface Ground {
   secondaryPhone: string | null
   morningPrice: number
   eveningPrice: number
+  nightPrice: number
   amenities: string[]
   images: string[]
   ownerId: string
@@ -38,6 +39,7 @@ export default function EditGroundPage() {
     secondaryPhone: '',
     morningPrice: '',
     eveningPrice: '',
+    nightPrice: '',
     amenities: [] as string[],
     images: [] as string[]
   })
@@ -105,6 +107,7 @@ export default function EditGroundPage() {
           secondaryPhone: data.ground.secondaryPhone || '',
           morningPrice: data.ground.morningPrice?.toString() || '',
           eveningPrice: data.ground.eveningPrice?.toString() || '',
+          nightPrice: data.ground.nightPrice?.toString() || '',
           amenities: data.ground.amenities || [],
           images: data.ground.images || []
         })
@@ -463,7 +466,7 @@ export default function EditGroundPage() {
           <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Pricing</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Morning Price (LKR) *</label>
                 <input
@@ -477,7 +480,7 @@ export default function EditGroundPage() {
                   step="100"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">12:00 AM - 5:00 PM</p>
+                <p className="text-xs text-gray-500 mt-1">06:00 AM - 04:00 PM</p>
               </div>
 
               <div>
@@ -493,7 +496,23 @@ export default function EditGroundPage() {
                   step="100"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">5:00 PM - 12:00 AM</p>
+                <p className="text-xs text-gray-500 mt-1">04:00 PM - 06:00 PM</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Night Price (LKR) *</label>
+                <input
+                  type="number"
+                  name="nightPrice"
+                  value={formData.nightPrice}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  placeholder="Enter night price"
+                  min="0"
+                  step="100"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">06:00 PM - 02:00 AM</p>
               </div>
             </div>
           </div>

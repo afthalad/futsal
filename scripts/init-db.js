@@ -43,8 +43,9 @@ async function main() {
       email: 'info@colombofutsal.com',
       images: ['/placeholder-ground.jpg'],
       amenities: ['Parking', 'Changing Room', 'Water', 'Lighting'],
-      morningPrice: 2500,
-      eveningPrice: 3500,
+      morningPrice: 1500,
+      eveningPrice: 2000,
+      nightPrice: 3500,
       ownerId: groundOwner.id
     }
   })

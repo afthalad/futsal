@@ -16,6 +16,7 @@ interface Ground {
   amenities: string[]
   morningPrice: number
   eveningPrice: number
+  nightPrice: number
   ownerId: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   rejectionReason?: string
@@ -161,14 +162,21 @@ export default function GroundReviewModal({
               <DollarSign className="h-5 w-5" />
               Pricing
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Morning Price</label>
                 <p className="text-gray-900 font-medium">{formatPrice(ground.morningPrice)}</p>
+                <p className="text-xs text-gray-500">06:00 AM - 04:00 PM</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Evening Price</label>
                 <p className="text-gray-900 font-medium">{formatPrice(ground.eveningPrice)}</p>
+                <p className="text-xs text-gray-500">04:00 PM - 06:00 PM</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Night Price</label>
+                <p className="text-gray-900 font-medium">{formatPrice(ground.nightPrice)}</p>
+                <p className="text-xs text-gray-500">06:00 PM - 02:00 AM</p>
               </div>
             </div>
           </div>

@@ -19,6 +19,7 @@ export default function NewGroundPage() {
     secondaryPhone: '',
     morningPrice: '',
     eveningPrice: '',
+    nightPrice: '',
     amenities: [] as string[],
     images: [] as string[]
   })
@@ -288,7 +289,7 @@ export default function NewGroundPage() {
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Pricing</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="label">Morning Price (LKR) *</label>
                 <input
@@ -302,7 +303,7 @@ export default function NewGroundPage() {
                   step="100"
                   required
                 />
-                 <p className="text-xs text-gray-500 mt-1">12:00 AM - 5:00 PM</p>
+                 <p className="text-xs text-gray-500 mt-1">06:00 AM - 04:00 PM</p>
               </div>
 
               <div>
@@ -318,7 +319,23 @@ export default function NewGroundPage() {
                   step="100"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">5:00 PM - 12:00 AM</p>
+                <p className="text-xs text-gray-500 mt-1">04:00 PM - 06:00 PM</p>
+              </div>
+
+              <div>
+                <label className="label">Night Price (LKR) *</label>
+                <input
+                  type="number"
+                  name="nightPrice"
+                  value={formData.nightPrice}
+                  onChange={handleInputChange}
+                  className="input-field"
+                  placeholder="Enter night price"
+                  min="0"
+                  step="100"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">06:00 PM - 02:00 AM</p>
               </div>
             </div>
           </div>
