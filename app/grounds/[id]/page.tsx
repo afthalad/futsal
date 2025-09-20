@@ -829,7 +829,7 @@ export default function GroundDetailPage() {
                         Night
                       </div> */}
                       <div className="text-xs text-gray-500">
-                        6PM
+                        After 6PM
                       </div>
                     </div>
                   </div>
@@ -984,7 +984,7 @@ export default function GroundDetailPage() {
                         Evening
                       </div>
                       <div className="text-xs text-gray-500">
-                        04PM-06PM
+                        4PM-6PM
                       </div>
                     </div>
                     <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
@@ -995,7 +995,7 @@ export default function GroundDetailPage() {
                         Night
                       </div>
                       <div className="text-xs text-gray-500">
-                        06PM-02AM
+                       After 6PM
                       </div>
                     </div>
                   </div>

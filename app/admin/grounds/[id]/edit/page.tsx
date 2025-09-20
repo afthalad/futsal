@@ -513,7 +513,7 @@ export default function EditGroundPage() {
                   step="100"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">06:00 PM</p>
+                <p className="text-xs text-gray-500 mt-1">After 06:00 PM</p>
               </div>
             </div>
           </div>

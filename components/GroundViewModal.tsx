@@ -16,6 +16,7 @@ interface Ground {
   amenities: string[]
   morningPrice: number
   eveningPrice: number
+  nightPrice: number
   ownerId: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   rejectionReason?: string
@@ -182,6 +183,10 @@ export default function GroundViewModal({
               <div>
                 <label className="block text-sm font-medium text-gray-700">Evening Price</label>
                 <p className="text-gray-900 font-medium">{formatPrice(ground.eveningPrice)}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Night Price</label>
+                <p className="text-gray-900 font-medium">{formatPrice(ground.nightPrice)}</p>
               </div>
             </div>
           </div>

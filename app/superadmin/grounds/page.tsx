@@ -275,7 +275,7 @@ export default function SuperAdminGroundsPage() {
                       {formatPrice(ground.nightPrice)}
                     </div>
                     <div className="text-xs text-gray-600">Night</div>
-                    <div className="text-xs text-gray-500">06PM-02AM</div>
+                    <div className="text-xs text-gray-500">After 6PM</div>
                   </div>
                 </div>
 
