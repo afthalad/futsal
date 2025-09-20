@@ -17,6 +17,7 @@ interface Ground {
   images: string[]
   morningPrice: number
   eveningPrice: number
+  nightPrice: number
   amenities: string[]
   isActive: boolean
   _count: {
