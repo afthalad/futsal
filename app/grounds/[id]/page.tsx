@@ -973,7 +973,7 @@ export default function GroundDetailPage() {
                         Morning
                       </div>
                       <div className="text-xs text-gray-500">
-                        06AM-04PM
+                        6AM-4PM
                       </div>
                     </div>
                     <div className="text-center p-2 bg-yellow-50 rounded border border-yellow-200">

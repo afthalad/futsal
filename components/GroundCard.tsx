@@ -18,6 +18,7 @@ interface Ground {
   images: string[]
   morningPrice: number
   eveningPrice: number
+  nightPrice: number
   amenities: string[]
   isActive: boolean
   _count: {
@@ -99,9 +100,13 @@ export default function GroundCard({ ground }: GroundCardProps) {
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
               <span className="truncate">Morning: {ground.morningPrice}</span>
             </div>
-            <div className="flex items-center text-blue-600">
+            <div className="flex items-center text-yellow-600">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
               <span className="truncate">Evening: {ground.eveningPrice}</span>
+            </div>
+            <div className="flex items-center text-blue-600">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+              <span className="truncate">Evening: {ground.nightPrice}</span>
             </div>
           </div>
         </div>
