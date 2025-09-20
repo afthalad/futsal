@@ -106,7 +106,7 @@ export default function GroundCard({ ground }: GroundCardProps) {
             </div>
             <div className="flex items-center text-blue-600">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-              <span className="truncate">Evening: {ground.nightPrice}</span>
+              <span className="truncate">Night: {ground.nightPrice}</span>
             </div>
           </div>
         </div>
