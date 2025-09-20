@@ -330,14 +330,14 @@ export default function LoginPage() {
                   <p className="text-xs text-gray-500">
                     Enter the 6-digit verification code sent to {formData.phone}
                   </p>
-                  {otpSentTime && (
+                  {/* {otpSentTime && (
                     <div className="mt-2 space-y-1">
                       <p className="text-xs text-blue-600">
                         OTP sent at {new Date(otpSentTime).toLocaleTimeString()}
                       </p>
                       
                     </div>
-                  )}
+                  )} */}
                 </div>
               )}
 

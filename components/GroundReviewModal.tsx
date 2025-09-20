@@ -176,7 +176,7 @@ export default function GroundReviewModal({
               <div>
                 <label className="block text-sm font-medium text-gray-700">Night Price</label>
                 <p className="text-gray-900 font-medium">{formatPrice(ground.nightPrice)}</p>
-                <p className="text-xs text-gray-500">06:00 PM - 02:00 AM</p>
+                <p className="text-xs text-gray-500">06:00 PM</p>
               </div>
             </div>
           </div>
