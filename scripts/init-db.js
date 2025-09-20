@@ -45,8 +45,6 @@ async function main() {
       amenities: ['Parking', 'Changing Room', 'Water', 'Lighting'],
       morningPrice: 2500,
       eveningPrice: 3500,
-      openingTime: '06:00',
-      closingTime: '22:00',
       ownerId: groundOwner.id
     }
   })

@@ -19,7 +19,7 @@ export function formatTime(time: string): string {
 }
 
 // Generate time slots for all 24 hours
-export function generateTimeSlots(openingTime: string, closingTime: string, slotDurationMinutes: number = 60): string[] {
+export function generateTimeSlots(): string[] {
   const slots: string[] = []
   
   // Generate slots for all 24 hours (00:00 to 23:00)

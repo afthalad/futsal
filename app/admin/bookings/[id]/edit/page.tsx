@@ -37,8 +37,6 @@ interface Ground {
   city: string
   morningPrice: number
   eveningPrice: number
-  openingTime: string
-  closingTime: string
 }
 
 export default function EditBookingPage() {

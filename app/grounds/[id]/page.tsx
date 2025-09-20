@@ -43,8 +43,6 @@ interface Ground {
   amenities: string[];
   morningPrice: number;
   eveningPrice: number;
-  openingTime: string;
-  closingTime: string;
   ownerId: string;
   isActive: boolean;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -93,7 +91,7 @@ export default function GroundDetailPage() {
   const getAvailableTimeSlots = useCallback(() => {
     if (!ground) return [];
 
-    const slots = generateTimeSlots(ground.openingTime, ground.closingTime, 60);
+    const slots = generateTimeSlots();
 
     // Use local date string to avoid timezone issues
     const today = new Date();
@@ -364,7 +362,7 @@ export default function GroundDetailPage() {
     const dateStr = `${year}-${month}-${day}`;
 
     // Check if ALL time slots for this date are booked
-    const slots = generateTimeSlots(ground.openingTime, ground.closingTime, 60);
+    const slots = generateTimeSlots();
     const bookingsForDate = ground.bookings.filter(
       (booking) => booking.date === dateStr
     );
@@ -591,7 +589,7 @@ export default function GroundDetailPage() {
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-80 sm:max-h-96 overflow-y-auto p-1">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-[700px] sm:max-h-[700px] overflow-y-auto p-1">
                         {availableSlots.map((slot) => (
                           <button
                             key={slot.time}
@@ -619,10 +617,10 @@ export default function GroundDetailPage() {
                             </div>
                             {slot.booking && (
                               <div className="text-xs text-red-600 mt-1 space-y-0.5">
-                                <div className="font-medium">Booked</div>
-                                <div className="text-gray-600 truncate">
+                                {/* <div className="font-medium">Booked</div> */}
+                                {/* <div className="text-gray-600 truncate">
                                   {slot.booking.customerName}
-                                </div>
+                                </div> */}
                                 <div className="text-gray-500 text-xs">
                                   {slot.booking.customerPhone}
                                 </div>
@@ -801,7 +799,7 @@ export default function GroundDetailPage() {
                         {formatPrice(ground.morningPrice)}
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
-                        Morning (12 AM - 5 PM)
+                        Morning (12AM - 5PM)
                       </div>
                     </div>
                     <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -809,15 +807,11 @@ export default function GroundDetailPage() {
                         {formatPrice(ground.eveningPrice)}
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
-                        Evening (5 PM - 12 AM)
+                        Evening (5PM - 12AM)
                       </div>
                     </div>
                   </div>
-                  <div className="mt-2 text-center">
-                    <p className="text-xs text-gray-500">
-                      All 24 hours available for booking
-                    </p>
-                  </div>
+                  
                 </div>
 
                 {/* Ground Images */}
@@ -966,11 +960,7 @@ export default function GroundDetailPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-2 text-center">
-                    <p className="text-xs text-gray-500">
-                      All 24 hours available for booking
-                    </p>
-                  </div>
+                  
                 </div>
 
                 {/* Ground Images */}
@@ -1199,7 +1189,7 @@ export default function GroundDetailPage() {
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 max-h-80 sm:max-h-96 lg:max-h-[500px] overflow-y-auto p-1">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 max-h-[600px] sm:max-h-[700px] lg:max-h-[800px] overflow-y-auto p-1">
                         {availableSlots.map((slot) => (
                           <button
                             key={slot.time}

@@ -19,8 +19,6 @@ export default function NewGroundPage() {
     secondaryPhone: '',
     morningPrice: '',
     eveningPrice: '',
-    openingTime: '06:00',
-    closingTime: '22:00',
     amenities: [] as string[],
     images: [] as string[]
   })
@@ -92,7 +90,7 @@ export default function NewGroundPage() {
       })
 
       const compressedSize = getFileSize(compressedFile.size)
-      setUploadMessage(`Uploading compressed image (${compressedSize})...`)
+      setUploadMessage(`Uploading compressed image `)
       setUploadProgress(60)
 
       // Upload to server
@@ -118,7 +116,7 @@ export default function NewGroundPage() {
         }))
         setUploadMessage('Upload completed!')
         setUploadProgress(100)
-        toast.success(`Image uploaded successfully! (${originalSize} → ${compressedSize})`)
+        toast.success(`Image uploaded successfully! `)
       } else {
         throw new Error('Upload failed')
       }
@@ -325,33 +323,6 @@ export default function NewGroundPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Operating Hours</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="label">Opening Time</label>
-                <input
-                  type="time"
-                  name="openingTime"
-                  value={formData.openingTime}
-                  onChange={handleInputChange}
-                  className="input-field"
-                />
-              </div>
-
-              <div>
-                <label className="label">Closing Time</label>
-                <input
-                  type="time"
-                  name="closingTime"
-                  value={formData.closingTime}
-                  onChange={handleInputChange}
-                  className="input-field"
-                />
-              </div>
-            </div>
-          </div>
 
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Amenities</h2>

@@ -16,8 +16,6 @@ interface Ground {
   amenities: string[]
   morningPrice: number
   eveningPrice: number
-  openingTime: string
-  closingTime: string
   ownerId: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   rejectionReason?: string
@@ -188,28 +186,6 @@ export default function GroundViewModal({
             </div>
           </div>
 
-          {/* Operating Hours */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Operating Hours
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Opening Time</label>
-                <p className="text-gray-900">{formatTime(ground.openingTime)}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Closing Time</label>
-                <p className="text-gray-900">{formatTime(ground.closingTime)}</p>
-              </div>
-            </div>
-            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> All 24 hours are available for booking regardless of operating hours.
-              </p>
-            </div>
-          </div>
 
           {/* Amenities */}
           {ground.amenities && ground.amenities.length > 0 && (

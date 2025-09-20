@@ -17,8 +17,6 @@ interface Ground {
   secondaryPhone: string | null
   morningPrice: number
   eveningPrice: number
-  openingTime: string
-  closingTime: string
   amenities: string[]
   images: string[]
   ownerId: string
@@ -40,8 +38,6 @@ export default function EditGroundPage() {
     secondaryPhone: '',
     morningPrice: '',
     eveningPrice: '',
-    openingTime: '06:00',
-    closingTime: '22:00',
     amenities: [] as string[],
     images: [] as string[]
   })
@@ -109,8 +105,6 @@ export default function EditGroundPage() {
           secondaryPhone: data.ground.secondaryPhone || '',
           morningPrice: data.ground.morningPrice?.toString() || '',
           eveningPrice: data.ground.eveningPrice?.toString() || '',
-          openingTime: data.ground.openingTime || '06:00',
-          closingTime: data.ground.closingTime || '22:00',
           amenities: data.ground.amenities || [],
           images: data.ground.images || []
         })
@@ -504,33 +498,6 @@ export default function EditGroundPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Operating Hours</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Opening Time</label>
-                <input
-                  type="time"
-                  name="openingTime"
-                  value={formData.openingTime}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Closing Time</label>
-                <input
-                  type="time"
-                  name="closingTime"
-                  value={formData.closingTime}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                />
-              </div>
-            </div>
-          </div>
 
           <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Amenities</h2>

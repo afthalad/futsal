@@ -38,8 +38,6 @@ interface Ground {
   amenities: string[]
   morningPrice: number
   eveningPrice: number
-  openingTime: string
-  closingTime: string
   isActive: boolean
   ownerId: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'

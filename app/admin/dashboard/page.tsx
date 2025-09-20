@@ -24,8 +24,6 @@ interface Ground {
   amenities: string[]
   morningPrice: number
   eveningPrice: number
-  openingTime: string
-  closingTime: string
   isActive: boolean
   ownerId: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
@@ -315,7 +313,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const totalRevenue = bookings.reduce((sum, booking) => sum + booking.price, 0)
+  const totalRevenue = bookings.filter(booking => booking.status !== 'CANCELLED').reduce((sum, booking) => sum + booking.price, 0)
 
   if (loading) {
     return (
@@ -367,7 +365,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Compact Stats - Side by side on mobile */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6 sm:col-span-2 lg:col-span-2">
+          {/* <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6 sm:col-span-2 lg:col-span-2">
             <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-100 rounded-lg">
@@ -394,7 +392,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Commission Due - Mobile Optimized */}
@@ -539,7 +537,7 @@ export default function AdminDashboard() {
                 <div>
                   {/* Filters */}
                   <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <div className="flex-1">
+                    {/* <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Ground</label>
                       <select
                         value={selectedGround}
@@ -553,7 +551,7 @@ export default function AdminDashboard() {
                           </option>
                         ))}
                       </select>
-                    </div>
+                    </div> */}
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Date</label>
                       <input

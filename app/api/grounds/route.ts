@@ -114,8 +114,6 @@ export async function POST(request: NextRequest) {
       amenities: data.amenities || [],
       ownerId: user.id,
       isActive: true,
-      openingTime: data.openingTime || '06:00',
-      closingTime: data.closingTime || '22:00',
       status: 'PENDING'
     })
 
@@ -126,8 +124,6 @@ export async function POST(request: NextRequest) {
       amenities: data.amenities || [],
       ownerId: user.id,
       isActive: true,
-      openingTime: data.openingTime || '06:00',
-      closingTime: data.closingTime || '22:00',
       status: 'PENDING'
     }
 

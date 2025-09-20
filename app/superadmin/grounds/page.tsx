@@ -23,8 +23,6 @@ interface Ground {
   morningPrice: number
   eveningPrice: number
   isActive: boolean
-  openingTime: string
-  closingTime: string
   ownerId: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   rejectionReason?: string
