@@ -18,19 +18,13 @@ export function formatTime(time: string): string {
   return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
 }
 
-// Generate time slots between opening and closing time
+// Generate time slots for all 24 hours
 export function generateTimeSlots(openingTime: string, closingTime: string, slotDurationMinutes: number = 60): string[] {
   const slots: string[] = []
-  const [openHour, openMinute] = openingTime.split(':').map(Number)
-  const [closeHour, closeMinute] = closingTime.split(':').map(Number)
   
-  const openTimeInMinutes = openHour * 60 + openMinute
-  const closeTimeInMinutes = closeHour * 60 + closeMinute
-  
-  for (let timeInMinutes = openTimeInMinutes; timeInMinutes < closeTimeInMinutes; timeInMinutes += slotDurationMinutes) {
-    const hours = Math.floor(timeInMinutes / 60)
-    const minutes = timeInMinutes % 60
-    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+  // Generate slots for all 24 hours (00:00 to 23:00)
+  for (let hour = 0; hour < 24; hour++) {
+    const timeString = `${hour.toString().padStart(2, '0')}:00`
     slots.push(timeString)
   }
   

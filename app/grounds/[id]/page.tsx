@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -90,83 +90,7 @@ export default function GroundDetailPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
-  useEffect(() => {
-    if (params.id) {
-      fetchGround();
-    }
-    checkCurrentUser();
-  }, [params.id]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (showImageModal) {
-        if (e.key === "Escape") {
-          closeImageModal();
-        } else if (e.key === "ArrowLeft") {
-          prevImage();
-        } else if (e.key === "ArrowRight") {
-          nextImage();
-        }
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showImageModal]);
-
-  useEffect(() => {
-    // Check ownership after both ground and user are loaded
-    if (ground && currentUser && ground.ownerId === currentUser.id) {
-      setIsOwner(true);
-    }
-  }, [ground, currentUser]);
-
-  const checkCurrentUser = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const response = await fetch("/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.ok) {
-          const user = await response.json();
-          setCurrentUser(user);
-        }
-      }
-    } catch (error) {
-      console.error("Error checking current user:", error);
-    }
-  };
-
-  useEffect(() => {
-    // Set default date to tomorrow
-    // const tomorrow = new Date();
-    // tomorrow.setDate(tomorrow.getDate() + 1);
-    const today = new Date();
-    today.setDate(today.getDate());
-    setSelectedDate(today.toISOString().split("T")[0]);
-  }, []);
-
-  const fetchGround = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/grounds/${params.id}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        setGround(data.ground);
-      } else {
-        toast.error("Ground not found");
-      }
-    } catch (error) {
-      console.error("Error fetching ground:", error);
-      toast.error("Failed to load ground details");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getAvailableTimeSlots = () => {
+  const getAvailableTimeSlots = useCallback(() => {
     if (!ground) return [];
 
     const slots = generateTimeSlots(ground.openingTime, ground.closingTime, 60);
@@ -206,7 +130,89 @@ export default function GroundDetailPage() {
         booking: booking || null,
       };
     });
-  };
+  }, [ground, selectedDate]);
+
+  const availableSlots = useMemo(() => getAvailableTimeSlots(), [getAvailableTimeSlots]);
+  const price = useMemo(() => {
+    if (!selectedTime || !ground) return 0;
+    return isMorningSlot(selectedTime) ? ground.morningPrice : ground.eveningPrice;
+  }, [selectedTime, ground]);
+
+  const checkCurrentUser = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const response = await fetch("/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const user = await response.json();
+          setCurrentUser(user);
+        }
+      }
+    } catch (error) {
+      console.error("Error checking current user:", error);
+    }
+  }, []);
+
+  const fetchGround = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/grounds/${params.id}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setGround(data.ground);
+      } else {
+        toast.error("Ground not found");
+      }
+    } catch (error) {
+      console.error("Error fetching ground:", error);
+      toast.error("Failed to load ground details");
+    } finally {
+      setLoading(false);
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchGround();
+    }
+    checkCurrentUser();
+  }, [params.id, fetchGround, checkCurrentUser]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showImageModal) {
+        if (e.key === "Escape") {
+          closeImageModal();
+        } else if (e.key === "ArrowLeft") {
+          prevImage();
+        } else if (e.key === "ArrowRight") {
+          nextImage();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showImageModal]);
+
+  useEffect(() => {
+    // Check ownership after both ground and user are loaded
+    if (ground && currentUser && ground.ownerId === currentUser.id) {
+      setIsOwner(true);
+    }
+  }, [ground, currentUser]);
+
+  useEffect(() => {
+    // Set default date to tomorrow
+    // const tomorrow = new Date();
+    // tomorrow.setDate(tomorrow.getDate() + 1);
+    const today = new Date();
+    today.setDate(today.getDate());
+    setSelectedDate(today.toISOString().split("T")[0]);
+  }, []);
 
   const handleTimeSlotClick = (time: string, slot: any) => {
     if (slot.booking) {
@@ -449,13 +455,6 @@ export default function GroundDetailPage() {
       </div>
     );
   }
-
-  const availableSlots = getAvailableTimeSlots();
-  const price = selectedTime
-    ? isMorningSlot(selectedTime)
-      ? ground.morningPrice
-      : ground.eveningPrice
-    : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -814,6 +813,11 @@ export default function GroundDetailPage() {
                       </div>
                     </div>
                   </div>
+                  <div className="mt-2 text-center">
+                    <p className="text-xs text-gray-500">
+                      All 24 hours available for booking
+                    </p>
+                  </div>
                 </div>
 
                 {/* Ground Images */}
@@ -961,6 +965,11 @@ export default function GroundDetailPage() {
                         Evening (5 PM - 12 AM)
                       </div>
                     </div>
+                  </div>
+                  <div className="mt-2 text-center">
+                    <p className="text-xs text-gray-500">
+                      All 24 hours available for booking
+                    </p>
                   </div>
                 </div>
 

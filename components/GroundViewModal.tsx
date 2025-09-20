@@ -204,6 +204,11 @@ export default function GroundViewModal({
                 <p className="text-gray-900">{formatTime(ground.closingTime)}</p>
               </div>
             </div>
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> All 24 hours are available for booking regardless of operating hours.
+              </p>
+            </div>
           </div>
 
           {/* Amenities */}
