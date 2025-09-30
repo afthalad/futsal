@@ -15,14 +15,17 @@ import {
   X,
   Mail,
   User,
+  QrCode,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import BookingModal from "@/components/BookingModal";
 import CancellationReasonModal from "@/components/CancellationReasonModal";
+import GroundQRCode from "@/components/GroundQRCode";
 import {
   formatPrice,
   formatTime,
   generateTimeSlots,
+  generateTimeSlotsWithSpecial,
   isMorningSlot,
   isEveningSlot,
   isNightSlot,
@@ -90,11 +93,12 @@ export default function GroundDetailPage() {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
 
   const getAvailableTimeSlots = useCallback(() => {
     if (!ground) return [];
 
-    const slots = generateTimeSlots();
+    const slots = generateTimeSlotsWithSpecial();
 
     // Use local date string to avoid timezone issues
     const today = new Date();
@@ -367,7 +371,7 @@ export default function GroundDetailPage() {
     const dateStr = `${year}-${month}-${day}`;
 
     // Check if ALL time slots for this date are booked
-    const slots = generateTimeSlots();
+    const slots = generateTimeSlotsWithSpecial();
     const bookingsForDate = ground.bookings.filter(
       (booking) => booking.date === dateStr
     );
@@ -594,45 +598,104 @@ export default function GroundDetailPage() {
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-[700px] sm:max-h-[700px] overflow-y-auto p-1">
-                        {availableSlots.map((slot) => (
-                          <button
-                            key={slot.time}
-                            onClick={() => handleTimeSlotClick(slot.time, slot)}
-                            disabled={slot.isPast}
-                            className={`time-slot ${
-                              slot.isPast
-                                ? "past"
-                                : slot.booking
-                                ? "booked"
-                                : selectedTime === slot.time
-                                ? "selected"
-                                : "available"
-                            }`}
-                            title={
-                              slot.isPast
-                                ? "Past time slot"
-                                : slot.booking
-                                ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
-                                : "Available for booking"
-                            }
-                          >
-                            <div className="text-xs font-medium">
-                              {formatTime(slot.time)}
-                            </div>
-                            {slot.booking && (
-                              <div className="text-xs text-red-600 mt-1 space-y-0.5">
-                                {/* <div className="font-medium">Booked</div> */}
-                                {/* <div className="text-gray-600 truncate">
-                                  {slot.booking.customerName}
-                                </div> */}
-                                <div className="text-gray-500 text-xs">
-                                  {slot.booking.customerPhone}
+                      <div className="space-y-4">
+                        {/* Regular Time Slots */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Regular Time Slots</h4>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-[500px] overflow-y-auto p-1">
+                            {availableSlots.filter(slot => !slot.time.startsWith('25:') && !slot.time.startsWith('26:')).map((slot) => (
+                              <button
+                                key={slot.time}
+                                onClick={() => handleTimeSlotClick(slot.time, slot)}
+                                disabled={slot.isPast}
+                                className={`time-slot ${
+                                  slot.isPast
+                                    ? "past"
+                                    : slot.booking
+                                    ? "booked"
+                                    : selectedTime === slot.time
+                                    ? "selected"
+                                    : "available"
+                                }`}
+                                title={
+                                  slot.isPast
+                                    ? "Past time slot"
+                                    : slot.booking
+                                    ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                    : "Available for booking"
+                                }
+                              >
+                                <div className="text-xs font-medium">
+                                  {formatTime(slot.time)}
                                 </div>
-                              </div>
-                            )}
-                          </button>
-                        ))}
+                                <div className="text-xs opacity-75">
+                                  {slot.booking
+                                    ? "Booked"
+                                    : slot.isPast
+                                    ? "Past"
+                                    : "Available"}
+                                </div>
+                                {slot.booking && (
+                                  <div className="text-xs text-red-600 mt-1 space-y-0.5">
+                                    <div className="text-gray-500 text-xs">
+                                      {slot.booking.customerPhone}
+                                    </div>
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Special Time Slots (Next Day) */}
+                        {availableSlots.some(slot => slot.time.startsWith('25:') || slot.time.startsWith('26:')) && (
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Special Time Slots</h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 p-1">
+                              {availableSlots.filter(slot => slot.time.startsWith('25:') || slot.time.startsWith('26:')).map((slot) => (
+                                <button
+                                  key={slot.time}
+                                  onClick={() => handleTimeSlotClick(slot.time, slot)}
+                                  disabled={slot.isPast}
+                                  className={`time-slot next-day-slot ${
+                                    slot.isPast
+                                      ? "past"
+                                      : slot.booking
+                                      ? "booked"
+                                      : selectedTime === slot.time
+                                      ? "selected"
+                                      : "available"
+                                  }`}
+                                  title={
+                                    slot.isPast
+                                      ? "Past time slot"
+                                      : slot.booking
+                                      ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                      : "Next day slot (special time)"
+                                  }
+                                >
+                                  <div className="text-xs font-medium">
+                                    {formatTime(slot.time)}
+                                  </div>
+                                  <div className="text-xs opacity-75">
+                                    {slot.booking
+                                      ? "Booked"
+                                      : slot.isPast
+                                      ? "Past"
+                                      : "Next Day"}
+                                  </div>
+                                  {slot.booking && (
+                                    <div className="text-xs text-red-600 mt-1 space-y-0.5">
+                                      <div className="text-gray-500 text-xs">
+                                        {slot.booking.customerPhone}
+                                      </div>
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {availableSlots.filter((slot) => slot.available)
@@ -772,9 +835,18 @@ export default function GroundDetailPage() {
               <div className="space-y-4 sm:space-y-6">
                 {/* Ground Header */}
                 <div className="border-b border-gray-200 pb-4">
-                  <h1 className="text-sm sm:text-lg font-bold text-gray-900 mb-2">
-                    {ground.name}
-                  </h1>
+                  <div className="flex items-start justify-between mb-2">
+                    <h1 className="text-sm sm:text-lg font-bold text-gray-900 flex-1">
+                      {ground.name}
+                    </h1>
+                    <button
+                      onClick={() => setShowQRCode(true)}
+                      className="ml-2 p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Share Ground QR Code"
+                    >
+                      <QrCode className="h-4 w-4" />
+                    </button>
+                  </div>
                   <div className="flex items-center text-gray-600 mb-3">
                     <MapPin className="h-4 w-4 mr-1" />
                     <span className="text-sm">{ground.location}, {ground.city}</span>
@@ -938,9 +1010,18 @@ export default function GroundDetailPage() {
               <div className="space-y-6">
                 {/* Ground Header */}
                 <div className="border-b border-gray-200 pb-4">
-                  <h1 className="text-xl font-bold text-gray-900 mb-2">
-                    {ground.name}
-                  </h1>
+                  <div className="flex items-start justify-between mb-2">
+                    <h1 className="text-xl font-bold text-gray-900 flex-1">
+                      {ground.name}
+                    </h1>
+                    <button
+                      onClick={() => setShowQRCode(true)}
+                      className="ml-2 p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Share Ground QR Code"
+                    >
+                      <QrCode className="h-5 w-5" />
+                    </button>
+                  </div>
                   <div className="flex items-center text-gray-600 mb-3">
                     <MapPin className="h-4 w-4 mr-1" />
                     <span className="text-sm">{ground.location}, {ground.city}</span>
@@ -1228,45 +1309,98 @@ export default function GroundDetailPage() {
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 max-h-[600px] sm:max-h-[700px] lg:max-h-[800px] overflow-y-auto p-1">
-                        {availableSlots.map((slot) => (
-                          <button
-                            key={slot.time}
-                            onClick={() => handleTimeSlotClick(slot.time, slot)}
-                            disabled={slot.isPast}
-                            className={`time-slot ${
-                              slot.isPast
-                                ? "past"
-                                : slot.booking
-                                ? "booked"
-                                : selectedTime === slot.time
-                                ? "selected"
-                                : "available"
-                            }`}
-                            title={
-                              slot.isPast
-                                ? "Past time slot"
-                                : slot.booking
-                                ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
-                                : "Available for booking"
-                            }
-                          >
-                            <div className="text-xs font-medium">
-                              {formatTime(slot.time)}
+                      <div className="space-y-6">
+                        {/* Regular Time Slots */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-3">Regular Time Slots</h4>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 max-h-[500px] overflow-y-auto p-1">
+                            {availableSlots.filter(slot => !slot.time.startsWith('25:') && !slot.time.startsWith('26:')).map((slot) => (
+                              <button
+                                key={slot.time}
+                                onClick={() => handleTimeSlotClick(slot.time, slot)}
+                                disabled={slot.isPast}
+                                className={`time-slot ${
+                                  slot.isPast
+                                    ? "past"
+                                    : slot.booking
+                                    ? "booked"
+                                    : selectedTime === slot.time
+                                    ? "selected"
+                                    : "available"
+                                }`}
+                                title={
+                                  slot.isPast
+                                    ? "Past time slot"
+                                    : slot.booking
+                                    ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                    : "Available for booking"
+                                }
+                              >
+                                <div className="text-xs font-medium">
+                                  {formatTime(slot.time)}
+                                </div>
+                                {slot.booking && (
+                                  <div className="text-xs text-red-600 mt-1 space-y-0.5">
+                                    <div className="font-medium">Booked</div>
+                                    <div className="text-gray-600 truncate">
+                                      {slot.booking.customerName}
+                                    </div>
+                                    <div className="text-gray-500 text-xs">
+                                      {slot.booking.customerPhone}
+                                    </div>
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Special Time Slots (Next Day) */}
+                        {availableSlots.some(slot => slot.time.startsWith('25:') || slot.time.startsWith('26:')) && (
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-3">Special Time Slots (Next Day)</h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 p-1">
+                              {availableSlots.filter(slot => slot.time.startsWith('25:') || slot.time.startsWith('26:')).map((slot) => (
+                                <button
+                                  key={slot.time}
+                                  onClick={() => handleTimeSlotClick(slot.time, slot)}
+                                  disabled={slot.isPast}
+                                  className={`time-slot next-day-slot ${
+                                    slot.isPast
+                                      ? "past"
+                                      : slot.booking
+                                      ? "booked"
+                                      : selectedTime === slot.time
+                                      ? "selected"
+                                      : "available"
+                                  }`}
+                                  title={
+                                    slot.isPast
+                                      ? "Past time slot"
+                                      : slot.booking
+                                      ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                      : "Next day slot (special time)"
+                                  }
+                                >
+                                  <div className="text-xs font-medium">
+                                    {formatTime(slot.time)}
+                                  </div>
+                                  {slot.booking && (
+                                    <div className="text-xs text-red-600 mt-1 space-y-0.5">
+                                      <div className="font-medium">Booked</div>
+                                      <div className="text-gray-600 truncate">
+                                        {slot.booking.customerName}
+                                      </div>
+                                      <div className="text-gray-500 text-xs">
+                                        {slot.booking.customerPhone}
+                                      </div>
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
                             </div>
-                            {slot.booking && (
-                              <div className="text-xs text-red-600 mt-1 space-y-0.5">
-                                <div className="font-medium">Booked</div>
-                                <div className="text-gray-600 truncate">
-                                  {slot.booking.customerName}
-                                </div>
-                                <div className="text-gray-500 text-xs">
-                                  {slot.booking.customerPhone}
-                                </div>
-                              </div>
-                            )}
-                          </button>
-                        ))}
+                          </div>
+                        )}
                       </div>
 
                       {availableSlots.filter((slot) => slot.available)
@@ -1482,6 +1616,16 @@ export default function GroundDetailPage() {
             </div>
           </div>
         )}
+
+      {/* QR Code Modal */}
+      {ground && (
+        <GroundQRCode
+          isOpen={showQRCode}
+          onClose={() => setShowQRCode(false)}
+          groundId={ground.id}
+          groundName={ground.name}
+        />
+      )}
     </div>
   );
 }

@@ -149,6 +149,14 @@
   @apply border-primary-500 text-primary-700 bg-primary-50;
 }
 
+.time-slot.next-day-slot {
+  @apply border-purple-300 bg-purple-50 text-purple-700;
+}
+
+.time-slot.next-day-slot:hover {
+  @apply bg-purple-100 border-purple-400;
+}
+
 
 
 @layer base {
