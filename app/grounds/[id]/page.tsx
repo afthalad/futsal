@@ -602,7 +602,7 @@ export default function GroundDetailPage() {
                         {/* Regular Time Slots */}
                         <div>
                           <h4 className="text-sm font-medium text-gray-700 mb-2">Regular Time Slots</h4>
-                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-[500px] overflow-y-auto p-1">
+                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-[900px] sm:max-h-[600px] overflow-y-auto p-1">
                             {availableSlots.filter(slot => !slot.time.startsWith('25:') && !slot.time.startsWith('26:')).map((slot) => (
                               <button
                                 key={slot.time}
@@ -628,13 +628,13 @@ export default function GroundDetailPage() {
                                 <div className="text-xs font-medium">
                                   {formatTime(slot.time)}
                                 </div>
-                                <div className="text-xs opacity-75">
+                                {/* <div className="text-xs opacity-75">
                                   {slot.booking
                                     ? "Booked"
                                     : slot.isPast
                                     ? "Past"
                                     : "Available"}
-                                </div>
+                                </div> */}
                                 {slot.booking && (
                                   <div className="text-xs text-red-600 mt-1 space-y-0.5">
                                     <div className="text-gray-500 text-xs">
@@ -680,9 +680,7 @@ export default function GroundDetailPage() {
                                   <div className="text-xs opacity-75">
                                     {slot.booking
                                       ? "Booked"
-                                      : slot.isPast
-                                      ? "Past"
-                                      : "Next Day"}
+                                      : ""}
                                   </div>
                                   {slot.booking && (
                                     <div className="text-xs text-red-600 mt-1 space-y-0.5">
@@ -725,7 +723,7 @@ export default function GroundDetailPage() {
           </Card>
 
           {/* Selected Booking Info */}
-          {selectedBooking && (
+          {/* {selectedBooking && (
             <Card className="mt-4 sm:mt-6 border-red-200 bg-red-50">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
@@ -790,7 +788,7 @@ export default function GroundDetailPage() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          )} */}
 
           {/* Owner Notice */}
           {isOwner && (
@@ -1313,7 +1311,7 @@ export default function GroundDetailPage() {
                         {/* Regular Time Slots */}
                         <div>
                           <h4 className="text-sm font-medium text-gray-700 mb-3">Regular Time Slots</h4>
-                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 max-h-[500px] overflow-y-auto p-1">
+                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 max-h-[700px] sm:max-h-[600px] overflow-y-auto p-1">
                             {availableSlots.filter(slot => !slot.time.startsWith('25:') && !slot.time.startsWith('26:')).map((slot) => (
                               <button
                                 key={slot.time}
@@ -1342,9 +1340,9 @@ export default function GroundDetailPage() {
                                 {slot.booking && (
                                   <div className="text-xs text-red-600 mt-1 space-y-0.5">
                                     <div className="font-medium">Booked</div>
-                                    <div className="text-gray-600 truncate">
+                                    {/* <div className="text-gray-600 truncate">
                                       {slot.booking.customerName}
-                                    </div>
+                                    </div> */}
                                     <div className="text-gray-500 text-xs">
                                       {slot.booking.customerPhone}
                                     </div>

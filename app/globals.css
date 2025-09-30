@@ -130,7 +130,7 @@
 
 /* Time slot styles */
 .time-slot {
-  @apply px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium text-center border rounded-lg cursor-pointer transition-colors duration-200 min-h-[70px] sm:min-h-[85px] md:min-h-[90px] flex flex-col justify-center;
+  @apply px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium text-center border rounded-lg cursor-pointer transition-colors duration-200 min-h-[100px] sm:min-h-[85px] md:min-h-[90px] flex flex-col justify-center;
 }
 
 .time-slot.available {
