@@ -842,7 +842,7 @@ export default function GroundDetailPage() {
                       className="ml-2 p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Share Ground QR Code"
                     >
-                      <QrCode className="h-4 w-4" />
+                      <QrCode className="h-6 w-6" />
                     </button>
                   </div>
                   <div className="flex items-center text-gray-600 mb-3">
