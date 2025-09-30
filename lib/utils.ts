@@ -20,7 +20,7 @@ export function formatTime(time: string): string {
     const nextDayHours = hours - 24
     const period = nextDayHours >= 12 ? 'PM' : 'AM'
     const displayHours = nextDayHours === 0 ? 12 : nextDayHours > 12 ? nextDayHours - 12 : nextDayHours
-    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period} (+1)`
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
   }
   
   const period = hours >= 12 ? 'PM' : 'AM'

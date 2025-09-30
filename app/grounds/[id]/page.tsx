@@ -1358,7 +1358,7 @@ export default function GroundDetailPage() {
                         {/* Special Time Slots (Next Day) */}
                         {availableSlots.some(slot => slot.time.startsWith('25:') || slot.time.startsWith('26:')) && (
                           <div>
-                            <h4 className="text-sm font-medium text-gray-700 mb-3">Special Time Slots (Next Day)</h4>
+                            <h4 className="text-sm font-medium text-gray-700 mb-3">Special Time Slots</h4>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 p-1">
                               {availableSlots.filter(slot => slot.time.startsWith('25:') || slot.time.startsWith('26:')).map((slot) => (
                                 <button
