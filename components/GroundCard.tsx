@@ -115,10 +115,13 @@ export default function GroundCard({ ground }: GroundCardProps) {
       </CardContent>
       
       <CardFooter className="p-2 sm:p-3 md:px-4 pt-0">
-        <Button className="w-full bg-primary-600 text-white hover:bg-primary-700"
-           >
-          <Link href={`/grounds/${ground.id}`}>
-          View Details & Book
+        <Button className="w-full bg-primary-600 text-white hover:bg-primary-700">
+          <Link 
+            href={`/grounds/${ground.id}`}
+            prefetch={true}
+            className="w-full block"
+          >
+            View Details & Book
           </Link>
         </Button>
       </CardFooter>

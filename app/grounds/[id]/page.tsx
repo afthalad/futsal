@@ -21,6 +21,8 @@ import Navbar from "@/components/Navbar";
 import BookingModal from "@/components/BookingModal";
 import CancellationReasonModal from "@/components/CancellationReasonModal";
 import GroundQRCode from "@/components/GroundQRCode";
+import GroundDetailsSkeleton from "@/components/GroundDetailsSkeleton";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
 import {
   formatPrice,
   formatTime,
@@ -165,7 +167,15 @@ export default function GroundDetailPage() {
   const fetchGround = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/grounds/${params.id}`);
+      
+      // Add cache headers for better performance
+      const response = await fetch(`/api/grounds/${params.id}`, {
+        cache: 'no-store', // Ensure fresh data for bookings
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
       const data = await response.json();
 
       if (response.ok) {
@@ -418,12 +428,10 @@ export default function GroundDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <>
         <Navbar />
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        </div>
-      </div>
+        <GroundDetailsSkeleton />
+      </>
     );
   }
 
@@ -1624,6 +1632,8 @@ export default function GroundDetailPage() {
           groundName={ground.name}
         />
         )}
+      
+      <PerformanceMonitor />
     </div>
   );
 }

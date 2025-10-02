@@ -11,14 +11,16 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const ground = await getGroundById(params.id)
+    // Fetch ground and bookings in parallel for better performance
+    const [ground, bookings] = await Promise.all([
+      getGroundById(params.id),
+      getBookingsByGround(params.id)
+    ])
 
     if (!ground) {
       return NextResponse.json({ error: 'Ground not found' }, { status: 404 })
     }
 
-    // Get bookings for this ground
-    const bookings = await getBookingsByGround(params.id)
     // Include only active bookings (exclude cancelled bookings)
     const activeBookings = bookings.filter(booking => 
       booking.status !== 'CANCELLED' && booking.status !== 'cancelled'
