@@ -1633,7 +1633,7 @@ export default function GroundDetailPage() {
         />
         )}
       
-      <PerformanceMonitor />
+      {/* <PerformanceMonitor /> */}
     </div>
   );
 }
