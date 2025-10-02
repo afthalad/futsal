@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllBookings, getBookingsByUser, getBookingsByGround, createBooking, getGroundById, getGroundsByOwner, updateCommissionAmount } from '@/lib/firestore-server'
 import { getUserFromToken } from '@/lib/auth'
 import { sendBookingConfirmationToCustomer, sendBookingConfirmationToOwner } from '@/lib/sms-service'
-import { isMorningSlot } from '@/lib/utils'
+import { isMorningSlot, isEveningSlot, isNightSlot } from '@/lib/utils'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -92,7 +92,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate price based on time slot
-    const price = isMorningSlot(startTime) ? ground.morningPrice : ground.eveningPrice
+    const price = isMorningSlot(startTime) ? ground.morningPrice : 
+                  isEveningSlot(startTime) ? ground.eveningPrice : 
+                  ground.nightPrice
 
     // Create booking (immediately booked, no status)
     const bookingId = await createBooking({

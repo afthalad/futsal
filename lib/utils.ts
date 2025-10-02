@@ -15,8 +15,8 @@ export function formatPrice(price: number | undefined): string {
 export function formatTime(time: string): string {
   const [hours, minutes] = time.split(':').map(Number)
   
-  // Handle special next day slots (25:00, 26:00)
-  if (hours >= 25) {
+  // Handle special next day slots (24:00, 25:00)
+  if (hours >= 24) {
     const nextDayHours = hours - 24
     const period = nextDayHours >= 12 ? 'PM' : 'AM'
     const displayHours = nextDayHours === 0 ? 12 : nextDayHours > 12 ? nextDayHours - 12 : nextDayHours
@@ -41,7 +41,7 @@ export function generateTimeSlots(): string[] {
   return slots
 }
 
-// Generate time slots with special handling for 1AM and 2AM (next day)
+// Generate time slots with special handling for 12AM and 1AM (next day)
 export function generateTimeSlotsWithSpecial(): string[] {
   const slots: string[] = []
   
@@ -51,9 +51,9 @@ export function generateTimeSlotsWithSpecial(): string[] {
     slots.push(timeString)
   }
   
-  // Add special next day slots for 1AM and 2AM
+  // Add special next day slots for 12AM and 1AM
+  slots.push('24:00') // 12AM next day (midnight)
   slots.push('25:00') // 1AM next day
-  slots.push('26:00') // 2AM next day
   
   return slots
 }
@@ -73,7 +73,7 @@ export function isEveningSlot(time: string): boolean {
 // Check if a time slot is in the night (06:00 PM - 02:00 AM)
 export function isNightSlot(time: string): boolean {
   const hour = parseInt(time.split(':')[0])
-  return hour >= 18 || hour < 6 || hour >= 25 // Include special next day slots (25:00, 26:00)
+  return hour >= 18 || hour < 6 || hour >= 24 // Include special next day slots (24:00, 25:00)
 }
 
 export function formatFirebaseDate(timestamp: any): string {

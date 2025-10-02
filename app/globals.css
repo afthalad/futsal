@@ -137,24 +137,61 @@
   @apply border-green-300 text-green-700 hover:bg-green-50;
 }
 
+/* More specific rules to ensure available slots show green */
+button.time-slot.available {
+  background-color: transparent !important;
+  border-color: #86efac !important;
+  color: #15803d !important;
+}
+
+button.time-slot.available:hover {
+  background-color: #f0fdf4 !important;
+}
+
 .time-slot.booked {
   @apply border-red-300 text-red-700 bg-red-50 cursor-pointer hover:bg-red-100;
 }
+
+/* More specific rules to ensure booked slots show red */
+
+
+
 
 .time-slot.past {
   @apply border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed;
 }
 
+
+
 .time-slot.selected {
   @apply border-primary-500 text-primary-700 bg-primary-50;
 }
 
-.time-slot.next-day-slot {
-  @apply border-purple-300 bg-purple-50 text-purple-700;
+/* More specific rules to ensure selected slots show blue */
+button.time-slot.selected {
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
 }
 
-.time-slot.next-day-slot:hover {
-  @apply bg-purple-100 border-purple-400;
+.time-slot.next-day-slot.available {
+  @apply border-green-300 text-green-700 hover:bg-green-50;
+}
+
+.time-slot.next-day-slot.available:hover {
+  @apply border-green-300 text-green-700 hover:bg-green-50;
+}
+
+.time-slot.next-day-slot.booked {
+  @apply border-red-300 text-red-700 bg-red-50;
+}
+
+.time-slot.next-day-slot.past {
+  @apply border-gray-300 text-gray-400 bg-gray-100;
+}
+
+.time-slot.next-day-slot.selected {
+  @apply border-primary-500 text-primary-700 bg-primary-50;
 }
 
 

@@ -133,7 +133,7 @@ export async function DELETE(
 
     // Check if ground has any bookings
     try {
-      const bookings = await getBookingsByGround(params.id)
+      const bookings =  (await getBookingsByGround(params.id)).filter(booking => booking.status !== 'CANCELLED' && booking.status !== 'cancelled')
       if (bookings && bookings.length > 0) {
         return NextResponse.json({ 
           error: 'Cannot delete ground with existing bookings. Please cancel all bookings first.' 
