@@ -927,7 +927,7 @@ export default function GroundDetailPage() {
                 </div>
 
                 {/* Operating Hours */}
-                <div>
+                {/* <div>
                   <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Operating Hours
@@ -954,7 +954,7 @@ export default function GroundDetailPage() {
                       </div>
                     )}
                   </div>
-                </div>
+                </div> */}
 
                 {/* Ground Images */}
                 <div>
