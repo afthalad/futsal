@@ -643,13 +643,13 @@ export default function GroundDetailPage() {
                                     ? "Booked"
                                     : null}
                                 </div>
-                            {slot.booking && (
+                            {/* {slot.booking && (
                               <div className="text-xs text-red-600 mt-1 space-y-0.5">
                                     <div className="text-gray-500 text-xs">
                                       {slot.booking.customerPhone}
                                 </div>
                                   </div>
-                                )}
+                                )} */}
                               </button>
                             ))}
                           </div>
@@ -690,13 +690,13 @@ export default function GroundDetailPage() {
                                       ? "Booked"
                                       : ""}
                                   </div>
-                                  {slot.booking && (
+                                  {/* {slot.booking && (
                                     <div className="text-xs text-red-600 mt-1 space-y-0.5">
                                 <div className="text-gray-500 text-xs">
                                   {slot.booking.customerPhone}
                                 </div>
                               </div>
-                            )}
+                            )} */}
                           </button>
                         ))}
                             </div>
@@ -1351,9 +1351,9 @@ export default function GroundDetailPage() {
                                     {/* <div className="text-gray-600 truncate">
                                   {slot.booking.customerName}
                                     </div> */}
-                                    <div className="text-gray-500 text-xs">
+                                    {/* <div className="text-gray-500 text-xs">
                                       {slot.booking.customerPhone}
-                                </div>
+                                </div> */}
                                   </div>
                                 )}
                               </button>
@@ -1397,9 +1397,9 @@ export default function GroundDetailPage() {
                                       {/* <div className="text-gray-600 truncate">
                                         {slot.booking.customerName}
                                       </div> */}
-                                <div className="text-gray-500 text-xs">
+                                {/* <div className="text-gray-500 text-xs">
                                   {slot.booking.customerPhone}
-                                </div>
+                                </div> */}
                               </div>
                             )}
                           </button>
