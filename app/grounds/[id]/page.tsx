@@ -1451,12 +1451,12 @@ export default function GroundDetailPage() {
                         )}
                       </div>
 
-                      {availableSlots.filter((slot) => slot.available)
+                      {/* {availableSlots.filter((slot) => slot.available)
                         .length === 0 && (
                         <p className="text-gray-500 text-center py-8">
                           No available slots for this date
                         </p>
-                      )}
+                      )} */}
                     </>
                   ) : (
                     <div className="text-center py-8">
