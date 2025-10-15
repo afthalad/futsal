@@ -669,7 +669,7 @@ export default function GroundDetailPage() {
                         {availableSlots.some(slot => slot.time.startsWith('24:') || slot.time.startsWith('25:')) && (
                           <div>
                             <h4 className="text-sm font-medium text-gray-700 mb-2">
-                              {ground.noClosingTime ? 'Special Time Slots (24/7)' : 'Special Time Slots'}
+                              {ground.noClosingTime ? 'Special Time Slots' : 'Special Time Slots'}
                             </h4>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 p-1">
                               {availableSlots.filter(slot => slot.time.startsWith('24:') || slot.time.startsWith('25:')).map((slot) => (

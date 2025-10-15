@@ -1,55 +1,64 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { MapPin, Clock, Star } from 'lucide-react'
-import { formatPrice } from '@/lib/utils'
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { MapPin, Clock, Star } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface Ground {
-  id: string
-  name: string
-  description: string | null
-  location: string
-  city: string
-  images: string[]
-  morningPrice: number
-  eveningPrice: number
-  nightPrice: number
-  openingTime?: string
-  closingTime?: string
-  noClosingTime?: boolean
-  amenities: string[]
-  isActive: boolean
+  id: string;
+  name: string;
+  description: string | null;
+  location: string;
+  city: string;
+  images: string[];
+  morningPrice: number;
+  eveningPrice: number;
+  nightPrice: number;
+  openingTime?: string;
+  closingTime?: string;
+  noClosingTime?: boolean;
+  amenities: string[];
+  isActive: boolean;
   _count: {
-    bookings: number
-  }
+    bookings: number;
+  };
 }
 
 interface GroundCardProps {
-  ground: Ground
+  ground: Ground;
 }
 
 export default function GroundCard({ ground }: GroundCardProps) {
-  const [imageError, setImageError] = useState(false)
-  const [imageLoading, setImageLoading] = useState(true)
-  const mainImage = ground.images?.[0] || '/placeholder-ground.jpg'
-  const isDisabled = !ground.isActive
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const mainImage = ground.images?.[0] || "/placeholder-ground.jpg";
+  const isDisabled = !ground.isActive;
 
   const handleImageError = () => {
-    setImageError(true)
-    setImageLoading(false)
-  }
+    setImageError(true);
+    setImageLoading(false);
+  };
 
   const handleImageLoad = () => {
-    setImageLoading(false)
-  }
+    setImageLoading(false);
+  };
 
   return (
-    <Card className={`overflow-hidden hover:shadow-lg transition-all duration-300 ${isDisabled ? 'opacity-60' : ''}`}>
+    <Card
+      className={`overflow-hidden hover:shadow-lg transition-all duration-300 ${
+        isDisabled ? "opacity-60" : ""
+      }`}
+    >
       <div className="relative h-32 sm:h-40 md:h-48 w-full overflow-hidden bg-gray-200">
         {imageLoading && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -72,31 +81,38 @@ export default function GroundCard({ ground }: GroundCardProps) {
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
             <div className="text-center">
-              <div className="text-lg sm:text-2xl md:text-4xl mb-1 sm:mb-2">🏟️</div>
-              <p className="text-gray-500 text-xs sm:text-sm">No image available</p>
+              <div className="text-lg sm:text-2xl md:text-4xl mb-1 sm:mb-2">
+                🏟️
+              </div>
+              <p className="text-gray-500 text-xs sm:text-sm">
+                No image available
+              </p>
             </div>
           </div>
         )}
-       
+
         {isDisabled && (
-          <Badge variant="destructive" className="absolute top-1 left-1 sm:top-2 sm:left-2 text-xs">
+          <Badge
+            variant="destructive"
+            className="absolute top-1 left-1 sm:top-2 sm:left-2 text-xs"
+          >
             Disabled
           </Badge>
         )}
       </div>
-      
+
       <CardContent className="p-2 sm:p-3 md:p-4">
         <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 line-clamp-1">
           {ground.name}
         </h3>
-        
+
         <div className="flex items-center text-gray-600 text-xs sm:text-sm mb-1 sm:mb-2">
           <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-          <span className="line-clamp-1">{ground.location}, {ground.city}</span>
+          <span className="line-clamp-1">
+            {ground.location}, {ground.city}
+          </span>
         </div>
-        
-        
-        
+
         <div className="mb-2 sm:mb-3">
           <div className="flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
             <div className="flex items-center text-green-600">
@@ -111,29 +127,26 @@ export default function GroundCard({ ground }: GroundCardProps) {
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
               <span className="truncate">Night: {ground.nightPrice}</span>
             </div>
-            {ground.noClosingTime ? (
-              // <div className="flex items-center text-green-600">
-              //   <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-              //   {/* <span className="truncate font-medium">Open 24/7</span> */}
-              // </div>
-              null
-            ) : (
+            {ground.noClosingTime ? // <div className="flex items-center text-green-600">
+            //   <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+            //   {/* <span className="truncate font-medium">Open 24/7</span> */}
+            // </div>
+            null : (
               <div className="flex items-center text-gray-600">
                 <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
                 <span className="truncate">
-                  {ground.openingTime || 'Not set'} - {ground.closingTime || 'Not set'}
+                  {ground.openingTime || "Not set"} -{" "}
+                  {ground.closingTime || "Not set"}
                 </span>
               </div>
             )}
           </div>
         </div>
-        
-
       </CardContent>
-      
+
       <CardFooter className="p-2 sm:p-3 md:px-4 pt-0">
         <Button className="w-full bg-primary-600 text-white hover:bg-primary-700">
-          <Link 
+          <Link
             href={`/grounds/${ground.id}`}
             prefetch={true}
             className="w-full block"
@@ -143,5 +156,5 @@ export default function GroundCard({ ground }: GroundCardProps) {
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 }
