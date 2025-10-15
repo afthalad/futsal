@@ -19,6 +19,9 @@ interface Ground {
   morningPrice: number
   eveningPrice: number
   nightPrice: number
+  openingTime?: string
+  closingTime?: string
+  noClosingTime?: boolean
   amenities: string[]
   isActive: boolean
   _count: {
@@ -108,6 +111,19 @@ export default function GroundCard({ ground }: GroundCardProps) {
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
               <span className="truncate">Night: {ground.nightPrice}</span>
             </div>
+            {ground.noClosingTime ? (
+              <div className="flex items-center text-green-600">
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate font-medium">Open 24/7</span>
+              </div>
+            ) : (
+              <div className="flex items-center text-gray-600">
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">
+                  {ground.openingTime || 'Not set'} - {ground.closingTime || 'Not set'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         

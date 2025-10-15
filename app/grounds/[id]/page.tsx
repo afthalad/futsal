@@ -28,9 +28,11 @@ import {
   formatTime,
   generateTimeSlots,
   generateTimeSlotsWithSpecial,
+  generateTimeSlotsForGround,
   isMorningSlot,
   isEveningSlot,
   isNightSlot,
+  isWithinOperatingHours,
 } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +53,9 @@ interface Ground {
   morningPrice: number;
   eveningPrice: number;
   nightPrice: number;
+  openingTime?: string;
+  closingTime?: string;
+  noClosingTime?: boolean;
   ownerId: string;
   isActive: boolean;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -100,7 +105,8 @@ export default function GroundDetailPage() {
   const getAvailableTimeSlots = useCallback(() => {
     if (!ground) return [];
 
-    const slots = generateTimeSlotsWithSpecial();
+    // Generate slots based on ground operating hours
+    const slots = generateTimeSlotsForGround(ground);
 
     // Use local date string to avoid timezone issues
     const today = new Date();
@@ -114,6 +120,9 @@ export default function GroundDetailPage() {
     const currentMinute = now.getMinutes();
 
     return slots.map((slot) => {
+      // Check if slot is within operating hours
+      const isWithinHours = isWithinOperatingHours(slot, ground);
+      
       // Check if slot is in the past (more precise check)
       let isPast = false;
       if (isToday) {
@@ -132,9 +141,10 @@ export default function GroundDetailPage() {
 
       return {
         time: slot,
-        available: !isPast && !booking,
+        available: isWithinHours && !isPast && !booking,
         isPast,
         booking: booking || null,
+        isWithinHours,
       };
     });
   }, [ground, selectedDate]);
@@ -658,7 +668,9 @@ export default function GroundDetailPage() {
                         {/* Special Time Slots (Next Day) */}
                         {availableSlots.some(slot => slot.time.startsWith('24:') || slot.time.startsWith('25:')) && (
                           <div>
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">Special Time Slots</h4>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">
+                              {ground.noClosingTime ? 'Special Time Slots (24/7)' : 'Special Time Slots'}
+                            </h4>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 p-1">
                               {availableSlots.filter(slot => slot.time.startsWith('24:') || slot.time.startsWith('25:')).map((slot) => (
                                 <button
@@ -912,6 +924,36 @@ export default function GroundDetailPage() {
                     </div>
                   </div>
                   
+                </div>
+
+                {/* Operating Hours */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Operating Hours
+                  </h3>
+                  <div className="flex items-center gap-4">
+                    {ground.noClosingTime ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-sm font-medium text-green-600">Open 24/7</span>
+                        <span className="text-xs text-gray-500">(Any time can be open)</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-3 w-3 text-gray-500" />
+                          <span className="text-xs text-gray-600">Opens at:</span>
+                          <span className="text-sm font-medium">{ground.openingTime || 'Not set'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-3 w-3 text-gray-500" />
+                          <span className="text-xs text-gray-600">Closes at:</span>
+                          <span className="text-sm font-medium">{ground.closingTime || 'Not set'}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Ground Images */}

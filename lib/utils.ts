@@ -76,6 +76,48 @@ export function isNightSlot(time: string): boolean {
   return hour >= 18 || hour < 6 || hour >= 24 // Include special next day slots (24:00, 25:00)
 }
 
+// Generate time slots based on ground operating hours
+export function generateTimeSlotsForGround(ground: { openingTime?: string; closingTime?: string; noClosingTime?: boolean }): string[] {
+  if (ground.noClosingTime) {
+    // For 24/7 grounds, use the special time slots
+    return generateTimeSlotsWithSpecial()
+  }
+
+  if (!ground.openingTime || !ground.closingTime) {
+    // Fallback to default slots if times are not set
+    return generateTimeSlots()
+  }
+
+  const slots: string[] = []
+  const openingHour = parseInt(ground.openingTime.split(':')[0])
+  const closingHour = parseInt(ground.closingTime.split(':')[0])
+  
+  // Generate slots from opening to closing time
+  for (let hour = openingHour; hour < closingHour; hour++) {
+    const timeString = `${hour.toString().padStart(2, '0')}:00`
+    slots.push(timeString)
+  }
+  
+  return slots
+}
+
+// Check if a time slot is within ground operating hours
+export function isWithinOperatingHours(time: string, ground: { openingTime?: string; closingTime?: string; noClosingTime?: boolean }): boolean {
+  if (ground.noClosingTime) {
+    return true // 24/7 grounds are always open
+  }
+
+  if (!ground.openingTime || !ground.closingTime) {
+    return true // If times not set, allow all slots
+  }
+
+  const slotHour = parseInt(time.split(':')[0])
+  const openingHour = parseInt(ground.openingTime.split(':')[0])
+  const closingHour = parseInt(ground.closingTime.split(':')[0])
+  
+  return slotHour >= openingHour && slotHour < closingHour
+}
+
 export function formatFirebaseDate(timestamp: any): string {
   try {
     if (!timestamp) return 'N/A'

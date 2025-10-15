@@ -24,7 +24,8 @@ const firebaseAdminConfig = {
 const adminApp = getApps().length === 0 ? initializeApp({
   credential: cert(firebaseAdminConfig),
   projectId: firebaseAdminConfig.projectId,
-  storageBucket: `${firebaseAdminConfig.projectId}.firebasestorage.app`
+  storageBucket: `${firebaseAdminConfig.projectId}.firebasestorage.app`,
+  databaseURL: process.env.FIREBASE_DATABASE_URL || `https://${firebaseAdminConfig.projectId}-default-rtdb.firebaseio.com/`
 }) : getApps()[0]
 
 // Initialize Firebase Admin services

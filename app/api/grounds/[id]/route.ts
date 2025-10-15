@@ -76,13 +76,24 @@ export async function PUT(
     }
 
     const data = await request.json()
+
+    // Normalize operating hours based on 24/7 flag
+    const normalized = (() => {
+      if (data.noClosingTime) {
+        return { ...data, openingTime: '00:00', closingTime: '' }
+      }
+      if (!data.closingTime || data.closingTime === '') {
+        return { ...data, noClosingTime: true, openingTime: '00:00', closingTime: '' }
+      }
+      return data
+    })()
     
     // Get current ground to check status
     const currentGround = await getGroundById(params.id)
     
     // If ground was rejected and owner is editing, reset to PENDING for re-review
     const updateData = {
-      ...data,
+      ...normalized,
       images: data.images || [],
       amenities: data.amenities || []
     }

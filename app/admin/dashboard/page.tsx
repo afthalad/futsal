@@ -352,7 +352,7 @@ export default function AdminDashboard() {
         {/* Stats Cards - Mobile Optimized */}
         <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
           {/* Total Revenue - Full width on mobile, 2 cols on desktop */}
-          <div className="lg:col-span-2 bg-gradient-to-r from-blue-500 to-blue-600 p-4 sm:p-6 rounded-lg shadow-lg text-white">
+          <div className="lg:col-span-full bg-gradient-to-r from-blue-500 to-blue-600 p-4 sm:p-6 rounded-lg shadow-lg text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-xs sm:text-sm font-medium">Total Revenue</p>

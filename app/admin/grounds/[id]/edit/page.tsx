@@ -18,6 +18,9 @@ interface Ground {
   morningPrice: number
   eveningPrice: number
   nightPrice: number
+  openingTime?: string
+  closingTime?: string
+  noClosingTime?: boolean
   amenities: string[]
   images: string[]
   ownerId: string
@@ -40,6 +43,9 @@ export default function EditGroundPage() {
     morningPrice: '',
     eveningPrice: '',
     nightPrice: '',
+    openingTime: '',
+    closingTime: '',
+    noClosingTime: false,
     amenities: [] as string[],
     images: [] as string[]
   })
@@ -108,6 +114,9 @@ export default function EditGroundPage() {
           morningPrice: data.ground.morningPrice?.toString() || '',
           eveningPrice: data.ground.eveningPrice?.toString() || '',
           nightPrice: data.ground.nightPrice?.toString() || '',
+          openingTime: data.ground.openingTime || '',
+          closingTime: data.ground.closingTime || '',
+          noClosingTime: data.ground.noClosingTime || false,
           amenities: data.ground.amenities || [],
           images: data.ground.images || []
         })
@@ -126,10 +135,33 @@ export default function EditGroundPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => {
+      if (name === 'noClosingTime') {
+        const is24h = (e.target as HTMLInputElement).checked
+        return {
+          ...prev,
+          noClosingTime: is24h,
+          openingTime: is24h ? '00:00' : prev.openingTime,
+          closingTime: is24h ? '' : prev.closingTime
+        }
+      }
+
+      if (name === 'closingTime') {
+        const newClosing = value
+        const shouldBe24h = !newClosing || newClosing.trim() === ''
+        return {
+          ...prev,
+          closingTime: newClosing,
+          noClosingTime: shouldBe24h ? true : prev.noClosingTime,
+          openingTime: shouldBe24h ? '00:00' : prev.openingTime
+        }
+      }
+
+      return {
+        ...prev,
+        [name]: value
+      }
+    })
   }
 
   const handleAddAmenity = () => {
@@ -220,6 +252,16 @@ export default function EditGroundPage() {
 
     if (!formData.morningPrice || !formData.eveningPrice || !formData.nightPrice) {
       toast.error('Please enter all three prices (morning, evening, and night)')
+      return
+    }
+
+    if (!formData.openingTime) {
+      toast.error('Please enter opening time')
+      return
+    }
+
+    if (!formData.noClosingTime && !formData.closingTime) {
+      toast.error('Please enter closing time or check "No closing time"')
       return
     }
 
@@ -518,6 +560,57 @@ export default function EditGroundPage() {
             </div>
           </div>
 
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Operating Hours</h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="noClosingTime"
+                  name="noClosingTime"
+                  checked={formData.noClosingTime}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="noClosingTime" className="text-sm font-medium text-gray-700">
+                  Open 24/7 
+                </label>
+              </div>
+
+              {!formData.noClosingTime ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Opening Time *</label>
+                    <input
+                      type="time"
+                      name="openingTime"
+                      value={formData.openingTime}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">When does your ground open?</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Closing Time</label>
+                    <input
+                      type="time"
+                      name="closingTime"
+                      value={formData.closingTime}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">When does your ground close?</p>
+                  </div>
+                </div>
+              ) : (
+              null
+              )}
+            </div>
+          </div>
 
           <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Amenities</h2>

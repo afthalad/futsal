@@ -107,9 +107,20 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json()
+
+    // Normalize operating hours based on 24/7 flag
+    const normalized = (() => {
+      if (data.noClosingTime) {
+        return { ...data, openingTime: '00:00', closingTime: '' }
+      }
+      if (!data.closingTime || data.closingTime === '') {
+        return { ...data, noClosingTime: true, openingTime: '00:00', closingTime: '' }
+      }
+      return data
+    })()
     
     const groundId = await createGround({
-      ...data,
+      ...normalized,
       images: data.images || [],
       amenities: data.amenities || [],
       ownerId: user.id,
@@ -119,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     const ground = {
       id: groundId,
-      ...data,
+      ...normalized,
       images: data.images || [],
       amenities: data.amenities || [],
       ownerId: user.id,

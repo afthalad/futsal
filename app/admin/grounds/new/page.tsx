@@ -20,6 +20,9 @@ export default function NewGroundPage() {
     morningPrice: '',
     eveningPrice: '',
     nightPrice: '',
+    openingTime: '',
+    closingTime: '',
+    noClosingTime: false,
     amenities: [] as string[],
     images: [] as string[]
   })
@@ -34,10 +37,34 @@ export default function NewGroundPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => {
+      // Normalize opening/closing based on 24h flag
+      if (name === 'noClosingTime') {
+        const is24h = (e.target as HTMLInputElement).checked
+        return {
+          ...prev,
+          noClosingTime: is24h,
+          openingTime: is24h ? '00:00' : prev.openingTime,
+          closingTime: is24h ? '' : prev.closingTime
+        }
+      }
+
+      if (name === 'closingTime') {
+        const newClosing = value
+        const shouldBe24h = !newClosing || newClosing.trim() === ''
+        return {
+          ...prev,
+          closingTime: newClosing,
+          noClosingTime: shouldBe24h ? true : prev.noClosingTime,
+          openingTime: shouldBe24h ? '00:00' : prev.openingTime
+        }
+      }
+
+      return {
+        ...prev,
+        [name]: value
+      }
+    })
   }
 
   const handleAddAmenity = () => {
@@ -148,6 +175,16 @@ export default function NewGroundPage() {
 
     if (!formData.morningPrice || !formData.eveningPrice || !formData.nightPrice) {
       toast.error('Please enter all three prices (morning, evening, and night)')
+      return
+    }
+
+    if (!formData.openingTime) {
+      toast.error('Please enter opening time')
+      return
+    }
+
+    if (!formData.noClosingTime && !formData.closingTime) {
+      toast.error('Please enter closing time or check "No closing time"')
       return
     }
 
@@ -341,6 +378,62 @@ export default function NewGroundPage() {
             </div>
           </div>
 
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Operating Hours</h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="noClosingTime"
+                  name="noClosingTime"
+                  checked={formData.noClosingTime}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label htmlFor="noClosingTime" className="text-sm font-medium text-gray-700">
+                Open 24/7 
+                </label>
+              </div>
+
+              {!formData.noClosingTime ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="label">Opening Time *</label>
+                    <input
+                      type="time"
+                      name="openingTime"
+                      value={formData.openingTime}
+                      onChange={handleInputChange}
+                      className="input-field"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">When does your ground open?</p>
+                  </div>
+
+                  <div>
+                    <label className="label">Closing Time</label>
+                    <input
+                      type="time"
+                      name="closingTime"
+                      value={formData.closingTime}
+                      onChange={handleInputChange}
+                      className="input-field"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">When does your ground close?</p>
+                  </div>
+                </div>
+              ) : (
+                // <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded p-3">
+                //   Open 24/7. Operating hour inputs are hidden.
+                // </div>
+
+                null
+                
+              )}
+            </div>
+          </div>
 
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Amenities</h2>
