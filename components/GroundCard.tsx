@@ -127,19 +127,7 @@ export default function GroundCard({ ground }: GroundCardProps) {
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
               <span className="truncate">Night: {ground.nightPrice}</span>
             </div>
-            {ground.noClosingTime ? // <div className="flex items-center text-green-600">
-            //   <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-            //   {/* <span className="truncate font-medium">Open 24/7</span> */}
-            // </div>
-            null : (
-              <div className="flex items-center text-gray-600">
-                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-                <span className="truncate">
-                  {ground.openingTime || "Not set"} -{" "}
-                  {ground.closingTime || "Not set"}
-                </span>
-              </div>
-            )}
+            
           </div>
         </div>
       </CardContent>

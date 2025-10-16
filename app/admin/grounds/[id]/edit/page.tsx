@@ -573,9 +573,9 @@ export default function EditGroundPage() {
                   onChange={handleInputChange}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                {/* <label htmlFor="noClosingTime" className="text-sm font-medium text-gray-700">
+                <label htmlFor="noClosingTime" className="text-sm font-medium text-gray-700">
                   Open 24/7 
-                </label> */}
+                </label>
               </div>
 
               {!formData.noClosingTime ? (

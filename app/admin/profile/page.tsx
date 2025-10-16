@@ -229,7 +229,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Account Info */}
-              <div className="bg-gray-50 rounded-lg p-4">
+              {/* <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Account Information</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -249,11 +249,11 @@ export default function ProfilePage() {
                     </span>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end pt-6 border-t border-gray-200 mt-6">
+            <div className="flex justify-end pt-6  mt-6">
               <button
                 type="submit"
                 disabled={loading}

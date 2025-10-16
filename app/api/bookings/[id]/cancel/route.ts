@@ -79,7 +79,7 @@ export async function POST(
     // Update commission for ground owner (subtract the cancelled booking's commission)
     try {
       await updateCommissionAmount(ground.ownerId, booking.price, 'subtract')
-      // console.log(`Subtracted commission for cancelled booking for owner ${ground.ownerId}: ${booking.price * 0.01}`)
+      // console.log(`Subtracted commission for cancelled booking for owner ${ground.ownerId}: ${booking.price * commissionRate}`)
     } catch (commissionError) {
       // console.error('Commission update error after cancellation:', commissionError)
       // Don't fail the cancellation if commission calculation fails

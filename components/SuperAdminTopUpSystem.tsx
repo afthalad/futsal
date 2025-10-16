@@ -116,7 +116,7 @@ export default function SuperAdminTopUpSystem() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Commission Management</h2>
-            <p className="text-sm text-gray-600">Track 1% commission from ground owners</p>
+            <p className="text-sm text-gray-600">Track variable commission: 5% (under 500), 3% (500-999), 2% (1000-1999), 1% (2000+)</p>
           </div>
         </div>
         <div className="text-right">

@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     // Update commission for ground owner
     try {
       await updateCommissionAmount(ground.ownerId, price, 'add')
-      // console.log(`Added commission for owner ${ground.ownerId}: ${price * 0.01}`)
+      // console.log(`Added commission for owner ${ground.ownerId}: ${price * commissionRate}`)
     } catch (commissionError) {
       // console.error('Commission update error:', commissionError)
       // Don't fail the booking if commission calculation fails

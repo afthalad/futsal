@@ -99,6 +99,14 @@ export default function SuperAdminPage() {
   })
   const router = useRouter()
 
+  // Commission calculation function
+  const calculateCommission = (bookingPrice: number): { amount: number; percentage: number } => {
+    if (bookingPrice < 500) return { amount: bookingPrice * 0.05, percentage: 5 } // 5% for bookings under 500
+    if (bookingPrice < 1000) return { amount: bookingPrice * 0.03, percentage: 3 } // 3% for bookings 500-999
+    if (bookingPrice < 2000) return { amount: bookingPrice * 0.02, percentage: 2 } // 2% for bookings 1000-1999
+    return { amount: bookingPrice * 0.01, percentage: 1 } // 1% for bookings 2000 and above
+  }
+
   useEffect(() => {
     if (activeTab === 'users') {
       fetchUsers()
@@ -664,7 +672,7 @@ export default function SuperAdminPage() {
                   {bookings.filter(booking => {
                     const today = new Date().toDateString()
                     const bookingDate = new Date(booking.date).toDateString()
-                    return today === bookingDate
+                    return today === bookingDate && booking.status !== 'CANCELLED' && booking.status !== 'cancelled'
                   }).length}
                 </p>
               </div>
@@ -1085,6 +1093,9 @@ export default function SuperAdminPage() {
                           <th className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Price
                           </th>
+                          <th className="hidden lg:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Commission
+                          </th>
                           <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
@@ -1100,7 +1111,7 @@ export default function SuperAdminPage() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {bookings.sort((a, b) => b.createdAt._seconds - a.createdAt._seconds).map((booking) => (
+                        {bookings.sort((a, b) => b.createdAt._seconds - a.createdAt._seconds).map((booking:any) => (
                           <tr key={booking.id}>
                             <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <div>
@@ -1117,6 +1128,10 @@ export default function SuperAdminPage() {
                                   </div>
                                   <div className="text-xs text-gray-500">
                                     Rs. {booking.price.toLocaleString()}
+                                  </div>
+                                  <div className="text-xs text-green-600 flex items-center gap-1">
+                                    <Plus className="h-2 w-2" />
+                                    Commission: Rs. {calculateCommission(booking.price).amount.toLocaleString()} ({calculateCommission(booking.price).percentage}%)
                                   </div>
                                 </div>
                               </div>
@@ -1143,6 +1158,13 @@ export default function SuperAdminPage() {
 
                             <td className="hidden md:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                               Rs. {booking.price.toLocaleString()}
+                            </td>
+                            <td className="hidden lg:table-cell px-3 sm:px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-1 text-sm font-medium text-green-600">
+                                <Plus className="h-3 w-3" />
+                                <span>Rs. {calculateCommission(booking.price).amount.toLocaleString()}</span>
+                                <span className="text-xs text-gray-500">({calculateCommission(booking.price).percentage}%)</span>
+                              </div>
                             </td>
                             <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 py-1 text-xs rounded-full ${

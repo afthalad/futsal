@@ -72,7 +72,7 @@ export default function AdminDashboard() {
     commission: false
   })
   const [selectedGround, setSelectedGround] = useState<string>('all')
-  const [selectedDate, setSelectedDate] = useState<string>('')
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
   const router = useRouter()
 
   useEffect(() => {
@@ -566,7 +566,7 @@ export default function AdminDashboard() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                    <div className="flex items-end">
+                    <div className="flex items-end gap-2">
                       <button
                         onClick={() => {
                           setSelectedGround('all')
@@ -576,6 +576,15 @@ export default function AdminDashboard() {
                       >
                         <Filter className="h-4 w-4" />
                         Clear Filters
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedDate(new Date().toISOString().split('T')[0])
+                        }}
+                        className="px-4 py-2 text-sm text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors flex items-center gap-2"
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Today
                       </button>
                     </div>
                   </div>

@@ -130,7 +130,7 @@ export default function GroundOwnerCommission() {
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-gray-900">Commission Due</h3>
-              <p className="text-xs sm:text-xs text-gray-600">1% commission from bookings</p>
+              <p className="text-xs sm:text-xs text-gray-600">Variable commission: 5% (under 500), 3% (500-999), 2% (1000-1999), 1% (2000+)</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
