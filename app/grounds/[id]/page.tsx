@@ -1479,7 +1479,7 @@ export default function GroundDetailPage() {
         </div>
 
         {/* Selected Booking Info */}
-        {selectedBooking && (
+        {/* {selectedBooking && (
           <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
@@ -1535,10 +1535,10 @@ export default function GroundDetailPage() {
               </button>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Owner Notice */}
-        {isOwner && (
+        {/* {isOwner && (
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div className="flex items-center gap-2 text-yellow-800">
               <Shield className="h-5 w-5" />
@@ -1559,7 +1559,7 @@ export default function GroundDetailPage() {
               </div>
             </div>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Booking Modal */}
