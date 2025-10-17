@@ -404,19 +404,34 @@ export const updateCommissionAmount = async (
     const commissionRef = adminDb.collection("commission").doc(ownerId);
     const commissionDoc = await commissionRef.get();
     
+    
+
+
+
     // Updated commission rates
     let commissionRate: number;
-    if (bookingAmount < 500) {
-      commissionRate = 0.05; // 5% for bookings under 500
-    } else if (bookingAmount < 1000) {
-      commissionRate = 0.03; // 3% for bookings 500-999
-    } else if (bookingAmount < 2000) {
-      commissionRate = 0.02; // 2% for bookings 1000-1999
+    let commissionAmount: number;
+
+    if (ownerId === "eq9ywFOCOlqEkUBUaDeh") {
+      commissionRate = 0.01; // 1% for this specific owner
+      commissionAmount = bookingAmount * commissionRate;
     } else {
-      commissionRate = 0.01; // 1% for bookings 2000 and above
+      commissionAmount = 50; // Fixed 50 rupees for others
     }
 
-    const commissionAmount = bookingAmount * commissionRate;
+
+
+    // if (bookingAmount < 500) {
+    //   commissionRate = 0.05; // 5% for bookings under 500
+    // } else if (bookingAmount < 1000) {
+    //   commissionRate = 0.03; // 3% for bookings 500-999
+    // } else if (bookingAmount < 2000) {
+    //   commissionRate = 0.02; // 2% for bookings 1000-1999
+    // } else {
+    //   commissionRate = 0.01; // 1% for bookings 2000 and above
+    // }
+
+    // const commissionAmount = bookingAmount * commissionRate;
 
     // const commissionAmount = bookingAmount * 0.01 // 1.5% commission
 

@@ -132,10 +132,12 @@ export default function SuperAdminPage() {
       return { amount: bookingPrice * 0.05, percentage: 5 }; // 5% for bookings under 500
     if (bookingPrice < 1000)
       return { amount: bookingPrice * 0.03, percentage: 3 }; // 3% for bookings 500-999
-    if (bookingPrice < 2000)
+    if (bookingPrice < 1500)
       return { amount: bookingPrice * 0.02, percentage: 2 }; // 2% for bookings 1000-1999
     return { amount: bookingPrice * 0.01, percentage: 1 }; // 1% for bookings 2000 and above
   };
+
+  
 
   useEffect(() => {
     if (activeTab === "users") {
