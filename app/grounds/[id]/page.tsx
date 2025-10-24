@@ -1679,3 +1679,7 @@ export default function GroundDetailPage() {
     </div>
   );
 }
+
+
+// prepare a video to list the ground 
+// remove the comission rate in super admin just add the amount comission onlyu

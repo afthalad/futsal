@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { Analytics } from '@vercel/analytics/next';
+import AdSense from '@/components/Adsense';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,6 +26,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <AdSense pId="8817711330907234"/>
+      </head>
       <body className={inter.className}>
         <Analytics />
         {children}
