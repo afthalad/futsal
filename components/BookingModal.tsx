@@ -164,7 +164,7 @@ setShowSuccessAd(true)
               <AdBanner
                 dataAdFormat="auto"
                 dataFullWidthResponsive={true}
-                dataAdSlot="1203558615"
+                dataAdSlot="8126052001"
               />
             </div>
           )}
