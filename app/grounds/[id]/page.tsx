@@ -5,16 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   MapPin,
-  Clock,
   Phone,
-  Star,
   Calendar,
   ChevronLeft,
   ChevronRight,
   Shield,
   X,
-  Mail,
-  User,
   QrCode,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -22,7 +18,6 @@ import BookingModal from "@/components/BookingModal";
 import CancellationReasonModal from "@/components/CancellationReasonModal";
 import GroundQRCode from "@/components/GroundQRCode";
 import GroundDetailsSkeleton from "@/components/GroundDetailsSkeleton";
-import PerformanceMonitor from "@/components/PerformanceMonitor";
 import {
   formatPrice,
   formatTime,
@@ -58,10 +53,11 @@ interface Ground {
   noClosingTime?: boolean;
   ownerId: string;
   isActive: boolean;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: "PENDING" | "APPROVED" | "REJECTED";
   rejectionReason?: string;
   reviewedBy?: string;
   reviewedAt?: any;
+  operatingDays?: string[];
   owner: {
     name: string | null;
     phone: string;
@@ -119,10 +115,14 @@ export default function GroundDetailPage() {
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
+    // Get blocked slots for the selected date (support both 'HH:MM' and 'HH:MM - HH:MM' formats)
+    const blockedForDate: string[] =
+      (ground as any).blockedSlots?.[selectedDate] || [];
+
     return slots.map((slot) => {
       // Check if slot is within operating hours
       const isWithinHours = isWithinOperatingHours(slot, ground);
-      
+
       // Check if slot is in the past (more precise check)
       let isPast = false;
       if (isToday) {
@@ -139,23 +139,63 @@ export default function GroundDetailPage() {
         (booking) => booking.date === selectedDate && booking.startTime === slot
       );
 
+      // Check if slot is blocked for maintenance. Support stored formats like "06:00" or "06:00 - 07:00"
+      const isBlocked = blockedForDate.some((bs) => {
+        if (!bs) return false;
+        if (bs === slot) return true;
+        // If blocked slot stored as a range "HH:MM - HH:MM", check inclusion
+        return bs.includes(slot);
+      });
+
       return {
         time: slot,
-        available: isWithinHours && !isPast && !booking,
+        available: isWithinHours && !isPast && !booking && !isBlocked,
         isPast,
         booking: booking || null,
         isWithinHours,
+        maintenance: isBlocked,
       };
     });
   }, [ground, selectedDate]);
 
-  const availableSlots = useMemo(() => getAvailableTimeSlots(), [getAvailableTimeSlots]);
+  const availableSlots = useMemo(
+    () => getAvailableTimeSlots(),
+    [getAvailableTimeSlots]
+  );
   const price = useMemo(() => {
     if (!selectedTime || !ground) return 0;
     if (isMorningSlot(selectedTime)) return ground.morningPrice;
     if (isEveningSlot(selectedTime)) return ground.eveningPrice;
     return ground.nightPrice;
   }, [selectedTime, ground]);
+
+  const selectedDay = useMemo(() => {
+    if (!selectedDate) return null;
+    const date = new Date(selectedDate);
+    const dayIndex = date.getUTCDay();
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return days[dayIndex];
+  }, [selectedDate]);
+
+  const isOperatingDay = useMemo(() => {
+    if (
+      !ground ||
+      !selectedDay ||
+      !ground.operatingDays ||
+      ground.operatingDays.length === 0
+    ) {
+      return true;
+    }
+    return ground.operatingDays.includes(selectedDay);
+  }, [ground, selectedDay]);
 
   const checkCurrentUser = useCallback(async () => {
     try {
@@ -177,15 +217,15 @@ export default function GroundDetailPage() {
   const fetchGround = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // Add cache headers for better performance
       const response = await fetch(`/api/grounds/${params.id}`, {
-        cache: 'no-store', // Ensure fresh data for bookings
+        cache: "no-store", // Ensure fresh data for bookings
         headers: {
-          'Cache-Control': 'no-cache'
-        }
+          "Cache-Control": "no-cache",
+        },
       });
-      
+
       const data = await response.json();
 
       if (response.ok) {
@@ -255,7 +295,7 @@ export default function GroundDetailPage() {
       const [hours, minutes] = time.split(":");
       const startHour = parseInt(hours);
       const endHour = startHour + 1;
-      const endTimeString = `${endHour.toString().padStart(2, '0')}:${minutes}`;
+      const endTimeString = `${endHour.toString().padStart(2, "0")}:${minutes}`;
       setSelectedEndTime(endTimeString);
 
       // Immediately open booking modal for available slots
@@ -457,23 +497,21 @@ export default function GroundDetailPage() {
   }
 
   // Check if ground is approved (for non-owners)
-  if (!isOwner && ground.status !== 'APPROVED') {
+  if (!isOwner && ground.status !== "APPROVED") {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Ground Not Available</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Ground Not Available
+            </h1>
             <p className="text-gray-600 mb-8">
-              {ground.status === 'PENDING' 
-                ? 'This ground is currently under review and will be available soon.'
-                : 'This ground is not available for booking at the moment.'
-              }
+              {ground.status === "PENDING"
+                ? "This ground is currently under review and will be available soon."
+                : "This ground is not available for booking at the moment."}
             </p>
-            <button
-              onClick={() => router.push('/')}
-              className="btn-primary"
-            >
+            <button onClick={() => router.push("/")} className="btn-primary">
               Back to Home
             </button>
           </div>
@@ -487,8 +525,6 @@ export default function GroundDetailPage() {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-
         {/* Mobile Layout: Header -> Slots -> Details */}
         <div className="block xl:hidden space-y-4 sm:space-y-6">
           {/* Booking Section - Mobile First */}
@@ -595,8 +631,6 @@ export default function GroundDetailPage() {
                       );
                     })}
                   </div>
-
-                
                 </TabsContent>
 
                 <TabsContent
@@ -605,123 +639,149 @@ export default function GroundDetailPage() {
                 >
                   {selectedDate ? (
                     <>
-                      <div className="flex items-center justify-between my-4">
-                        <h3 className="text-base sm:text-xs font-semibold text-gray-900">
-                          Available Slots {selectedDate}
-                        </h3>
-                        <button
-                          onClick={() => setViewMode("calendar")}
-                          className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm"
-                        >
-                          Change Date
-                        </button>
-                      </div>
-
-                      <div className="space-y-4">
-                        {/* Regular Time Slots */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">Regular Time Slots</h4>
-                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-[900px] sm:max-h-[600px] overflow-y-auto p-1">
-                            {availableSlots.filter(slot => !slot.time.startsWith('24:') && !slot.time.startsWith('25:')).map((slot) => (  
-                          <button
-                            key={slot.time}
-                            onClick={() => handleTimeSlotClick(slot.time, slot)}
-                            disabled={slot.isPast}
-                            className={`time-slot booked ${ slot.isPast ? "past" : slot.booking ? "booked" : "available"}`}
-                            // className={`time-slot ${
-                            //   slot.isPast
-                            //     ? "past"
-                            //     : slot.booking
-                            //     ? "booked"
-                            //     : selectedTime === slot.time
-                            //     ? "selected"
-                            //     : "available"
-                            // }`}
-                            // title={
-                            //   slot.isPast
-                            //     ? "Past time slot"
-                            //     : slot.booking
-                            //     ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
-                            //     : "Available for booking"
-                            // }
-                          >
-                            <div className="text-xs font-medium">
-                              {formatTime(slot.time)}
-                            </div>
-                                <div className="text-xs opacity-75">
-                                  {slot.booking
-                                    ? "Booked"
-                                    : null}
-                                </div>
-                            {/* {slot.booking && (
-                              <div className="text-xs text-red-600 mt-1 space-y-0.5">
-                                    <div className="text-gray-500 text-xs">
-                                      {slot.booking.customerPhone}
-                                </div>
-                                  </div>
-                                )} */}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Special Time Slots (Next Day) */}
-                        {availableSlots.some(slot => slot.time.startsWith('24:') || slot.time.startsWith('25:')) && (
+                      {isOperatingDay ? (
+                        <div className="space-y-4">
+                          {/* Regular Time Slots */}
                           <div>
                             <h4 className="text-sm font-medium text-gray-700 mb-2">
-                              {ground.noClosingTime ? 'Special Time Slots' : 'Special Time Slots'}
+                              {selectedDate}
                             </h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 p-1">
-                              {availableSlots.filter(slot => slot.time.startsWith('24:') || slot.time.startsWith('25:')).map((slot) => (
-                                <button
-                                  key={slot.time}
-                                  onClick={() => handleTimeSlotClick(slot.time, slot)}
-                                  disabled={slot.isPast}
-                                  className={`time-slot ${
-                                    slot.isPast
-                                      ? "past"
-                                      : slot.booking
-                                      ? "booked"
-                                      : selectedTime === slot.time
-                                      ? "selected"
-                                      : "available"
-                                  } next-day-slot`}
-                                  title={
-                                    slot.isPast
-                                      ? "Past time slot"
-                                      : slot.booking
-                                      ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
-                                      : "Next day slot (special time)"
-                                  }
-                                >
-                                  <div className="text-xs font-medium">
-                                    {formatTime(slot.time)}
-                                  </div>
-                                  <div className="text-xs opacity-75">
-                                    {slot.booking
-                                      ? "Booked"
-                                      : ""}
-                                  </div>
-                                  {/* {slot.booking && (
-                                    <div className="text-xs text-red-600 mt-1 space-y-0.5">
-                                <div className="text-gray-500 text-xs">
-                                  {slot.booking.customerPhone}
-                                </div>
-                              </div>
-                            )} */}
-                          </button>
-                        ))}
+                            <div className="flex justify-between py-2">
+                              <h4 className="text-sm font-medium text-gray-700 mb-2">
+                                Regular Slots
+                              </h4>
+                              <button
+                                onClick={() => setViewMode("calendar")}
+                                className="text-primary-600 hover:text-primary-700 text-sm"
+                              >
+                                Change Date
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-[900px] sm:max-h-[600px] overflow-y-auto p-1">
+                              {availableSlots
+                                .filter(
+                                  (slot) =>
+                                    !slot.time.startsWith("24:") &&
+                                    !slot.time.startsWith("25:")
+                                )
+                                .map((slot) => (
+                                  <button
+                                    key={slot.time}
+                                    onClick={() =>
+                                      handleTimeSlotClick(slot.time, slot)
+                                    }
+                                    disabled={
+                                      slot.isPast ||
+                                      !!slot.booking ||
+                                      slot.maintenance
+                                    }
+                                    className={`time-slot ${
+                                      slot.isPast
+                                        ? "past"
+                                        : slot.maintenance
+                                        ? "past"
+                                        : slot.booking
+                                        ? "booked"
+                                        : "available"
+                                    }`}
+                                  >
+                                    <div className="text-xs font-medium">
+                                      {formatTime(slot.time)}
+                                    </div>
+                                    <div className="text-xs opacity-75">
+                                      {slot.maintenance
+                                        ? "Maintenance"
+                                        : slot.booking
+                                        ? "Booked"
+                                        : null}
+                                    </div>
+                                  </button>
+                                ))}
                             </div>
                           </div>
-                        )}
-                      </div>
 
-                      {/* {availableSlots.filter((slot) => slot.available)
-                        .length === 0 && (
-                        <p className="text-gray-500 text-center py-6 sm:py-8 text-sm">
-                          No available slots for this date
-                        </p>
-                      )} */}
+                          {/* Special Time Slots (Next Day) */}
+                          {availableSlots.some(
+                            (slot) =>
+                              slot.time.startsWith("24:") ||
+                              slot.time.startsWith("25:")
+                          ) && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-700 mb-2">
+                                {ground.noClosingTime
+                                  ? "Special Slots"
+                                  : "Special Slots"}
+                              </h4>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 p-1">
+                                {availableSlots
+                                  .filter(
+                                    (slot) =>
+                                      slot.time.startsWith("24:") ||
+                                      slot.time.startsWith("25:")
+                                  )
+                                  .map((slot) => (
+                                    <button
+                                      key={slot.time}
+                                      onClick={() =>
+                                        handleTimeSlotClick(slot.time, slot)
+                                      }
+                                      disabled={
+                                        slot.isPast ||
+                                        !!slot.booking ||
+                                        slot.maintenance
+                                      }
+                                      className={`time-slot ${
+                                        slot.isPast
+                                          ? "past"
+                                          : slot.maintenance
+                                          ? "maintenance"
+                                          : slot.booking
+                                          ? "booked"
+                                          : selectedTime === slot.time
+                                          ? "selected"
+                                          : "available"
+                                      } next-day-slot`}
+                                      title={
+                                        slot.isPast
+                                          ? "Past time slot"
+                                          : slot.maintenance
+                                          ? "Maintenance - not available"
+                                          : slot.booking
+                                          ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                          : "Next day slot (special time)"
+                                      }
+                                    >
+                                      <div className="text-xs font-medium">
+                                        {formatTime(slot.time)}
+                                      </div>
+                                      <div className="text-xs opacity-75">
+                                        {slot.maintenance
+                                          ? "Maintenance"
+                                          : slot.booking
+                                          ? "Booked"
+                                          : ""}
+                                      </div>
+                                    </button>
+                                  ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 sm:py-8">
+                          <Calendar className="h-8 w-9 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                          <p className="text-gray-500 text-sm sm:text-base">
+                            This ground is not available for booking on{" "}
+                            {selectedDay}.
+                          </p>
+                          <button
+                            onClick={() => setViewMode("calendar")}
+                            className="text-primary-600 hover:text-primary-700 text-sm"
+                          >
+                            Change Date
+                          </button>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <div className="text-center py-6 sm:py-8">
@@ -843,7 +903,7 @@ export default function GroundDetailPage() {
           )}
 
           {/* Ground Details Section - Mobile */}
-          <Card >
+          <Card>
             <CardHeader className="bg-grey-50 border-b border-blue-100">
               <CardTitle className="text-lg sm:text-lg md:text-xl font-semibold text-gray-900">
                 Ground Details
@@ -855,8 +915,8 @@ export default function GroundDetailPage() {
                 <div className="border-b border-gray-200 pb-4">
                   <div className="flex items-start justify-between mb-2">
                     <h1 className="text-sm sm:text-lg font-bold text-gray-900 flex-1">
-                    {ground.name}
-                  </h1>
+                      {ground.name}
+                    </h1>
                     <button
                       onClick={() => setShowQRCode(true)}
                       className="ml-2 p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -867,22 +927,27 @@ export default function GroundDetailPage() {
                   </div>
                   <div className="flex items-center text-gray-600 mb-3">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{ground.location}, {ground.city}</span>
+                    <span className="text-sm">
+                      {ground.location}, {ground.city}
+                    </span>
                   </div>
-                  
+
                   {/* Contact Information */}
                   <div className="space-y-2">
                     <div className="flex items-center">
                       <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm text-gray-700">{ground.phone}</span>
+                      <span className="text-sm text-gray-700">
+                        {ground.phone}
+                      </span>
                     </div>
                     {ground.secondaryPhone && (
                       <div className="flex items-center">
                         <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="text-sm text-gray-700">{ground.secondaryPhone}</span>
+                        <span className="text-sm text-gray-700">
+                          {ground.secondaryPhone}
+                        </span>
                       </div>
                     )}
-                   
                   </div>
                 </div>
 
@@ -896,9 +961,7 @@ export default function GroundDetailPage() {
                       {/* <div className="text-xs text-gray-600">
                         Morning
                       </div> */}
-                      <div className="text-xs text-gray-500">
-                        6AM - 4PM
-                      </div>
+                      <div className="text-xs text-gray-500">6AM - 4PM</div>
                     </div>
                     <div className="text-center p-2 bg-yellow-50 rounded border border-yellow-200">
                       <div className="text-sm font-bold text-yellow-600">
@@ -907,23 +970,18 @@ export default function GroundDetailPage() {
                       {/* <div className="text-xs text-gray-600">
                         Evening
                       </div> */}
-                      <div className="text-xs text-gray-500">
-                        4PM - 6PM
-                      </div>
+                      <div className="text-xs text-gray-500">4PM - 6PM</div>
                     </div>
                     <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
                       <div className="text-sm font-bold text-blue-600">
                         {formatPrice(ground.nightPrice)}
-                  </div>
+                      </div>
                       {/* <div className="text-xs text-gray-600">
                         Night
                       </div> */}
-                      <div className="text-xs text-gray-500">
-                        After 6PM
-                      </div>
+                      <div className="text-xs text-gray-500">After 6PM</div>
                     </div>
                   </div>
-                  
                 </div>
 
                 {/* Operating Hours */}
@@ -1040,9 +1098,7 @@ export default function GroundDetailPage() {
                     )}
                   </div>
                 </div>
-
-                
-                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -1052,7 +1108,9 @@ export default function GroundDetailPage() {
           {/* Ground Details Section */}
           <Card className="xl:col-span-1">
             <CardHeader className="bg-gray-50 border-b border-blue-100">
-              <CardTitle className="text-xl font-semibold text-gray-900">Ground Details</CardTitle>
+              <CardTitle className="text-xl font-semibold text-gray-900">
+                Ground Details
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-6">
@@ -1060,8 +1118,8 @@ export default function GroundDetailPage() {
                 <div className="border-b border-gray-200 pb-4">
                   <div className="flex items-start justify-between mb-2">
                     <h1 className="text-xl font-bold text-gray-900 flex-1">
-                    {ground.name}
-                  </h1>
+                      {ground.name}
+                    </h1>
                     <button
                       onClick={() => setShowQRCode(true)}
                       className="ml-2 p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -1072,22 +1130,27 @@ export default function GroundDetailPage() {
                   </div>
                   <div className="flex items-center text-gray-600 mb-3">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{ground.location}, {ground.city}</span>
+                    <span className="text-sm">
+                      {ground.location}, {ground.city}
+                    </span>
                   </div>
-                  
+
                   {/* Contact Information */}
                   <div className="space-y-2">
                     <div className="flex items-center">
                       <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm text-gray-700">{ground.phone}</span>
+                      <span className="text-sm text-gray-700">
+                        {ground.phone}
+                      </span>
                     </div>
                     {ground.secondaryPhone && (
                       <div className="flex items-center">
                         <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="text-sm text-gray-700">{ground.secondaryPhone}</span>
+                        <span className="text-sm text-gray-700">
+                          {ground.secondaryPhone}
+                        </span>
                       </div>
                     )}
-                   
                   </div>
                 </div>
 
@@ -1098,37 +1161,24 @@ export default function GroundDetailPage() {
                       <div className="text-sm font-bold text-green-600">
                         {formatPrice(ground.morningPrice)}
                       </div>
-                      <div className="text-xs text-gray-600">
-                        Morning
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        6AM-4PM
-                    </div>
+                      <div className="text-xs text-gray-600">Morning</div>
+                      <div className="text-xs text-gray-500">6AM-4PM</div>
                     </div>
                     <div className="text-center p-2 bg-yellow-50 rounded border border-yellow-200">
                       <div className="text-sm font-bold text-yellow-600">
                         {formatPrice(ground.eveningPrice)}
                       </div>
-                      <div className="text-xs text-gray-600">
-                        Evening
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        4PM-6PM
+                      <div className="text-xs text-gray-600">Evening</div>
+                      <div className="text-xs text-gray-500">4PM-6PM</div>
                     </div>
-                  </div>
                     <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
                       <div className="text-sm font-bold text-blue-600">
                         {formatPrice(ground.nightPrice)}
                       </div>
-                      <div className="text-xs text-gray-600">
-                        Night
-                      </div>
-                      <div className="text-xs text-gray-500">
-                       After 6PM
-                      </div>
+                      <div className="text-xs text-gray-600">Night</div>
+                      <div className="text-xs text-gray-500">After 6PM</div>
                     </div>
                   </div>
-                  
                 </div>
 
                 {/* Ground Images */}
@@ -1232,7 +1282,6 @@ export default function GroundDetailPage() {
                     </div>
                   </div>
                 )}
-
               </div>
             </CardContent>
           </Card>
@@ -1241,7 +1290,7 @@ export default function GroundDetailPage() {
           <Card className="xl:col-span-2">
             <CardHeader className="bg-gray-50 border-b border-blue-100">
               <CardTitle className="text-xl font-semibold text-gray-900">
-                {isOwner ? 'Ground Management' : 'Book Your Slot'}
+                {isOwner ? "Ground Management" : "Book Your Slot"}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -1338,125 +1387,170 @@ export default function GroundDetailPage() {
                       );
                     })}
                   </div>
-
-                  
                 </TabsContent>
 
                 <TabsContent value="time-slots" className="space-y-4">
                   {selectedDate ? (
                     <>
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          Available Time Slots
-                        </h3>
-                        <button
-                          onClick={() => setViewMode("calendar")}
-                          className="text-primary-600 hover:text-primary-700 text-sm"
-                        >
-                          Change Date
-                        </button>
-                      </div>
-
-                      <div className="space-y-6">
-                        {/* Regular Time Slots */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-3">Regular Time Slots</h4>
-                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 max-h-[700px] sm:max-h-[600px] overflow-y-auto p-1">
-                            {availableSlots.filter(slot => !slot.time.startsWith('24:') && !slot.time.startsWith('25:')).map((slot) => (
-                          <button
-                            key={slot.time}
-                            onClick={() => handleTimeSlotClick(slot.time, slot)}
-                            disabled={slot.isPast}
-                            className={`time-slot ${
-                              slot.isPast
-                                ? "past"
-                                : slot.booking
-                                ? "booked"
-                                : selectedTime === slot.time
-                                ? "selected"
-                                : "available"
-                            }`}
-                            title={
-                              slot.isPast
-                                ? "Past time slot"
-                                : slot.booking
-                                ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
-                                : "Available for booking"
-                            }
-                          >
-                            <div className="text-xs font-medium">
-                              {formatTime(slot.time)}
-                            </div>
-                            {slot.booking && (
-                              <div className="text-xs text-red-600 mt-1 space-y-0.5">
-                                <div className="font-medium">Booked</div>
-                                    {/* <div className="text-gray-600 truncate">
-                                  {slot.booking.customerName}
-                                    </div> */}
-                                    {/* <div className="text-gray-500 text-xs">
-                                      {slot.booking.customerPhone}
-                                </div> */}
-                                  </div>
-                                )}
-                              </button>
-                            ))}
+                      {isOperatingDay ? (
+                        <div className="space-y-6">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {selectedDate}
+                            </h3>
+                            <button
+                              onClick={() => setViewMode("calendar")}
+                              className="text-primary-600 hover:text-primary-700 text-sm"
+                            >
+                              Change Date
+                            </button>
                           </div>
-                        </div>
-
-                        {/* Special Time Slots (Next Day) */}
-                        {availableSlots.some(slot => slot.time.startsWith('24:') || slot.time.startsWith('25:')) && (
+                          {/* Regular Time Slots */}
                           <div>
-                            <h4 className="text-sm font-medium text-gray-700 mb-3">Special Time Slots</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 p-1">
-                              {availableSlots.filter(slot => slot.time.startsWith('24:') || slot.time.startsWith('25:')).map((slot) => (
-                                <button
-                                  key={slot.time}
-                                  onClick={() => handleTimeSlotClick(slot.time, slot)}
-                                  disabled={slot.isPast}
-                                  className={`time-slot ${
-                                    slot.isPast
-                                      ? "past"
-                                      : slot.booking
-                                      ? "booked"
-                                      : selectedTime === slot.time
-                                      ? "selected"
-                                      : "available"
-                                  } next-day-slot`}
-                                  title={
-                                    slot.isPast
-                                      ? "Past time slot"
-                                      : slot.booking
-                                      ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
-                                      : "Next day slot (special time)"
-                                  }
-                                >
-                                  <div className="text-xs font-medium">
-                                    {formatTime(slot.time)}
-                                  </div>
-                                  {slot.booking && (
-                                    <div className="text-xs text-red-600 mt-1 space-y-0.5">
-                                      <div className="font-medium">Booked</div>
-                                      {/* <div className="text-gray-600 truncate">
+                            <h4 className="text-sm font-medium text-gray-700 mb-3">
+                              Regular Slots
+                            </h4>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 max-h-[700px] sm:max-h-[600px] overflow-y-auto p-1">
+                              {availableSlots
+                                .filter(
+                                  (slot) =>
+                                    !slot.time.startsWith("24:") &&
+                                    !slot.time.startsWith("25:")
+                                )
+                                .map((slot) => (
+                                  <button
+                                    key={slot.time}
+                                    onClick={() =>
+                                      handleTimeSlotClick(slot.time, slot)
+                                    }
+                                    disabled={
+                                      slot.isPast ||
+                                      !!slot.booking ||
+                                      slot.maintenance
+                                    }
+                                    className={`time-slot ${
+                                      slot.isPast
+                                        ? "past"
+                                        : slot.maintenance
+                                        ? "past"
+                                        : slot.booking
+                                        ? "booked"
+                                        : "available"
+                                    }`}
+                                    title={
+                                      slot.isPast
+                                        ? "Past time slot"
+                                        : slot.booking
+                                        ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                        : "Available for booking"
+                                    }
+                                  >
+                                    <div className="text-xs font-medium">
+                                      {formatTime(slot.time)}
+                                    </div>
+                                    <div className="text-xs opacity-75">
+                                      {slot.maintenance
+                                        ? "Maintenance"
+                                        : slot.booking
+                                        ? "Booked"
+                                        : null}
+                                    </div>
+                                    {/* {slot.booking && (
+                                      <div className="text-xs text-red-600 mt-1 space-y-0.5">
+                                        <div className="font-medium">
+                                          Booked
+                                        </div>
+                                        <div className="text-gray-600 truncate">
+                                          {slot.booking.customerName}
+                                        </div>
+                                        <div className="text-gray-500 text-xs">
+                                          {slot.booking.customerPhone}
+                                        </div>
+                                      </div>
+                                    )} */}
+                                  </button>
+                                ))}
+                            </div>
+                          </div>
+
+                          {/* Special Time Slots (Next Day) */}
+                          {availableSlots.some(
+                            (slot) =>
+                              slot.time.startsWith("24:") ||
+                              slot.time.startsWith("25:")
+                          ) && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                                Special Slots
+                              </h4>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 p-1">
+                                {availableSlots
+                                  .filter(
+                                    (slot) =>
+                                      slot.time.startsWith("24:") ||
+                                      slot.time.startsWith("25:")
+                                  )
+                                  .map((slot) => (
+                                    <button
+                                      key={slot.time}
+                                      onClick={() =>
+                                        handleTimeSlotClick(slot.time, slot)
+                                      }
+                                      disabled={slot.isPast}
+                                      className={`time-slot ${
+                                        slot.isPast
+                                          ? "past"
+                                          : slot.booking
+                                          ? "booked"
+                                          : selectedTime === slot.time
+                                          ? "selected"
+                                          : "available"
+                                      } next-day-slot`}
+                                      title={
+                                        slot.isPast
+                                          ? "Past time slot"
+                                          : slot.booking
+                                          ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                          : "Next day slot (special time)"
+                                      }
+                                    >
+                                      <div className="text-xs font-medium">
+                                        {formatTime(slot.time)}
+                                      </div>
+                                      {slot.booking && (
+                                        <div className="text-xs text-red-600 mt-1 space-y-0.5">
+                                          <div className="font-medium">
+                                            Booked
+                                          </div>
+                                          {/* <div className="text-gray-600 truncate">
                                         {slot.booking.customerName}
                                       </div> */}
-                                {/* <div className="text-gray-500 text-xs">
+                                          {/* <div className="text-gray-500 text-xs">
                                   {slot.booking.customerPhone}
                                 </div> */}
+                                        </div>
+                                      )}
+                                    </button>
+                                  ))}
                               </div>
-                            )}
-                          </button>
-                        ))}
                             </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* {availableSlots.filter((slot) => slot.available)
-                        .length === 0 && (
-                        <p className="text-gray-500 text-center py-8">
-                          No available slots for this date
-                        </p>
-                      )} */}
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500">
+                            This ground is not available for booking on{" "}
+                            {selectedDay}.
+                          </p>
+                          <button
+                            onClick={() => setViewMode("calendar")}
+                            className="text-primary-600 hover:text-primary-700 text-sm"
+                          >
+                            Change Date
+                          </button>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <div className="text-center py-8">
@@ -1593,15 +1687,22 @@ export default function GroundDetailPage() {
         }}
         onConfirm={confirmCancelBooking}
         title="Cancel Booking"
-        bookingDetails={selectedBooking ? {
-          customerName: selectedBooking.customerName,
-          customerPhone: selectedBooking.customerPhone,
-          groundName: ground?.name,
-          date: selectedBooking.date,
-          time: selectedBooking.startTime && selectedBooking.endTime
-            ? `${formatTime(selectedBooking.startTime)} - ${formatTime(selectedBooking.endTime)}`
-            : "N/A"
-        } : undefined}
+        bookingDetails={
+          selectedBooking
+            ? {
+                customerName: selectedBooking.customerName,
+                customerPhone: selectedBooking.customerPhone,
+                groundName: ground?.name,
+                date: selectedBooking.date,
+                time:
+                  selectedBooking.startTime && selectedBooking.endTime
+                    ? `${formatTime(selectedBooking.startTime)} - ${formatTime(
+                        selectedBooking.endTime
+                      )}`
+                    : "N/A",
+              }
+            : undefined
+        }
         loading={cancelling}
       />
 
@@ -1673,13 +1774,12 @@ export default function GroundDetailPage() {
           groundId={ground.id}
           groundName={ground.name}
         />
-        )}
-      
+      )}
+
       {/* <PerformanceMonitor /> */}
     </div>
   );
 }
 
-
-// prepare a video to list the ground 
+// prepare a video to list the ground
 // remove the comission rate in super admin just add the amount comission onlyu

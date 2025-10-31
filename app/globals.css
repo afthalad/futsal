@@ -152,6 +152,21 @@ button.time-slot.available:hover {
   @apply border-red-300 text-red-700 bg-red-50 cursor-pointer hover:bg-red-100;
 }
 
+.time-slot.maintenance {
+  @apply border-gray-300 text-gray-600 bg-gray-100 cursor-not-allowed;
+}
+
+/* More specific rules to ensure maintenance slots appear muted and not green */
+button.time-slot.maintenance {
+  background-color: transparent !important;
+  border-color: #d1d5db !important; /* gray-300 */
+  color: #4b5563 !important; /* gray-600 */
+}
+
+button.time-slot.maintenance:hover {
+  background-color: #f3f4f6 !important; /* gray-100 */
+}
+
 /* More specific rules to ensure booked slots show red */
 
 

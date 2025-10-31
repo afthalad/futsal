@@ -1,10 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 // Force dynamic rendering for this route
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-import { getGroundById, updateGround, deleteGround, getBookingsByGround } from '@/lib/firestore-server'
-import { getUserFromToken } from '@/lib/auth'
+import {
+  getGroundById,
+  updateGround,
+  deleteGround,
+  getBookingsByGround,
+} from "@/lib/firestore-server";
+import { getUserFromToken } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
@@ -14,17 +19,18 @@ export async function GET(
     // Fetch ground and bookings in parallel for better performance
     const [ground, bookings] = await Promise.all([
       getGroundById(params.id),
-      getBookingsByGround(params.id)
-    ])
+      getBookingsByGround(params.id),
+    ]);
 
     if (!ground) {
-      return NextResponse.json({ error: 'Ground not found' }, { status: 404 })
+      return NextResponse.json({ error: "Ground not found" }, { status: 404 });
     }
 
     // Include only active bookings (exclude cancelled bookings)
-    const activeBookings = bookings.filter(booking => 
-      booking.status !== 'CANCELLED' && booking.status !== 'cancelled'
-    )
+    const activeBookings = bookings.filter(
+      (booking) =>
+        booking.status !== "CANCELLED" && booking.status !== "cancelled"
+    );
 
     // Process ground data
     const processedGround = {
@@ -32,12 +38,12 @@ export async function GET(
       images: ground.images || [],
       amenities: ground.amenities || [],
       // Set default status for existing grounds that don't have it
-      status: ground.status || 'PENDING',
+      status: ground.status || "PENDING",
       owner: {
-        name: 'Ground Owner', // We'll need to fetch this separately if needed
-        phone: ground.phone
+        name: "Ground Owner", // We'll need to fetch this separately if needed
+        phone: ground.phone,
       },
-      bookings: activeBookings.map(booking => ({
+      bookings: activeBookings.map((booking) => ({
         date: booking.date,
         startTime: booking.startTime,
         endTime: booking.endTime,
@@ -47,14 +53,17 @@ export async function GET(
         reason: booking.reason,
         cancellationReason: booking.cancellationReason,
         cancelledAt: booking.cancelledAt,
-        cancelledBy: booking.cancelledBy
-      }))
-    }
+        cancelledBy: booking.cancelledBy,
+      })),
+    };
 
-    return NextResponse.json({ ground: processedGround })
+    return NextResponse.json({ ground: processedGround });
   } catch (error) {
     // console.error('Get Ground Error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -63,62 +72,70 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    
+    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await getUserFromToken(token)
-    
-    if (!user || user.role !== 'GROUND_OWNER') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const user = await getUserFromToken(token);
+
+    if (!user || user.role !== "GROUND_OWNER") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const data = await request.json()
+    const data = await request.json();
 
     // Normalize operating hours based on 24/7 flag
     const normalized = (() => {
       if (data.noClosingTime) {
-        return { ...data, openingTime: '00:00', closingTime: '' }
+        return { ...data, openingTime: "00:00", closingTime: "" };
       }
-      if (!data.closingTime || data.closingTime === '') {
-        return { ...data, noClosingTime: true, openingTime: '00:00', closingTime: '' }
+      if (!data.closingTime || data.closingTime === "") {
+        return {
+          ...data,
+          noClosingTime: true,
+          openingTime: "00:00",
+          closingTime: "",
+        };
       }
-      return data
-    })()
-    
+      return data;
+    })();
+
     // Get current ground to check status
-    const currentGround = await getGroundById(params.id)
-    
+    const currentGround = await getGroundById(params.id);
+
     // If ground was rejected and owner is editing, reset to PENDING for re-review
     const updateData = {
       ...normalized,
       images: data.images || [],
-      amenities: data.amenities || []
-    }
-    
+      amenities: data.amenities || [],
+    };
+
     // Reset status to PENDING if ground was previously rejected
-    if (currentGround && currentGround.status === 'REJECTED') {
-      updateData.status = 'PENDING'
-      updateData.rejectionReason = null // Clear rejection reason
-      updateData.reviewedBy = null // Clear previous reviewer
-      updateData.reviewedAt = null // Clear review timestamp
+    if (currentGround && currentGround.status === "REJECTED") {
+      updateData.status = "PENDING";
+      updateData.rejectionReason = null; // Clear rejection reason
+      updateData.reviewedBy = null; // Clear previous reviewer
+      updateData.reviewedAt = null; // Clear review timestamp
     }
-    
-    await updateGround(params.id, updateData)
+
+    await updateGround(params.id, updateData);
 
     const ground = {
       id: params.id,
       ...updateData,
       images: updateData.images || [],
-      amenities: updateData.amenities || []
-    }
+      amenities: updateData.amenities || [],
+    };
 
-    return NextResponse.json({ ground })
+    return NextResponse.json({ ground });
   } catch (error) {
     // console.error('Update Ground Error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -127,41 +144,133 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    
+    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await getUserFromToken(token)
-    
-    if (!user || user.role !== 'GROUND_OWNER') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const user = await getUserFromToken(token);
+
+    if (!user || user.role !== "GROUND_OWNER") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Check if ground exists and belongs to the user
-    const ground = await getGroundById(params.id)
+    const ground = await getGroundById(params.id);
     if (!ground) {
-      return NextResponse.json({ error: 'Ground not found' }, { status: 404 })
+      return NextResponse.json({ error: "Ground not found" }, { status: 404 });
     }
 
     if (ground.ownerId !== user.id) {
-      return NextResponse.json({ error: 'You can only delete your own grounds' }, { status: 403 })
+      return NextResponse.json(
+        { error: "You can only delete your own grounds" },
+        { status: 403 }
+      );
     }
 
     // Check if ground has any bookings
-    const bookings = await getBookingsByGround(params.id)
+    const bookings = await getBookingsByGround(params.id);
     if (bookings && bookings.length > 0) {
-      return NextResponse.json({ 
-        error: 'Cannot delete ground with existing bookings. Please cancel all bookings first.' 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error:
+            "Cannot delete ground with existing bookings. Please cancel all bookings first.",
+        },
+        { status: 400 }
+      );
     }
 
-    await deleteGround(params.id)
+    await deleteGround(params.id);
 
-    return NextResponse.json({ message: 'Ground deleted successfully' })
+    return NextResponse.json({ message: "Ground deleted successfully" });
   } catch (error) {
     // console.error('Delete Ground Error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await getUserFromToken(token);
+
+    if (!user || user.role !== "GROUND_OWNER") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const body = await request.json();
+
+    // Expect either { maintenanceDate: 'YYYY-MM-DD', slots: ['06:00 - 07:00', ...] }
+    // or a full blockedSlots object. We'll support the simple maintenance payload.
+    const { maintenanceDate, slots, blockedSlots } = body as {
+      maintenanceDate?: string;
+      slots?: string[];
+      blockedSlots?: Record<string, string[]>;
+    };
+
+    const ground = await getGroundById(params.id);
+    if (!ground) {
+      return NextResponse.json({ error: "Ground not found" }, { status: 404 });
+    }
+
+    // Ensure only owner can modify their ground
+    if (ground.ownerId !== user.id) {
+      return NextResponse.json(
+        { error: "You can only modify your own ground" },
+        { status: 403 }
+      );
+    }
+
+    const currentBlocked: Record<string, string[]> =
+      (ground as any).blockedSlots || {};
+
+    let newBlocked: Record<string, string[]> = { ...currentBlocked };
+
+    if (blockedSlots && typeof blockedSlots === "object") {
+      // When editing, merge the new slots with existing ones
+      // but respect explicit deletions (empty arrays or undefined values)
+      Object.entries(blockedSlots).forEach(([date, dateSlots]) => {
+        if (
+          !dateSlots ||
+          (Array.isArray(dateSlots) && dateSlots.length === 0)
+        ) {
+          delete newBlocked[date];
+        } else if (Array.isArray(dateSlots)) {
+          newBlocked[date] = dateSlots;
+        }
+      });
+    } else if (maintenanceDate && Array.isArray(slots)) {
+      if (slots.length === 0) {
+        // If no slots provided, remove the date entry
+        delete newBlocked[maintenanceDate];
+      } else {
+        newBlocked[maintenanceDate] = slots;
+      }
+    } else {
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    }
+
+    // Persist update
+    await updateGround(params.id, { blockedSlots: newBlocked });
+
+    return NextResponse.json({ blockedSlots: newBlocked });
+  } catch (error) {
+    // console.error('Update blocked slots error:', error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

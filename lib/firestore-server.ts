@@ -27,6 +27,8 @@ export interface Ground {
   openingTime?: string;
   closingTime?: string;
   noClosingTime?: boolean;
+  // Map of blocked maintenance slots keyed by date (YYYY-MM-DD) to array of slot strings
+  blockedSlots?: Record<string, string[]>;
   isActive: boolean;
   ownerId: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
@@ -403,10 +405,6 @@ export const updateCommissionAmount = async (
   try {
     const commissionRef = adminDb.collection("commission").doc(ownerId);
     const commissionDoc = await commissionRef.get();
-    
-    
-
-
 
     // Updated commission rates
     let commissionRate: number;
@@ -418,8 +416,6 @@ export const updateCommissionAmount = async (
     } else {
       commissionAmount = 50; // Fixed 50 rupees for others
     }
-
-
 
     // if (bookingAmount < 500) {
     //   commissionRate = 0.05; // 5% for bookings under 500
