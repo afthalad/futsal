@@ -696,6 +696,21 @@ export default function GroundDetailPage() {
                                         ? "Booked"
                                         : null}
                                     </div>
+                                    {slot.booking && (
+                                      <div className="text-xs text-red-600  space-y-0.5">
+                                        {/* <div className="font-medium">
+                                          Booked
+                                        </div> */}
+                                        <div className="text-xs opacity-75">
+                                          {capitalizeFirstLetter(
+                                            slot.booking.customerName
+                                          )}
+                                        </div>
+                                        {/* <div className="text-gray-500 text-xs">
+                                          {slot.booking.customerPhone}
+                                        </div> */}
+                                      </div>
+                                    )}
                                   </button>
                                 ))}
                             </div>
