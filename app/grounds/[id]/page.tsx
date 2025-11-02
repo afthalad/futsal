@@ -28,6 +28,7 @@ import {
   isEveningSlot,
   isNightSlot,
   isWithinOperatingHours,
+  capitalizeFirstLetter,
 } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1455,19 +1456,21 @@ export default function GroundDetailPage() {
                                         ? "Booked"
                                         : null}
                                     </div>
-                                    {/* {slot.booking && (
-                                      <div className="text-xs text-red-600 mt-1 space-y-0.5">
-                                        <div className="font-medium">
+                                    {slot.booking && (
+                                      <div className="text-xs text-red-600  space-y-0.5">
+                                        {/* <div className="font-medium">
                                           Booked
+                                        </div> */}
+                                        <div className="text-xs opacity-75">
+                                          {capitalizeFirstLetter(
+                                            slot.booking.customerName
+                                          )}
                                         </div>
-                                        <div className="text-gray-600 truncate">
-                                          {slot.booking.customerName}
-                                        </div>
-                                        <div className="text-gray-500 text-xs">
+                                        {/* <div className="text-gray-500 text-xs">
                                           {slot.booking.customerPhone}
-                                        </div>
+                                        </div> */}
                                       </div>
-                                    )} */}
+                                    )}
                                   </button>
                                 ))}
                             </div>
