@@ -770,13 +770,24 @@ export default function GroundDetailPage() {
                                       <div className="text-xs font-medium">
                                         {formatTime(slot.time)}
                                       </div>
-                                      <div className="text-xs opacity-75">
-                                        {slot.maintenance
-                                          ? "Maintenance"
-                                          : slot.booking
-                                          ? "Booked"
-                                          : ""}
-                                      </div>
+
+                                      {slot.booking && (
+                                        <div className="text-xs text-red-600 mt-1 space-y-0.5">
+                                          <div className="text-xs opacity-75">
+                                            {slot.maintenance
+                                              ? "Maintenance"
+                                              : slot.booking
+                                              ? "Booked"
+                                              : ""}
+                                          </div>
+                                          <div className="text-xs text-red-500 mt-1 space-y-0.5">
+                                            {slot.booking.customerName}
+                                          </div>
+                                          {/* <div className="text-gray-500 text-xs">
+                                  {slot.booking.customerPhone}
+                                </div> */}
+                                        </div>
+                                      )}
                                     </button>
                                   ))}
                               </div>
@@ -1540,9 +1551,9 @@ export default function GroundDetailPage() {
                                           <div className="font-medium">
                                             Booked
                                           </div>
-                                          {/* <div className="text-gray-600 truncate">
-                                        {slot.booking.customerName}
-                                      </div> */}
+                                          <div className="text-xs text-red-500 mt-1 space-y-0.5">
+                                            {slot.booking.customerName}
+                                          </div>
                                           {/* <div className="text-gray-500 text-xs">
                                   {slot.booking.customerPhone}
                                 </div> */}

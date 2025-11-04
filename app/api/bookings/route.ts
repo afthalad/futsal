@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
       startTime,
       endTime,
       price,
+      isCommissionPaid: false,
       reason: reason || null,
     });
 
@@ -180,17 +181,17 @@ export async function POST(request: NextRequest) {
       );
       // console.log("Full ground details:", JSON.stringify(ground, null, 2));
       // Send notification SMS to ground owner
-      await sendBookingConfirmationToOwner(
-        ground.phone, // Using ground phone as owner contact
-        ground.name,
-        date,
-        startTime,
-        endTime,
-        customerName,
-        customerPhone,
-        price
-      );
-      console.log("Successfully triggered SMS to owner.");
+      // await sendBookingConfirmationToOwner(
+      //   ground.phone, // Using ground phone as owner contact
+      //   ground.name,
+      //   date,
+      //   startTime,
+      //   endTime,
+      //   customerName,
+      //   customerPhone,
+      //   price
+      // );
+      // console.log("Successfully triggered SMS to owner.");
     } catch (smsError) {
       console.error("SMS notification error:", smsError);
       // Don't fail the booking if SMS fails

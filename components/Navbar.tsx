@@ -107,9 +107,12 @@ export default function Navbar() {
                   </Link>
                 )}
                 {user.role === 'SUPER_ADMIN' && (
-                  <Link href="/admin/super" className="text-gray-700 hover:text-primary-600 px-2 xl:px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                    Super Admin
-                  </Link>
+                  <>
+                    <Link href="/admin/super" className="text-gray-700 hover:text-primary-600 px-2 xl:px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                      Super Admin
+                    </Link>
+                    
+                  </>
                 )}
                 <div className="flex items-center space-x-1 xl:space-x-2">
                   <User className="h-4 w-4 xl:h-5 xl:w-5 text-gray-500" />
@@ -139,9 +142,12 @@ export default function Navbar() {
                   </Link>
                 )}
                 {user.role === 'SUPER_ADMIN' && (
+                  <>
                   <Link href="/admin/super" className="text-gray-700 hover:text-primary-600 px-2 py-2 rounded-md text-sm font-medium">
                     Admin
                   </Link>
+                 
+                  </>
                 )}
                 <div className="flex items-center space-x-1">
                   <User className="h-4 w-4 text-gray-500" />
@@ -212,6 +218,7 @@ export default function Navbar() {
                   >
                     Super Admin
                   </Link>
+                  
                   <Link
                     href="/admin/profile"
                     className="text-gray-700 hover:text-primary-600 block px-3 py-3 rounded-md text-base font-medium transition-colors"

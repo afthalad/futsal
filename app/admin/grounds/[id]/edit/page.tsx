@@ -132,7 +132,7 @@ export default function EditGroundPage() {
           noClosingTime: data.ground.noClosingTime || false,
           amenities: data.ground.amenities || [],
           images: data.ground.images || [],
-          operatingDays: data.ground.operatingDays || [],
+          operatingDays: data.ground.operatingDays?.length > 0 ? data.ground.operatingDays : daysOfWeek,
         });
       } else {
         toast.error("Ground not found");
@@ -308,10 +308,7 @@ export default function EditGroundPage() {
       return;
     }
 
-    // if (formData.operatingDays.length === 0) {
-    //   toast.error('Please select at least one operating day')
-    //   return
-    // }
+
 
     setLoading(true);
 
@@ -866,5 +863,4 @@ export default function EditGroundPage() {
   );
 }
 
-// check and push the changes
-// try to implement if operationdays is null or length 0 then avaiable for all days for already exist grounds
+

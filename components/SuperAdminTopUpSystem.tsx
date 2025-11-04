@@ -1,101 +1,108 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { DollarSign, AlertCircle, RefreshCw, Users } from 'lucide-react'
-import { formatPrice } from '@/lib/utils'
+import { useState, useEffect } from "react";
+import { DollarSign, AlertCircle, RefreshCw, Users } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 interface Commission {
-  id: string
-  ownerId: string
-  ownerName: string
-  ownerPhone: string
-  groundCount: number
-  groundNames: string
-  amount: number
-  status: 'PENDING' | 'PAID'
-  lastUpdated: Date
-  paidAt: Date | null
+  id: string;
+  ownerId: string;
+  ownerName: string;
+  ownerPhone: string;
+  groundCount: number;
+  groundNames: string;
+  amount: number;
+  status: "PENDING" | "PAID";
+  lastUpdated: Date;
+  paidAt: Date | null;
+  bookings?: any[];
 }
 
 export default function SuperAdminTopUpSystem() {
-  const [commissions, setCommissions] = useState<Commission[]>([])
-  const [loading, setLoading] = useState(true)
-  const [updating, setUpdating] = useState<string | null>(null)
-  const [totalAmount, setTotalAmount] = useState(0)
-  const [pendingCount, setPendingCount] = useState(0)
+  const [commissions, setCommissions] = useState<Commission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
-    fetchCommissions()
-    
+    fetchCommissions();
+
     // Refresh every 30 seconds to get updated commission data
-    const interval = setInterval(fetchCommissions, 30000)
-    
-    return () => clearInterval(interval)
-  }, [])
+    const interval = setInterval(fetchCommissions, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchCommissions = async () => {
     try {
       // Check if we're on the client side
-      if (typeof window === 'undefined') {
-        return
+      if (typeof window === "undefined") {
+        return;
       }
-      
-      const token = localStorage.getItem('token')
-      const response = await fetch('/api/admin/commission', {
+
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/admin/commission", {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        setCommissions(data.commissions || [])
-        setTotalAmount(data.totalAmount || 0)
-        setPendingCount(data.pendingCount || 0)
+        const data = await response.json();
+        setCommissions(data.commissions || []);
+        setTotalAmount(data.totalAmount || 0);
+        setPendingCount(data.pendingCount || 0);
       } else {
-        console.error('Failed to fetch commissions')
+        console.error("Failed to fetch commissions");
       }
     } catch (error) {
-      console.error('Error fetching commissions:', error)
+      console.error("Error fetching commissions:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const markCommissionAsPaid = async (ownerId: string) => {
     try {
-      setUpdating(ownerId)
-      
+      setUpdating(ownerId);
+
       // Check if we're on the client side
-      if (typeof window === 'undefined') {
-        return
+      if (typeof window === "undefined") {
+        return;
       }
-      
-      const token = localStorage.getItem('token')
-      
-      const response = await fetch(`/api/admin/commission/${ownerId}/mark-paid`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `/api/admin/commission/${ownerId}/mark-paid`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-      })
+      );
 
       if (response.ok) {
         // Refresh the commissions data
-        await fetchCommissions()
+        await fetchCommissions();
       } else {
-        console.error('Failed to mark commission as paid')
+        console.error("Failed to mark commission as paid");
       }
     } catch (error) {
-      console.error('Error marking commission as paid:', error)
+      console.error("Error marking commission as paid:", error);
     } finally {
-      setUpdating(null)
+      setUpdating(null);
     }
-  }
+  };
 
-  const totalGroundOwners = commissions.length
-  const groundOwnersWithDues = commissions.filter(commission => commission.amount > 0).length
+  const totalGroundOwners = commissions.length;
+  const groundOwnersWithDues = commissions.filter(
+    (commission) => commission.amount > 0
+  ).length;
+  const [expandedOwners, setExpandedOwners] = useState<string[]>([]);
 
   if (loading) {
     return (
@@ -104,7 +111,7 @@ export default function SuperAdminTopUpSystem() {
         <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
         <div className="h-4 bg-gray-200 rounded w-2/3"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -115,12 +122,19 @@ export default function SuperAdminTopUpSystem() {
             <DollarSign className="h-6 w-6 text-primary-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Commission Management</h2>
-            <p className="text-sm text-gray-600">Track variable commission: 5% (under 500), 3% (500-999), 2% (1000-1999), 1% (2000+)</p>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Commission Management
+            </h2>
+            <p className="text-sm text-gray-600">
+              Track variable commission: 5% (under 500), 3% (500-999), 2%
+              (1000-1999), 1% (2000+)
+            </p>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-primary-600">{formatPrice(totalAmount)}</div>
+          <div className="text-2xl font-bold text-primary-600">
+            {formatPrice(totalAmount)}
+          </div>
           <div className="text-sm text-gray-600">Total Due</div>
         </div>
       </div>
@@ -167,26 +181,43 @@ export default function SuperAdminTopUpSystem() {
       {commissions.length === 0 ? (
         <div className="text-center py-8">
           <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No ground owners found</h3>
-          <p className="text-gray-600">Commission data will appear here when ground owners have bookings</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No ground owners found
+          </h3>
+          <p className="text-gray-600">
+            Commission data will appear here when ground owners have bookings
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
           {commissions.map((commission) => (
-            <div key={commission.id} className="border border-gray-200 rounded-lg p-4">
+            <div
+              key={commission.id}
+              className="border border-gray-200 rounded-lg p-4"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h4 className="font-medium text-gray-900">{commission.ownerName}</h4>
+                  <h4 className="font-medium text-gray-900">
+                    {commission.ownerName}
+                  </h4>
                   <p className="text-sm text-gray-600">
                     Phone: {commission.ownerPhone}
                   </p>
                   <p className="text-sm text-gray-600">
                     Grounds: {commission.groundCount} ({commission.groundNames})
                   </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Unpaid bookings:{" "}
+                    {commission.bookings ? commission.bookings.length : 0}
+                  </p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-gray-500">Last updated:</span>
                     <span className="text-xs text-gray-500">
-                      {commission.lastUpdated ? new Date(commission.lastUpdated).toLocaleDateString('en-LK') : 'N/A'}
+                      {commission.lastUpdated
+                        ? new Date(commission.lastUpdated).toLocaleDateString(
+                            "en-LK"
+                          )
+                        : "N/A"}
                     </span>
                   </div>
                 </div>
@@ -195,20 +226,71 @@ export default function SuperAdminTopUpSystem() {
                     {formatPrice(commission.amount)}
                   </div>
                   <div className="text-xs text-gray-500">Due Amount</div>
-                  <div className={`mt-1 px-2 py-1 text-xs font-medium rounded-full ${
-                    commission.status === 'PENDING' 
-                      ? 'bg-amber-100 text-amber-800' 
-                      : 'bg-green-100 text-green-800'
-                  }`}>
+                  <div
+                    className={`mt-1 px-2 py-1 text-xs font-medium rounded-full ${
+                      commission.status === "PENDING"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-green-100 text-green-800"
+                    }`}
+                  >
                     {commission.status}
                   </div>
                 </div>
               </div>
+              {commission.bookings && commission.bookings.length > 0 && (
+                <div className="mt-3">
+                  <button
+                    onClick={() => {
+                      if (expandedOwners.includes(commission.ownerId)) {
+                        setExpandedOwners(
+                          expandedOwners.filter(
+                            (id) => id !== commission.ownerId
+                          )
+                        );
+                      } else {
+                        setExpandedOwners([
+                          ...expandedOwners,
+                          commission.ownerId,
+                        ]);
+                      }
+                    }}
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    {expandedOwners.includes(commission.ownerId)
+                      ? "Hide bookings"
+                      : `Show ${commission.bookings.length} unpaid bookings`}
+                  </button>
+
+                  {expandedOwners.includes(commission.ownerId) && (
+                    <div className="mt-2 space-y-2">
+                      {commission.bookings.map((b: any) => (
+                        <div
+                          key={b.id}
+                          className="p-2 border rounded bg-gray-50"
+                        >
+                          <div className="text-sm text-gray-800">
+                            {b.customerName || "Walk-in"}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {b.date} {b.startTime}-{b.endTime}
+                          </div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {formatPrice(b.price || 0)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {commission.paidAt && (
                 <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-sm">
                   <span className="text-green-800">
-                    Last paid: {commission.paidAt ? new Date(commission.paidAt).toLocaleDateString('en-LK') : 'N/A'}
+                    Last paid:{" "}
+                    {commission.paidAt
+                      ? new Date(commission.paidAt).toLocaleDateString("en-LK")
+                      : "N/A"}
                   </span>
                 </div>
               )}
@@ -223,7 +305,9 @@ export default function SuperAdminTopUpSystem() {
                     {updating === commission.ownerId && (
                       <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                     )}
-                    {updating === commission.ownerId ? 'Marking...' : 'Mark as Paid'}
+                    {updating === commission.ownerId
+                      ? "Marking..."
+                      : "Mark as Paid"}
                   </button>
                 )}
                 {commission.amount === 0 && (
@@ -237,5 +321,5 @@ export default function SuperAdminTopUpSystem() {
         </div>
       )}
     </div>
-  )
+  );
 }
