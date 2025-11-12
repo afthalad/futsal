@@ -24,6 +24,19 @@ interface Commission {
   commissionType?: "PERCENTAGE" | "FLAT"; // Type of commission for this owner
   calculatedUntil?: string; // Date until which commission was calculated
   commissionRate?: number; // 0.01 for 1% or 50 for flat rate
+  balance?: number; // stored commission balance
+  payments?: Array<{
+    id?: string;
+    amountPaid?: number;
+    amountApplied?: number;
+    amountRemaining?: number;
+    paidAt?: string;
+    cutoffDate?: string;
+  }>;
+  totalPaid?: number;
+  lastPaymentDate?: string | null;
+  totalDue?: number;
+  lastPaymentRemaining?: number;
 }
 
 export default function GroundOwnerCommission() {
@@ -65,47 +78,48 @@ export default function GroundOwnerCommission() {
 
   const fetchCommission = async (isManual = false) => {
     try {
-      // Check if we're on the client side
-      if (typeof window === "undefined") {
-        return;
-      }
-
-      if (isManual) {
-        setRefreshing(true);
-      }
-
+      if (typeof window === "undefined") return;
+      if (isManual) setRefreshing(true);
       const token = localStorage.getItem("token");
       const response = await fetch("/api/commission", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.ok) {
         const data = await response.json();
-        // Normalize response: older API returned `amount` only. Prefer payableCommission.
         const raw = data.commission || null;
         if (raw) {
+          // Calculate total due: unpaid commission + last payment's remaining balance
+          let lastPaymentRemaining = 0;
+          if (raw.payments && raw.payments.length > 0) {
+            lastPaymentRemaining = raw.payments[0].amountRemaining || 0;
+          }
+          const totalDue = (raw.payableCommission || 0) + lastPaymentRemaining;
           const normalized = {
             ...raw,
-            // if payableCommission is missing, fall back to amount
-            payableCommission:
-              raw.payableCommission !== undefined &&
-              raw.payableCommission !== null
-                ? raw.payableCommission
-                : raw.amount ?? 0,
-            // bookingCount default
+            totalDue,
+            payableCommission: raw.payableCommission ?? 0,
             bookingCount:
               raw.bookingCount ?? (raw.bookings ? raw.bookings.length : 0),
+            balance: raw.balance ?? raw.amount ?? 0,
+            payments: raw.payments ?? [],
+            // prefer explicit lastPaymentRemaining from API, fallback to computed value
+            lastPaymentRemaining:
+              raw.lastPaymentRemaining ?? lastPaymentRemaining,
+            totalPaid:
+              raw.totalPaid ??
+              (raw.payments
+                ? raw.payments.reduce(
+                    (s: any, p: any) => s + (p.amountPaid || 0),
+                    0
+                  )
+                : 0),
+            lastPaymentDate: raw.lastPaymentDate ?? null,
             calculatedUntil: raw.calculatedUntil ?? raw.calculatedUntil,
           };
-
           setCommission(normalized);
         } else {
           setCommission(null);
         }
-      } else {
-        // console.error('Failed to fetch commission')
       }
     } catch (error) {
       // console.error('Error fetching commission:', error)
@@ -147,8 +161,8 @@ export default function GroundOwnerCommission() {
     );
   }
 
-  // Don't render the component if there's no commission or no payable amount
-  if (!commission || (commission.payableCommission ?? 0) === 0) {
+  // Don't render the component if there's no commission or no total due
+  if (!commission || (commission.totalDue ?? 0) === 0) {
     return null;
   }
 
@@ -165,24 +179,51 @@ export default function GroundOwnerCommission() {
               <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900">
                 Commission Due
               </h3>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-600">
+              <div className="text-sm sm:text-base lg:text-lg text-gray-600">
                 {commission?.calculatedUntil && (
-                  <span>Before {commission.calculatedUntil} Bookings</span>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Bookings until:{" "}
+                    {formatFirebaseDate(commission.calculatedUntil)}
+                  </div>
+                  // <div>
+                  //   Calculated until:{" "}
+                  //   {formatFirebaseDate(commission.calculatedUntil)}
+                  // </div>
                 )}
-              </p>
+                {/* Show previous payment remaining ONLY when there is an actual payment remaining value.
+                    Don't fall back to stored commission balance (commission.balance) here because
+                    that `balance`/`amount` field may represent the total commission due (not a
+                    previous payment's remaining amount). If you don't have a payments collection
+                    yet, this prevents showing that value as a "previous balance." */}
+                {typeof commission?.lastPaymentRemaining === "number" &&
+                  commission.lastPaymentRemaining > 0 && (
+                    <div className="text-sm text-gray-600 mt-1">
+                      Previous balance:{" "}
+                      {formatPrice(commission.lastPaymentRemaining)}
+                    </div>
+                  )}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-right">
               <div className="text-lg sm:text-lg font-bold text-blue-600">
-                {formatPrice(commission?.payableCommission || 0)}
+                {formatPrice(commission?.totalDue || 0)}
               </div>
 
               {/* <div className="text-sm text-gray-600">
-                Total: {formatPrice(commission?.amount || 0)}
+                {commission?.calculatedUntil && (
+                  <div>
+                    Calculated until:{" "}
+                    {formatFirebaseDate(commission.calculatedUntil)}
+                  </div>
+                )}
+                {commission?.bookingCount !== undefined && (
+                  <div className="text-xs text-gray-500">
+                    Unpaid bookings: {commission.bookingCount}
+                  </div>
+                )}
               </div> */}
-
-              {/* <div className="text-xs sm:text-sm text-gray-600">Due</div> */}
             </div>
             <div className="flex items-center gap-1">
               {/* Only show refresh button on desktop */}
@@ -218,7 +259,7 @@ export default function GroundOwnerCommission() {
       {/* Content - Always visible on desktop, expandable on mobile */}
       {(!isMobile || isExpanded) && (
         <div className="px-4 sm:px-6 pb-4 sm:pb-6 ">
-          {commission && (commission.payableCommission || 0) > 0 && (
+          {commission && (commission.amount || 0) > 0 && (
             <div className="space-y-3">
               {/* <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
                 <div className="flex items-center gap-2">

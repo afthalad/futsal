@@ -642,6 +642,120 @@ export const getUnpaidCommissionsByOwner = async (): Promise<
   }
 };
 
+/**
+ * Calculate the total unpaid commission across all bookings where
+ * isCommissionPaid == false and status == 'BOOKED'.
+ * Returns { totalCommission, bookingsCount }.
+ */
+export const getTotalUnpaidCommissionFromBookings = async (): Promise<{
+  totalCommission: number;
+  bookingsCount: number;
+}> => {
+  try {
+    const q = adminDb
+      .collection("bookings")
+      .where("isCommissionPaid", "==", false)
+      .where("status", "==", "BOOKED");
+
+    const snapshot = await q.get();
+
+    let total = 0;
+    let count = 0;
+
+    snapshot.docs.forEach((doc) => {
+      const data: any = doc.data();
+      const price = Number(data.price || 0);
+      const ownerId = data.ownerId || "";
+
+      let commission = 0;
+      // Keep same commission rules as getUnpaidCommissionsByOwner
+      if (ownerId === "eq9ywFOCOlqEkUBUaDeh") {
+        commission = price * 0.01; // 1% for specific owner
+      } else {
+        commission = 50; // flat for others
+      }
+
+      total += commission;
+      count += 1;
+    });
+
+    return {
+      totalCommission: Math.round(total * 100) / 100,
+      bookingsCount: count,
+    };
+  } catch (error) {
+    console.error("Error computing total unpaid commission:", error);
+    return { totalCommission: 0, bookingsCount: 0 };
+  }
+};
+
+export const getNoYesterdayLimitCommissionsByOwner = async (): Promise<
+  Record<string, { totalCommission: number; bookings: Booking[] }>
+> => {
+  try {
+    // Yesterday in YYYY-MM-DD
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+    // Query unpaid bookings up to yesterday
+    const q = adminDb
+      .collection("bookings")
+      .where("isCommissionPaid", "==", false)
+      .where("date", "<=", yesterdayStr)
+      .where("status", "==", "BOOKED");
+
+    const querySnapshot = await q.get();
+
+    const bookings: Booking[] = querySnapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Booking)
+    );
+
+    // Group by ownerId and calculate commission
+    const grouped: Record<
+      string,
+      { totalCommission: number; bookings: Booking[] }
+    > = {};
+
+    bookings.forEach((b) => {
+      const ownerId = b.ownerId || "unknown";
+      // Calculate commission based on owner ID
+      let commission: number;
+      if (ownerId === "eq9ywFOCOlqEkUBUaDeh") {
+        commission = (b.price || 0) * 0.01; // 1% commission for specific owner
+      } else {
+        commission = 50; // Fixed 50 rupees for other owners
+      }
+
+      if (!grouped[ownerId]) {
+        grouped[ownerId] = {
+          totalCommission: 0,
+          bookings: [],
+        };
+      }
+
+      grouped[ownerId].totalCommission += commission;
+      grouped[ownerId].bookings.push(b);
+    });
+
+    // Sort bookings for each owner by date ascending
+    Object.keys(grouped).forEach((ownerId) => {
+      grouped[ownerId].bookings.sort((a, b) =>
+        a.date < b.date ? -1 : a.date > b.date ? 1 : 0
+      );
+      // Round commission to 2 decimal places
+      grouped[ownerId].totalCommission =
+        Math.round(grouped[ownerId].totalCommission * 100) / 100;
+    });
+    // console.log("Grouped", grouped);
+
+    return grouped;
+  } catch (error) {
+    console.error("Error getting unpaid commissions by owner:", error);
+    return {};
+  }
+};
+
 export const getCommissionByOwner = async (ownerId: string): Promise<any> => {
   try {
     const commissionRef = adminDb.collection("commission").doc(ownerId);
@@ -658,43 +772,118 @@ export const getCommissionByOwner = async (ownerId: string): Promise<any> => {
   }
 };
 
-export const markCommissionAsPaid = async (ownerId: string): Promise<void> => {
+export const getPaymentsByOwner = async (ownerId: string): Promise<any[]> => {
   try {
-    // Get all unpaid bookings for this owner
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split("T")[0];
-
     const q = adminDb
+      .collection("payments")
+      .where("ownerId", "==", ownerId)
+      .orderBy("createdAt", "desc");
+
+    const snapshot = await q.get();
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error getting payments for owner:", error);
+    return [];
+  }
+};
+
+// export const markCommissionAsPaid = async (ownerId: string): Promise<void> => {
+//   try {
+//     // Get all unpaid bookings for this owner
+//     const yesterday = new Date();
+//     yesterday.setDate(yesterday.getDate() - 1);
+//     const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+//     const q = adminDb
+//       .collection("bookings")
+//       .where("ownerId", "==", ownerId)
+//       .where("isCommissionPaid", "==", false)
+//       .where("date", "<=", yesterdayStr)
+//       .where("status", "==", "BOOKED");
+
+//     const querySnapshot = await q.get();
+
+//     // Update all bookings in a batch
+//     const batch = adminDb.batch();
+//     querySnapshot.docs.forEach((doc) => {
+//       batch.update(doc.ref, {
+//         isCommissionPaid: true,
+//         commissionPaidAt: new Date(),
+//         updatedAt: new Date(),
+//       });
+//     });
+
+//     // Also update the commission document
+//     const commissionRef = adminDb.collection("commission").doc(ownerId);
+//     batch.update(commissionRef, {
+//       amount: 0,
+//       status: "PAID",
+//       paidAt: new Date(),
+//       lastUpdated: new Date(),
+//     });
+
+//     // Commit all updates atomically
+//     await batch.commit();
+//   } catch (error) {
+//     console.error("Error marking commission as paid:", error);
+//     throw error;
+//   }
+// };
+export const markCommissionAsPaid = async (
+  ownerId: string,
+  paidAmount: number,
+  totalDue: number,
+  paidDate: Date
+): Promise<void> => {
+  try {
+    if (!ownerId) throw new Error("ownerId is required");
+
+    // Convert paid date to string format for comparison
+    const paidDateStr = paidDate.toISOString().split("T")[0];
+
+    // Query unpaid bookings for the owner up to paidDate with status BOOKED
+    const querySnapshot = await adminDb
       .collection("bookings")
       .where("ownerId", "==", ownerId)
+      .where("date", "<", paidDateStr)
+      .where("status", "==", "BOOKED")
       .where("isCommissionPaid", "==", false)
-      .where("date", "<=", yesterdayStr)
-      .where("status", "==", "BOOKED");
+      .get();
 
-    const querySnapshot = await q.get();
-
-    // Update all bookings in a batch
     const batch = adminDb.batch();
+
+    // Mark all unpaid bookings as paid
     querySnapshot.docs.forEach((doc) => {
-      batch.update(doc.ref, {
+      const ref = adminDb.collection("bookings").doc(doc.id);
+      batch.update(ref, {
         isCommissionPaid: true,
-        commissionPaidAt: new Date(),
+        commissionPaidAt: paidDate,
         updatedAt: new Date(),
       });
     });
 
-    // Also update the commission document
-    const commissionRef = adminDb.collection("commission").doc(ownerId);
-    batch.update(commissionRef, {
-      amount: 0,
-      status: "PAID",
-      paidAt: new Date(),
-      lastUpdated: new Date(),
+    // Calculate remaining amount
+    const amountRemaining = Math.round((totalDue - paidAmount) * 100) / 100;
+
+    // Create payment record
+    const paymentsRef = adminDb.collection("payments").doc();
+    batch.set(paymentsRef, {
+      ownerId,
+      amountPaid: Math.round(paidAmount * 100) / 100,
+      totalDue: Math.round(totalDue * 100) / 100,
+      amountRemaining,
+      paidAt: paidDate,
+      cutoffDate: paidDateStr,
+      bookingsPaidCount: querySnapshot.docs.length,
+      createdAt: new Date(),
     });
 
-    // Commit all updates atomically
+    // Commit all changes
     await batch.commit();
+
+    console.log(
+      `Marked ${querySnapshot.docs.length} bookings as paid for owner ${ownerId}`
+    );
   } catch (error) {
     console.error("Error marking commission as paid:", error);
     throw error;

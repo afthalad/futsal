@@ -97,8 +97,14 @@ export default function SuperAdminPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    "users" | "grounds" | "bookings" | "commission"
+    "users" | "grounds" | "bookings" | "commission" | "payments"
   >("bookings");
+  const [payments, setPayments] = useState<any[]>([]);
+  const [paymentsFilter, setPaymentsFilter] = useState<{
+    ownerId?: string | null;
+    from?: string | null;
+    to?: string | null;
+  }>({ ownerId: null, from: null, to: null });
   const [showDisableModal, setShowDisableModal] = useState(false);
   const [disableItem, setDisableItem] = useState<{
     type: "user" | "ground";
@@ -122,6 +128,10 @@ export default function SuperAdminPage() {
     groundOwnersWithDues: 0,
     pendingCommissions: 0,
   });
+  const [commissionSummary, setCommissionSummary] = useState({
+    totalUnpaidCommission: 0,
+    unpaidBookingsCount: 0,
+  });
   const router = useRouter();
 
   // Commission calculation function
@@ -137,8 +147,6 @@ export default function SuperAdminPage() {
     return { amount: bookingPrice * 0.01, percentage: 1 }; // 1% for bookings 2000 and above
   };
 
-  
-
   useEffect(() => {
     if (activeTab === "users") {
       fetchUsers();
@@ -146,6 +154,8 @@ export default function SuperAdminPage() {
       fetchGrounds();
     } else if (activeTab === "bookings") {
       fetchBookings();
+    } else if (activeTab === "payments") {
+      fetchPayments();
     }
     // Commission tab doesn't need to fetch data on tab change as it handles its own data fetching
   }, [activeTab]);
@@ -156,7 +166,28 @@ export default function SuperAdminPage() {
     fetchGrounds();
     fetchBookings();
     fetchCommissionStats();
+    fetchCommissionSummary();
   }, []);
+
+  const fetchCommissionSummary = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/admin/commission/summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCommissionSummary({
+          totalUnpaidCommission: Number(data.totalUnpaidCommission || 0),
+          unpaidBookingsCount: Number(data.unpaidBookingsCount || 0),
+        });
+      } else {
+        console.error("Failed to fetch commission summary");
+      }
+    } catch (err) {
+      console.error("Error fetching commission summary:", err);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -261,10 +292,14 @@ export default function SuperAdminPage() {
       if (response.ok) {
         const data = await response.json();
         setCommissionStats({
-          totalCommissionDue: data.totalAmount || 0,
+          // Use totalAmount (sum of totalDue per owner) returned by the API.
+          // Round to 2 decimals for display.
+          totalCommissionDue: Math.round((data.totalAmount || 0) * 100) / 100,
           totalGroundOwners: data.commissions?.length || 0,
+          // Count owners who have totalDue > 0 (works for owners with unpaid bookings or remaining balances)
           groundOwnersWithDues:
-            data.commissions?.filter((c: any) => c.amount > 0).length || 0,
+            data.commissions?.filter((c: any) => (c.totalDue || 0) > 0)
+              .length || 0,
           pendingCommissions: data.pendingCount || 0,
         });
       } else {
@@ -272,6 +307,33 @@ export default function SuperAdminPage() {
       }
     } catch (error) {
       console.error("Error fetching commission stats:", error);
+    }
+  };
+
+  const fetchPayments = async (filters?: typeof paymentsFilter) => {
+    try {
+      setLoading(true);
+      if (typeof window === "undefined") return;
+      const token = localStorage.getItem("token");
+      const params: string[] = [];
+      const f = filters || paymentsFilter;
+      if (f?.ownerId) params.push(`ownerId=${encodeURIComponent(f.ownerId)}`);
+      if (f?.from) params.push(`from=${encodeURIComponent(f.from)}`);
+      if (f?.to) params.push(`to=${encodeURIComponent(f.to)}`);
+      const query = params.length > 0 ? `?${params.join("&")}` : "";
+      const response = await fetch(`/api/admin/payments${query}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPayments(data.payments || []);
+      } else {
+        console.error("Failed to fetch payments");
+      }
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -779,10 +841,26 @@ export default function SuperAdminPage() {
               </div>
               <div className="ml-3 sm:ml-4">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">
-                  Total Commission Due
+                  Total Payable Commission Due
                 </p>
                 <p className="text-lg sm:text-2xl font-bold text-gray-900">
                   Rs. {commissionStats.totalCommissionDue.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-teal-100 rounded-lg">
+                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-teal-600" />
+              </div>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                  Total Commission Due
+                </p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">
+                  Rs. {commissionSummary.totalUnpaidCommission.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -864,6 +942,16 @@ export default function SuperAdminPage() {
                 }`}
               >
                 Commission
+              </button>
+              <button
+                onClick={() => setActiveTab("payments")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "payments"
+                    ? "border-primary-500 text-primary-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Payments
               </button>
             </nav>
           </div>
@@ -1376,32 +1464,30 @@ export default function SuperAdminPage() {
                               <td className="hidden md:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                                 Rs. {booking.price.toLocaleString()}
                               </td>
-                              {
-                                (booking.status !== "CANCELLED" &&
-                                  booking.status !== "cancelled") ? (
-                                  <td className="hidden lg:table-cell px-3 sm:px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center gap-1 text-sm font-medium text-green-600">
-                                      <Plus className="h-3 w-3" />
-                                      <span>
-                                        Rs.{" "}
-                                        {calculateCommission(
-                                          booking.price
-                                        ).amount.toLocaleString()}
-                                      </span>
-                                      <span className="text-xs text-gray-500">
-                                        (
-                                        {
-                                          calculateCommission(booking.price)
-                                            .percentage
-                                        }
-                                        %)
-                                      </span>
-                                    </div>
-                                  </td>
-                                ) : (
-                                  <td className="hidden lg:table-cell px-3 sm:px-6 py-4 whitespace-nowrap"></td>
-                                )
-                              }
+                              {booking.status !== "CANCELLED" &&
+                              booking.status !== "cancelled" ? (
+                                <td className="hidden lg:table-cell px-3 sm:px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center gap-1 text-sm font-medium text-green-600">
+                                    <Plus className="h-3 w-3" />
+                                    <span>
+                                      Rs.{" "}
+                                      {calculateCommission(
+                                        booking.price
+                                      ).amount.toLocaleString()}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      (
+                                      {
+                                        calculateCommission(booking.price)
+                                          .percentage
+                                      }
+                                      %)
+                                    </span>
+                                  </div>
+                                </td>
+                              ) : (
+                                <td className="hidden lg:table-cell px-3 sm:px-6 py-4 whitespace-nowrap"></td>
+                              )}
                               <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                                 <span
                                   className={`px-2 py-1 text-xs rounded-full ${
@@ -1485,6 +1571,143 @@ export default function SuperAdminPage() {
             ) : activeTab === "commission" ? (
               <div>
                 <SuperAdminTopUpSystem />
+              </div>
+            ) : activeTab === "payments" ? (
+              <div>
+                <div className="mb-4 flex flex-col md:flex-row md:items-end md:gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600">Owner</label>
+                    <select
+                      className="border rounded px-2 py-1"
+                      value={paymentsFilter.ownerId || ""}
+                      onChange={(e) =>
+                        setPaymentsFilter((p) => ({
+                          ...p,
+                          ownerId: e.target.value || null,
+                        }))
+                      }
+                    >
+                      <option value="">All owners</option>
+                      {users
+                        .filter((u) => u.role === "GROUND_OWNER")
+                        .map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.name || u.phone}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600">From</label>
+                    <input
+                      type="date"
+                      className="border rounded px-2 py-1"
+                      value={paymentsFilter.from || ""}
+                      onChange={(e) =>
+                        setPaymentsFilter((p) => ({
+                          ...p,
+                          from: e.target.value || null,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600">To</label>
+                    <input
+                      type="date"
+                      className="border rounded px-2 py-1"
+                      value={paymentsFilter.to || ""}
+                      onChange={(e) =>
+                        setPaymentsFilter((p) => ({
+                          ...p,
+                          to: e.target.value || null,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="mt-2 md:mt-0">
+                    <button
+                      onClick={() => fetchPayments(paymentsFilter)}
+                      className="btn-primary px-3 py-1"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          Owner
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          Amount Paid
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          Remaining
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          Total Due
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          Paid At
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          Cutoff Date
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                          Bookings Paid
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {payments.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="px-3 py-4 text-center text-sm text-gray-500"
+                          >
+                            No payments found
+                          </td>
+                        </tr>
+                      ) : (
+                        payments.map((p: any) => (
+                          <tr key={p.id}>
+                            <td className="px-3 py-3 text-sm text-gray-900">
+                              {p.ownerName || p.ownerId}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-gray-900">
+                              Rs. {Number(p.amountPaid || 0).toLocaleString()}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-gray-900">
+                              Rs.{" "}
+                              {Number(p.amountRemaining || 0).toLocaleString()}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-gray-900">
+                              Rs. {Number(p.totalDue || 0).toLocaleString()}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-gray-900">
+                              {p.paidAt && !isNaN(new Date(p.paidAt).getTime())
+                                ? new Date(p.paidAt).toLocaleDateString("en-LK")
+                                : "-"}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-gray-900">
+                              {p.cutoffDate || "-"}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-gray-900">
+                              {p.bookingsPaidCount || 0}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ) : null}
           </div>

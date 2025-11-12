@@ -176,7 +176,7 @@ export default function BookingModal({
           )}
 
           {/* Show ad after successful booking */}
-          {showSuccessAd && bookingSuccess && (
+          {/* {showSuccessAd && bookingSuccess && (
             <div className="mb-6 animate-pulse">
               <AdBanner
                 dataAdFormat="auto"
@@ -184,7 +184,7 @@ export default function BookingModal({
                 dataAdSlot="8126052001"
               />
             </div>
-          )}
+          )} */}
 
           {!bookingSuccess && (
             <>

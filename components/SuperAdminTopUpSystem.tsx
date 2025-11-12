@@ -11,11 +11,30 @@ interface Commission {
   ownerPhone: string;
   groundCount: number;
   groundNames: string;
-  amount: number;
+  payableCommission: number;
+  lastPaymentRemaining: number;
+  totalDue: number;
+  payments:
+    | {
+        id: string;
+        amountPaid: number;
+        amountRemaining: number;
+        paidAt: string;
+      }[]
+    | [];
   status: "PENDING" | "PAID";
   lastUpdated: Date;
-  paidAt: Date | null;
-  bookings?: any[];
+  lastPaymentDate: string | null;
+  bookings:
+    | {
+        id: string;
+        customerName: string;
+        date: string;
+        startTime: string;
+        endTime: string;
+        price: number;
+      }[]
+    | [];
 }
 
 export default function SuperAdminTopUpSystem() {
@@ -98,11 +117,66 @@ export default function SuperAdminTopUpSystem() {
     }
   };
 
+  const confirmMarkAsPaid = async () => {
+    if (!modalOwnerId) return;
+    const ownerId = modalOwnerId;
+    const amount = Number(modalAmount);
+    const totalDue = modalTotalDue;
+    const date = modalDate;
+
+    if (!amount || isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid amount");
+      return;
+    }
+
+    setModalSubmitting(true);
+    setUpdating(ownerId);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `/api/admin/commission/${ownerId}/mark-paid`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ amount, date, totalDue }),
+        }
+      );
+
+      if (response.ok) {
+        setShowModal(false);
+        await fetchCommissions();
+      } else {
+        const err = await response.json().catch(() => ({} as any));
+        console.error("Failed to mark commission as paid", err);
+        alert(err?.error || "Failed to mark commission as paid");
+      }
+    } catch (error) {
+      console.error("Error marking commission as paid:", error);
+      alert("Unexpected error");
+    } finally {
+      setModalSubmitting(false);
+      setUpdating(null);
+    }
+  };
+
   const totalGroundOwners = commissions.length;
   const groundOwnersWithDues = commissions.filter(
-    (commission) => commission.amount > 0
+    (commission) => commission.totalDue > 0
   ).length;
   const [expandedOwners, setExpandedOwners] = useState<string[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalOwnerId, setModalOwnerId] = useState<string | null>(null);
+  const [modalOwnerName, setModalOwnerName] = useState<string | null>(null);
+  const [modalAmount, setModalAmount] = useState<string>("");
+  const [modalTotalDue, setModalTotalDue] = useState<number>(0);
+  const [modalDate, setModalDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
+  const [modalSubmitting, setModalSubmitting] = useState(false);
 
   if (loading) {
     return (
@@ -125,10 +199,6 @@ export default function SuperAdminTopUpSystem() {
             <h2 className="text-lg font-semibold text-gray-900">
               Commission Management
             </h2>
-            <p className="text-sm text-gray-600">
-              Track variable commission: 5% (under 500), 3% (500-999), 2%
-              (1000-1999), 1% (2000+)
-            </p>
           </div>
         </div>
         <div className="text-right">
@@ -194,7 +264,7 @@ export default function SuperAdminTopUpSystem() {
             <div
               key={commission.id}
               className="border border-gray-200 rounded-lg p-4"
-            >
+              >
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h4 className="font-medium text-gray-900">
@@ -206,10 +276,9 @@ export default function SuperAdminTopUpSystem() {
                   <p className="text-sm text-gray-600">
                     Grounds: {commission.groundCount} ({commission.groundNames})
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Unpaid bookings:{" "}
-                    {commission.bookings ? commission.bookings.length : 0}
-                  </p>
+                  {/* <p className="text-sm text-gray-600 mt-1">
+                    Unpaid bookings: {commission.bookings.length}
+                  </p> */}
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-gray-500">Last updated:</span>
                     <span className="text-xs text-gray-500">
@@ -223,11 +292,21 @@ export default function SuperAdminTopUpSystem() {
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-primary-600">
-                    {formatPrice(commission.amount)}
+                    {formatPrice(commission.totalDue)}
                   </div>
-                  <div className="text-xs text-gray-500">Due Amount</div>
+                  <div className="mt-1 space-y-1">
+                    {/* <div className="text-xs text-gray-500">
+                        Commission: {formatPrice(commission.payableCommission)}
+                      </div> */}
+                    {commission.lastPaymentRemaining > 0 && (
+                      <div className="text-xs text-gray-500">
+                        Previous Balance:{" "}
+                        {formatPrice(commission.lastPaymentRemaining)}
+                      </div>
+                    )}
+                  </div>
                   <div
-                    className={`mt-1 px-2 py-1 text-xs font-medium rounded-full ${
+                    className={`mt-2 px-2 py-1 text-xs font-medium rounded-full ${
                       commission.status === "PENDING"
                         ? "bg-amber-100 text-amber-800"
                         : "bg-green-100 text-green-800"
@@ -237,68 +316,163 @@ export default function SuperAdminTopUpSystem() {
                   </div>
                 </div>
               </div>
-              {commission.bookings && commission.bookings.length > 0 && (
+              {(commission.bookings.length > 0 ||
+                commission.payments.length > 0) && (
                 <div className="mt-3">
-                  <button
-                    onClick={() => {
-                      if (expandedOwners.includes(commission.ownerId)) {
-                        setExpandedOwners(
-                          expandedOwners.filter(
-                            (id) => id !== commission.ownerId
-                          )
-                        );
-                      } else {
-                        setExpandedOwners([
-                          ...expandedOwners,
-                          commission.ownerId,
-                        ]);
-                      }
-                    }}
-                    className="text-sm text-blue-600 hover:underline"
-                  >
-                    {expandedOwners.includes(commission.ownerId)
-                      ? "Hide bookings"
-                      : `Show ${commission.bookings.length} unpaid bookings`}
-                  </button>
+                  <div className="flex gap-4">
+                    {commission.bookings.length > 0 && (
+                      <button
+                        onClick={() => {
+                          if (
+                            expandedOwners.includes(
+                              commission.ownerId + "_bookings"
+                            )
+                          ) {
+                            setExpandedOwners(
+                              expandedOwners.filter(
+                                (id) => id !== commission.ownerId + "_bookings"
+                              )
+                            );
+                          } else {
+                            setExpandedOwners([
+                              ...expandedOwners,
+                              commission.ownerId + "_bookings",
+                            ]);
+                          }
+                        }}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        {expandedOwners.includes(
+                          commission.ownerId + "_bookings"
+                        )
+                          ? "Hide bookings"
+                          : `Show ${commission.bookings.length} unpaid bookings`}
+                      </button>
+                    )}
 
-                  {expandedOwners.includes(commission.ownerId) && (
-                    <div className="mt-2 space-y-2">
-                      {commission.bookings.map((b: any) => (
-                        <div
-                          key={b.id}
-                          className="p-2 border rounded bg-gray-50"
-                        >
-                          <div className="text-sm text-gray-800">
-                            {b.customerName || "Walk-in"}
+                    {commission.payments.length > 0 && (
+                      <button
+                        onClick={() => {
+                          if (
+                            expandedOwners.includes(
+                              commission.ownerId + "_payments"
+                            )
+                          ) {
+                            setExpandedOwners(
+                              expandedOwners.filter(
+                                (id) => id !== commission.ownerId + "_payments"
+                              )
+                            );
+                          } else {
+                            setExpandedOwners([
+                              ...expandedOwners,
+                              commission.ownerId + "_payments",
+                            ]);
+                          }
+                        }}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        {expandedOwners.includes(
+                          commission.ownerId + "_payments"
+                        )
+                          ? "Hide payment history"
+                          : `Show payment history (${commission.payments.length})`}
+                      </button>
+                    )}
+                  </div>
+
+                  {expandedOwners.includes(commission.ownerId + "_bookings") &&
+                    commission.bookings.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        <h5 className="text-sm font-medium text-gray-900">
+                          Unpaid Bookings
+                        </h5>
+                        {commission.bookings.map((b: any) => (
+                          <div
+                            key={b.id}
+                            className="p-2 border rounded bg-gray-50"
+                          >
+                            <div className="text-sm text-gray-800">
+                              {b.customerName || "Walk-in"}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {b.date} {b.startTime}-{b.endTime}
+                            </div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {formatPrice(b.price || 0)}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-600">
-                            {b.date} {b.startTime}-{b.endTime}
+                        ))}
+                      </div>
+                    )}
+
+                  {expandedOwners.includes(commission.ownerId + "_payments") &&
+                    commission.payments.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        <h5 className="text-sm font-medium text-gray-900">
+                          Payment History
+                        </h5>
+                        {commission.payments.map((payment) => (
+                          <div
+                            key={payment.id}
+                            className="p-2 border rounded bg-gray-50"
+                          >
+                            <div className="flex justify-between">
+                              <div>
+                                <div className="text-sm text-gray-800">
+                                  Paid: {formatPrice(payment.amountPaid)}
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {new Date(payment.paidAt).toLocaleDateString(
+                                    "en-LK"
+                                  )}
+                                </div>
+                              </div>
+                              {payment.amountRemaining > 0 && (
+                                <div className="text-right">
+                                  <div className="text-xs text-gray-500">
+                                    Remaining
+                                  </div>
+                                  <div className="text-sm text-gray-900">
+                                    {formatPrice(payment.amountRemaining)}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {formatPrice(b.price || 0)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
                 </div>
               )}
 
-              {commission.paidAt && (
+              {/* {commission.lastPaymentDate && (
                 <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-sm">
                   <span className="text-green-800">
                     Last paid:{" "}
-                    {commission.paidAt
-                      ? new Date(commission.paidAt).toLocaleDateString("en-LK")
+                    {commission.lastPaymentDate
+                      ? new Date(commission.lastPaymentDate).toLocaleDateString(
+                          "en-LK"
+                        )
                       : "N/A"}
                   </span>
                 </div>
-              )}
+              )} */}
 
               <div className="flex gap-2">
-                {commission.amount > 0 && (
+                {commission.totalDue > 0 && (
                   <button
-                    onClick={() => markCommissionAsPaid(commission.ownerId)}
+                    onClick={() => {
+                      // Open modal to enter amount and date
+                      setModalOwnerId(commission.ownerId);
+                      setModalTotalDue(commission.totalDue);
+                      setModalOwnerName(
+                        commission.ownerName || commission.ownerPhone
+                      );
+                      setModalAmount(String(commission.totalDue));
+                      setModalDate(new Date().toISOString().split("T")[0]);
+                      setShowModal(true);
+                    }}
                     disabled={updating === commission.ownerId}
                     className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 flex items-center gap-1"
                   >
@@ -310,7 +484,7 @@ export default function SuperAdminTopUpSystem() {
                       : "Mark as Paid"}
                   </button>
                 )}
-                {commission.amount === 0 && (
+                {commission.totalDue === 0 && (
                   <span className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded">
                     No commission due
                   </span>
@@ -318,6 +492,56 @@ export default function SuperAdminTopUpSystem() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+      {/* Modal for entering payment details */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black opacity-40"
+            onClick={() => setShowModal(false)}
+          ></div>
+          <div className="bg-white rounded-lg shadow-lg z-10 w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold mb-3">
+              Mark Commission as Paid
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Owner: {modalOwnerName}
+            </p>
+
+            <label className="block text-sm mb-2">Amount</label>
+            <input
+              type="number"
+              className="w-full border rounded px-3 py-2 mb-3"
+              value={modalAmount}
+              onChange={(e) => setModalAmount(e.target.value)}
+            />
+
+            <label className="block text-sm mb-2">Payment Date</label>
+            <input
+              type="date"
+              className="w-full border rounded px-3 py-2 mb-4"
+              value={modalDate}
+              onChange={(e) => setModalDate(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-3 py-1 text-sm bg-gray-100 rounded"
+                onClick={() => setShowModal(false)}
+                disabled={modalSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-3 py-1 text-sm bg-primary-600 text-white rounded"
+                onClick={confirmMarkAsPaid}
+                disabled={modalSubmitting}
+              >
+                {modalSubmitting ? "Processing..." : "Confirm & Apply"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

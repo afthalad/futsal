@@ -70,6 +70,19 @@ interface Booking {
   };
 }
 
+interface Payment {
+  id: string;
+  amountPaid: number;
+  amountApplied: number;
+  amountRemaining: number;
+  // paidAt may come as a Firestore Timestamp-like object (with toDate()),
+  // or as an ISO string/number on the client after serialization. Accept any
+  // shape and normalize when rendering.
+  paidAt: any;
+  cutoffDate: string;
+  bookingsPaid?: string[];
+}
+
 export default function AdminDashboard() {
   const [grounds, setGrounds] = useState<Ground[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -77,8 +90,10 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [groundsLoading, setGroundsLoading] = useState(false);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [activeTab, setActiveTab] = useState<
-    "bookings" | "grounds" | "maintenance"
+    "bookings" | "grounds" | "maintenance" | "payments"
   >("bookings");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -386,25 +401,26 @@ export default function AdminDashboard() {
       // Only fetch data after authentication is successful
       fetchGrounds();
       fetchBookings();
+      fetchPayments();
     };
     initializeDashboard();
   }, []);
 
   // Set main loading to false when both data fetches are complete
   useEffect(() => {
-    if (!groundsLoading && !bookingsLoading) {
+    if (!groundsLoading && !bookingsLoading && !paymentsLoading) {
       setLoading(false);
     }
-  }, [groundsLoading, bookingsLoading]);
+  }, [groundsLoading, bookingsLoading, paymentsLoading]);
 
-  // Fallback: Set loading to false after a timeout to prevent infinite loading
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 10000); // 10 second timeout
+  // // Fallback: Set loading to false after a timeout to prevent infinite loading
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+  //     setLoading(false);
+  //   }, 10000); // 10 second timeout
 
-    return () => clearTimeout(timeout);
-  }, []);
+  //   return () => clearTimeout(timeout);
+  // }, []);
 
   useEffect(() => {
     // Only fetch data when switching tabs if not already loaded
@@ -412,6 +428,8 @@ export default function AdminDashboard() {
       fetchGrounds();
     } else if (activeTab === "bookings" && bookings.length === 0) {
       fetchBookings();
+    } else if (activeTab === "payments" && payments.length === 0) {
+      fetchPayments();
     }
   }, [activeTab]);
 
@@ -501,6 +519,28 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchPayments = async () => {
+    try {
+      setPaymentsLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/payments", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPayments(data.payments || []);
+      } else {
+        console.error("Failed to fetch payments:", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+    } finally {
+      setPaymentsLoading(false);
+    }
+  };
+
   const fetchBookings = async () => {
     try {
       setBookingsLoading(true);
@@ -555,6 +595,48 @@ export default function AdminDashboard() {
     const today = new Date().toDateString();
     const bookingDate = new Date(date).toDateString();
     return today === bookingDate;
+  };
+
+  // Normalize and format paidAt values that may be:
+  // - Firestore Timestamp objects with toDate()
+  // - Raw Firestore-like objects { seconds, nanoseconds } or {_seconds, _nanoseconds}
+  // - numeric seconds or milliseconds
+  // - ISO date strings
+  const formatPaidAt = (paidAt: Payment["paidAt"]) => {
+    if (!paidAt) return "";
+    try {
+      let d: Date;
+
+      // Firestore Timestamp instance with toDate()
+      if (
+        (paidAt as any)?.toDate &&
+        typeof (paidAt as any).toDate === "function"
+      ) {
+        d = (paidAt as any).toDate();
+      } else if (typeof paidAt === "number") {
+        // number may be seconds or milliseconds
+        d = new Date(paidAt > 1e12 ? paidAt : paidAt * 1000);
+      } else if (typeof paidAt === "string") {
+        d = new Date(paidAt);
+      } else if (typeof (paidAt as any).seconds === "number") {
+        // Raw Firestore-like object
+        const secs = (paidAt as any).seconds as number;
+        const nanos = (paidAt as any).nanoseconds || 0;
+        d = new Date(secs * 1000 + nanos / 1e6);
+      } else if (typeof (paidAt as any)._seconds === "number") {
+        const secs = (paidAt as any)._seconds as number;
+        const nanos = (paidAt as any)._nanoseconds || 0;
+        d = new Date(secs * 1000 + nanos / 1e6);
+      } else {
+        // Fallback: coerce to string then parse
+        d = new Date(String(paidAt));
+      }
+
+      if (isNaN(d.getTime())) return String(paidAt);
+      return d.toLocaleDateString();
+    } catch (err) {
+      return String(paidAt);
+    }
   };
 
   const handleCancelBooking = (booking: Booking) => {
@@ -777,6 +859,16 @@ export default function AdminDashboard() {
                   }`}
                 >
                   Maintenance
+                </button>
+                <button
+                  onClick={() => setActiveTab("payments")}
+                  className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                    activeTab === "payments"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  Payments
                 </button>
               </nav>
             </div>
@@ -1173,6 +1265,77 @@ export default function AdminDashboard() {
                   }
                   getBlockedForSelectedGround={getBlockedForSelectedGround}
                 />
+              ) : activeTab === "payments" ? (
+                <div>
+                  <div className="mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Payment History
+                    </h2>
+                  </div>
+
+                  {paymentsLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : payments.length === 0 ? (
+                    <div className="text-center py-8">
+                      <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No payment history
+                      </h3>
+                      <p className="text-gray-600">
+                        Your commission payments will appear here
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Amount Paid
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Balance
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Cutoff Date
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {payments.map((payment) => (
+                            <tr key={payment.id}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {formatPaidAt(payment.paidAt)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {formatPrice(payment.amountPaid)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {formatPrice(payment.amountRemaining)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {payment.cutoffDate}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                  Success
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               ) : null}
             </div>
           </div>
