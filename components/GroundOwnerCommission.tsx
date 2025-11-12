@@ -195,13 +195,13 @@ export default function GroundOwnerCommission() {
                     that `balance`/`amount` field may represent the total commission due (not a
                     previous payment's remaining amount). If you don't have a payments collection
                     yet, this prevents showing that value as a "previous balance." */}
-                {typeof commission?.lastPaymentRemaining === "number" &&
+                {/* {typeof commission?.lastPaymentRemaining === "number" &&
                   commission.lastPaymentRemaining > 0 && (
                     <div className="text-sm text-gray-600 mt-1">
                       Previous balance:{" "}
                       {formatPrice(commission.lastPaymentRemaining)}
                     </div>
-                  )}
+                  )} */}
               </div>
             </div>
           </div>
