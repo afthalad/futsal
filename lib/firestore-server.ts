@@ -37,6 +37,7 @@ export interface Ground {
   reviewedAt?: any;
   createdAt: any;
   updatedAt: any;
+  permanentCloseDate?: string; // Optional field for permanent closure date (YYYY-MM-DD)
 }
 
 export interface Booking {

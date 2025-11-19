@@ -110,6 +110,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Ground not found" }, { status: 404 });
     }
 
+    // Enforce permanentCloseDate restriction
+    if (ground.permanentCloseDate && date >= ground.permanentCloseDate) {
+      return NextResponse.json(
+        { error: "Bookings are not allowed after the permanent close date." },
+        { status: 400 }
+      );
+    }
+
     // Check if slot is available (exclude cancelled bookings)
     const existingBookings = await getBookingsByGround(groundId);
     const activeBookings = existingBookings.filter(

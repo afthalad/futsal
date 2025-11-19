@@ -49,6 +49,7 @@ interface Ground {
   reviewedAt?: any;
   createdAt: any;
   updatedAt: any;
+  permanentCloseDate?: string; // Added for permanent close date feature
   _count: {
     bookings: number;
   };
@@ -966,6 +967,68 @@ export default function AdminDashboard() {
                               <span className="font-medium">
                                 {ground._count.bookings}
                               </span>
+                            </div>
+
+                            {/* Permanent Close Date Feature */}
+                            <div className="flex flex-col gap-1 mt-2">
+                              <span className="text-gray-600 text-xs">
+                                Permanent Close Date:
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="date"
+                                  value={ground.permanentCloseDate || ""}
+                                  min={new Date().toISOString().split("T")[0]}
+                                  onChange={async (e) => {
+                                    const newDate = e.target.value;
+                                    const token = localStorage.getItem("token");
+                                    if (!token) {
+                                      toast.error("Please login again");
+                                      return;
+                                    }
+                                    const res = await fetch(
+                                      `/api/grounds/${ground.id}`,
+                                      {
+                                        method: "PATCH",
+                                        headers: {
+                                          "Content-Type": "application/json",
+                                          Authorization: `Bearer ${token}`,
+                                        },
+                                        body: JSON.stringify({
+                                          permanentCloseDate: newDate,
+                                        }),
+                                      }
+                                    );
+                                    const data = await res.json();
+                                    if (!res.ok) {
+                                      toast.error(
+                                        data?.error ||
+                                          "Failed to set close date"
+                                      );
+                                      return;
+                                    }
+                                    setGrounds((prev) =>
+                                      prev.map((g) =>
+                                        g.id === ground.id
+                                          ? {
+                                              ...g,
+                                              permanentCloseDate: newDate,
+                                            }
+                                          : g
+                                      )
+                                    );
+                                    toast.success(
+                                      "Permanent close date updated"
+                                    );
+                                  }}
+                                  className="border px-2 py-1 rounded text-sm"
+                                />
+                                {ground.permanentCloseDate && (
+                                  <span className="text-xs text-gray-500">
+                                    (Current: {ground.permanentCloseDate})
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Rejection Reason */}

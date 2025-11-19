@@ -212,13 +212,13 @@ export async function PATCH(
 
     const body = await request.json();
 
-    // Expect either { maintenanceDate: 'YYYY-MM-DD', slots: ['06:00 - 07:00', ...] }
-    // or a full blockedSlots object. We'll support the simple maintenance payload.
-    const { maintenanceDate, slots, blockedSlots } = body as {
-      maintenanceDate?: string;
-      slots?: string[];
-      blockedSlots?: Record<string, string[]>;
-    };
+    const { permanentCloseDate, maintenanceDate, slots, blockedSlots } =
+      body as {
+        permanentCloseDate?: string;
+        maintenanceDate?: string;
+        slots?: string[];
+        blockedSlots?: Record<string, string[]>;
+      };
 
     const ground = await getGroundById(params.id);
     if (!ground) {
@@ -231,6 +231,19 @@ export async function PATCH(
         { error: "You can only modify your own ground" },
         { status: 403 }
       );
+    }
+
+    const updateData: Record<string, any> = {};
+
+    if (permanentCloseDate) {
+      // Validate the date format (basic validation)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(permanentCloseDate)) {
+        return NextResponse.json(
+          { error: "Invalid date format" },
+          { status: 400 }
+        );
+      }
+      updateData.permanentCloseDate = permanentCloseDate;
     }
 
     const currentBlocked: Record<string, string[]> =
@@ -258,14 +271,18 @@ export async function PATCH(
       } else {
         newBlocked[maintenanceDate] = slots;
       }
-    } else {
+    } else if (!permanentCloseDate) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
-    // Persist update
-    await updateGround(params.id, { blockedSlots: newBlocked });
+    if (Object.keys(newBlocked).length > 0) {
+      updateData.blockedSlots = newBlocked;
+    }
 
-    return NextResponse.json({ blockedSlots: newBlocked });
+    // Persist update
+    await updateGround(params.id, updateData);
+
+    return NextResponse.json(updateData);
   } catch (error) {
     // console.error('Update blocked slots error:', error)
     return NextResponse.json(
