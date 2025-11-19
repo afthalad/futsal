@@ -56,7 +56,7 @@ class TextLKProvider implements SMSProvider {
       });
 
       const data = await response.json();
-      console.log("SMS API Response:", data);
+      // console.log("SMS API Response:", data);
 
       if (response.ok && data.success) {
         return { success: true };
