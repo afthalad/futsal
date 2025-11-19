@@ -47,21 +47,8 @@ export default function GroundOwnerCommission() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // Fetch commission once on mount. Polling removed to reduce DB reads.
     fetchCommission();
-
-    // Smart polling: start with 5 seconds, then increase to 30 seconds
-    let pollInterval = 5000;
-    const maxInterval = 30000;
-
-    const poll = () => {
-      fetchCommission();
-      // Gradually increase interval up to max
-      pollInterval = Math.min(pollInterval * 1.5, maxInterval);
-    };
-
-    const interval = setInterval(poll, pollInterval);
-
-    return () => clearInterval(interval);
   }, []);
 
   // Detect screen size for responsive behavior
