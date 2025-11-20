@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const message = `Your booking verification code is : {{OTP5}}`;
+    const message = `Your Px Grounds booking verification code is : {{OTP5}} Do not share this to anyone.`;
 
     // Call Text.lk API
     const res = await fetch("https://app.text.lk/api/v3/sms/send", {
