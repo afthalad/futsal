@@ -171,8 +171,8 @@ export default function HomePage() {
               Suggest us to add your favorite vanue!
             </p>
             <span className="text-xs sm:text-sm text-gray-400 ">
-              ex: R4 Futsal, Zahira Ground, MC Badminton & Tennis, ,Zein Pool,
-              DC Pool, Little Gym, 8Pool, Gaming Center, Etc..
+              ex: R4 Futsal, Zahira Ground, MC Badminton & Tennis, Zein Pool, DC
+              Pool, Little Gym, 8Pool, Gaming Center, Etc..
             </span>
           </div>
           <form
