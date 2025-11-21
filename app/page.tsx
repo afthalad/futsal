@@ -221,27 +221,34 @@ export default function HomePage() {
 
           {/* Suggestions List */}
           <div className="mt-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">
-              Suggested Venues
-            </h4>
             {suggestionsLoading ? (
-              <div className="text-gray-400 text-sm">Loading...</div>
+              <>
+                {/* <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                  Suggested Venues
+                </h4>
+                <div className="text-gray-400 text-sm">Loading...</div> */}
+              </>
             ) : suggestions.length === 0 ? (
-              <div className="text-gray-400 text-sm">No suggestions yet</div>
+              <></>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {suggestions.map((s) => (
-                  <span
-                    key={s.venue}
-                    className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-1 text-xs text-gray-700 font-medium"
-                  >
-                    {s.venue.charAt(0).toUpperCase() + s.venue.slice(1)}
-                    <span className="ml-2 bg-primary-600 text-white rounded-full px-2 py-0.5 text-xs font-bold">
-                      {s.count}
+              <>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                  Suggested Venues
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {suggestions.map((s) => (
+                    <span
+                      key={s.venue}
+                      className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-1 text-xs text-gray-700 font-medium"
+                    >
+                      {s.venue.charAt(0).toUpperCase() + s.venue.slice(1)}
+                      <span className="ml-2 bg-primary-600 text-white rounded-full px-2 py-0.5 text-xs font-bold">
+                        {s.count}
+                      </span>
                     </span>
-                  </span>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -251,10 +258,10 @@ export default function HomePage() {
       <div className="bg-white py-4 sm:py-6 lg:py-8">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
           <div className="text-center mb-3">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-1">
               Why Choose Puttalam Grounds?
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-gray-600">
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">
               The easiest way to book grounds in Puttalam
             </p>
           </div>
@@ -263,10 +270,10 @@ export default function HomePage() {
               <div className="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mb-2">
                 <MapPin className="h-4 w-4 text-primary-600" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              <h3 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 mb-1">
                 Across Puttalam
               </h3>
-              <p className="text-sm sm:text-base md:text-lg text-gray-600 text-center">
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 text-center">
                 Find grounds across puttalam in few clicks
               </p>
             </div>
@@ -275,10 +282,10 @@ export default function HomePage() {
               <div className="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mb-2">
                 <Search className="h-4 w-4 text-primary-600" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              <h3 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 mb-1">
                 Easy Booking
               </h3>
-              <p className="text-sm sm:text-base md:text-lg text-gray-600 text-center">
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 text-center">
                 Simple and quick booking process
               </p>
             </div>
@@ -287,10 +294,10 @@ export default function HomePage() {
               <div className="bg-primary-100 w-8 h-8 rounded-full flex items-center justify-center mb-2">
                 <Filter className="h-4 w-4 text-primary-600" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              <h3 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 mb-1">
                 Best Prices
               </h3>
-              <p className="text-xs text-gray-600 text-center">
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 text-center">
                 Competitive morning and evening pricing rates
               </p>
             </div>
