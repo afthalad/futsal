@@ -424,7 +424,7 @@ export default function BookingModal({
                       <div className="flex items-center justify-between mt-2">
                         <p className="text-xs text-gray-500">
                           {resendCooldown > 0
-                            ? `Resend available in ${resendCooldown}s`
+                            ? `Resend available in`
                             : "Didn't receive the code?"}
                         </p>
                         <button
