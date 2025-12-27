@@ -255,7 +255,7 @@ export default function HomePage() {
       </div>
 
       {/* Features Section */}
-      <div className="bg-white py-4 sm:py-6 lg:py-8">
+      {/* <div className="bg-white py-4 sm:py-6 lg:py-8">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
           <div className="text-center mb-3">
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-1">
@@ -303,7 +303,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-4 sm:py-6 md:py-8">
@@ -312,7 +312,7 @@ export default function HomePage() {
             Made with ❤️ for puttalam
           </h3>
           <p className="text-xs sm:text-sm md:text-base text-gray-400">
-            Book futsal grounds across puttalam with ease
+            Book grounds across puttalam with ease
           </p>
         </div>
       </footer>
