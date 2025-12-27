@@ -268,8 +268,12 @@ export default function GroundDetailPage() {
   }, [showImageModal]);
 
   useEffect(() => {
-    // Check ownership after both ground and user are loaded
-    if (ground && currentUser && ground.ownerId === currentUser.id) {
+    // // Check ownership after both ground and user are loaded
+    // if (ground && currentUser && ground.ownerId === currentUser.id) {
+    //   setIsOwner(true);
+    // }
+
+    if (currentUser) {
       setIsOwner(true);
     }
   }, [ground, currentUser]);
@@ -300,10 +304,7 @@ export default function GroundDetailPage() {
       const endTimeString = `${endHour.toString().padStart(2, "0")}:${minutes}`;
       setSelectedEndTime(endTimeString);
 
-      // Immediately open booking modal for available slots
-      if (!isOwner) {
-        setShowBookingModal(true);
-      }
+      setShowBookingModal(true);
     }
   };
 
@@ -1632,24 +1633,29 @@ export default function GroundDetailPage() {
 
       {/* Booking Modal */}
       {ground && (
-        <BookingModal
-          isOpen={showBookingModal}
-          onClose={() => setShowBookingModal(false)}
-          ground={{
-            id: ground!.id,
-            name: ground!.name,
-            morningPrice: ground!.morningPrice,
-            eveningPrice: ground!.eveningPrice,
-            nightPrice: ground!.nightPrice,
-          }}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          selectedEndTime={selectedEndTime}
-          onBookingSuccess={() => {
-            // Refresh ground data to show updated bookings
-            fetchGround();
-          }}
-        />
+        <>
+          <BookingModal
+            isOpen={showBookingModal}
+            onClose={() => setShowBookingModal(false)}
+            ground={{
+              id: ground!.id,
+              name: ground!.name,
+              morningPrice: ground!.morningPrice,
+              eveningPrice: ground!.eveningPrice,
+              nightPrice: ground!.nightPrice,
+            }}
+            isOwner={
+              isOwner && ground.ownerId === currentUser?.user.id ? true : false
+            }
+            selectedDate={selectedDate}
+            selectedTime={selectedTime}
+            selectedEndTime={selectedEndTime}
+            onBookingSuccess={() => {
+              // Refresh ground data to show updated bookings
+              fetchGround();
+            }}
+          />
+        </>
       )}
 
       {/* Cancellation Modal */}
@@ -1754,6 +1760,3 @@ export default function GroundDetailPage() {
     </div>
   );
 }
-
-// prepare a video to list the ground
-// remove the comission rate in super admin just add the amount comission onlyu

@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
       startTime,
       endTime,
       reason,
+      isOwner,
     } = await request.json();
 
     if (
@@ -177,17 +178,13 @@ export async function POST(request: NextRequest) {
 
     // Update commission for ground owner
     try {
-      await updateCommissionAmount(ground.ownerId, price, "add");
-      // console.log(`Added commission for owner ${ground.ownerId}: ${price * commissionRate}`)
+      if (isOwner == false) {
+        await updateCommissionAmount(ground.ownerId, price, "add");
+      }
     } catch (commissionError) {}
 
     // Send SMS notifications to both customer and ground owner
     try {
-      console.log(
-        "Attempting to send SMS to ground owner phone:",
-        ground.phone
-      );
-      // console.log("Full ground details:", JSON.stringify(ground, null, 2));
       // Send notification SMS to ground owner
       await sendBookingConfirmationToOwner(
         ground.phone, // Using ground phone as owner contact
@@ -199,7 +196,6 @@ export async function POST(request: NextRequest) {
         customerPhone,
         price
       );
-      // console.log("Successfully triggered SMS to owner.");
     } catch (smsError) {
       console.error("SMS notification error:", smsError);
       // Don't fail the booking if SMS fails

@@ -576,6 +576,8 @@ export const updateCommissionAmount = async (
   }
 };
 
+// CHECK TO COLLECT ONLY IS OWNER IS FALSE IN BOOKING NOT YET IMPLEMENTED TO SEND IS OWNER TO BOOKING IMPLEMENT THAT AS WELL
+
 export const getUnpaidCommissionsByOwner = async (): Promise<
   Record<string, { totalCommission: number; bookings: Booking[] }>
 > => {
@@ -590,7 +592,8 @@ export const getUnpaidCommissionsByOwner = async (): Promise<
       .collection("bookings")
       .where("isCommissionPaid", "==", false)
       .where("date", "<=", yesterdayStr)
-      .where("status", "==", "BOOKED");
+      .where("status", "==", "BOOKED")
+      .where("customerName", "!=", "Call Booking");
 
     const querySnapshot = await q.get();
 
@@ -656,7 +659,8 @@ export const getTotalUnpaidCommissionFromBookings = async (): Promise<{
     const q = adminDb
       .collection("bookings")
       .where("isCommissionPaid", "==", false)
-      .where("status", "==", "BOOKED");
+      .where("status", "==", "BOOKED")
+      .where("customerName", "!=", "Call Booking");
 
     const snapshot = await q.get();
 

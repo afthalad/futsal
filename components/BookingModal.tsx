@@ -14,6 +14,7 @@ import AdBanner from "./AdBanner";
 
 interface BookingModalProps {
   isOpen: boolean;
+  isOwner: boolean;
   onClose: () => void;
   ground: {
     id: string;
@@ -31,6 +32,7 @@ interface BookingModalProps {
 
 export default function BookingModal({
   isOpen,
+  isOwner,
   onClose,
   ground,
   selectedDate,
@@ -124,13 +126,13 @@ export default function BookingModal({
       const savedName = localStorage.getItem("lastBookingName");
       const savedPhone = localStorage.getItem("lastBookingPhone");
       setFormData((prev) => ({
-        customerName: savedName || prev.customerName,
+        customerName: isOwner ? "Call Booking" : savedName || prev.customerName,
         customerPhone: savedPhone || prev.customerPhone,
       }));
     } catch (e) {
       // ignore localStorage errors
     }
-  }, [isOpen]);
+  }, [isOpen, isOwner]);
 
   if (!isOpen) return null;
 
@@ -159,7 +161,7 @@ export default function BookingModal({
     }
 
     // If OTP not yet sent, request OTP and show OTP input
-    if (!otpSent) {
+    if (!otpSent && !isOwner) {
       try {
         setOtpLoading(true);
         const res = await fetch("/api/book-send-otp", {
@@ -195,7 +197,7 @@ export default function BookingModal({
     }
 
     // If OTP sent, verify it first then submit booking
-    if (otpSent) {
+    if (otpSent && !isOwner) {
       if (!otpInput.trim()) {
         setOtpError("Please enter the verification code");
         return;
@@ -228,6 +230,7 @@ export default function BookingModal({
             customerPhone: formData.customerPhone,
             date: selectedDate,
             startTime: selectedTime,
+            isOwner: false,
             endTime: selectedEndTime,
             price,
           }),
@@ -261,6 +264,62 @@ export default function BookingModal({
           toast.success("Booking confirmed!", { duration: 1000 });
           setBookingSuccess(true);
           // setShowSuccessAd(true);
+
+          setTimeout(() => {
+            setTimeout(() => {
+              onClose();
+              setFormData({ customerName: "", customerPhone: "" });
+              setOtpSent(false);
+              setOtpId(null);
+              setOtpInput("");
+              setBookingSuccess(false);
+              if (onBookingSuccess) onBookingSuccess();
+            }, 500);
+          }, 5000);
+        } else {
+          toast.error(data.error || "Failed to submit booking");
+        }
+      } catch (error) {
+        console.error("Booking error:", error);
+        toast.error("Failed to submit booking. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // If OTP not yet sent and User is Owner don't show otp or request
+    if (!otpSent && isOwner) {
+      setLoading(true);
+      setOtpError(null);
+      try {
+        const response = await fetch("/api/bookings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            groundId: ground.id,
+            customerName: formData.customerName,
+            customerPhone: formData.customerPhone,
+            date: selectedDate,
+            startTime: selectedTime,
+            endTime: selectedEndTime,
+            isOwner: true,
+            price,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.status === 403) {
+          setBookingSuccess(false);
+          setLoading(false);
+          return;
+        }
+
+        if (response.ok) {
+          toast.success("Booking confirmed!", { duration: 1000 });
+          setBookingSuccess(true);
 
           setTimeout(() => {
             setTimeout(() => {
@@ -321,7 +380,7 @@ export default function BookingModal({
               <>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                    Book Ground
+                    {isOwner ? "Direct Book Ground" : "Book Ground"}
                   </h2>
                   <button
                     onClick={onClose}
@@ -335,6 +394,7 @@ export default function BookingModal({
                   <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                     {ground.name}
                   </h3>
+
                   <div className="space-y-2 text-xs sm:text-sm text-gray-600">
                     <div className="flex items-center">
                       <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
@@ -372,6 +432,7 @@ export default function BookingModal({
                     </label>
                     <input
                       type="text"
+                      disabled={isOwner ? true : false}
                       value={formData.customerName}
                       onChange={(e) =>
                         setFormData({
@@ -402,9 +463,6 @@ export default function BookingModal({
                       placeholder="Enter your phone number (e.g., 0773078103)"
                       required
                     />
-                    {/* <p className="text-xs text-gray-500 mt-1">
-                      // Enter your phone number (10 digits starting with 0)
-                    </p> */}
                   </div>
                   {otpSent && (
                     <div>
@@ -450,8 +508,10 @@ export default function BookingModal({
                         ? "Sending OTP..."
                         : loading
                         ? "Processing..."
-                        : !otpSent
+                        : !otpSent && !isOwner
                         ? "Send OTP to Book"
+                        : !otpSent && isOwner
+                        ? "Book now"
                         : "Verify & Book"}
                     </button>
                     <button
@@ -464,6 +524,12 @@ export default function BookingModal({
                     </button>
                   </div>
                 </form>
+
+                {isOwner && (
+                  <div className="mt-5 flex items-start gap-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                    <span>No commission will be added for this booking.</span>
+                  </div>
+                )}
               </>
             )}
           </>

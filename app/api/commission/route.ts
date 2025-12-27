@@ -7,7 +7,6 @@ import {
   getUnpaidCommissionsByOwner,
   getUserById,
 } from "@/lib/firestore-server";
-import { log } from "console";
 
 export const dynamic = "force-dynamic";
 

@@ -39,7 +39,7 @@ class TextLKProvider implements SMSProvider {
         ? phone
         : `94${phone.replace(/^0/, "")}`;
 
-      console.log(`Sending SMS to: ${formattedPhone}`);
+      // console.log(`Sending SMS to: ${formattedPhone}`);
       const response = await fetch("https://app.text.lk/api/v3/sms/send", {
         method: "POST",
         headers: {

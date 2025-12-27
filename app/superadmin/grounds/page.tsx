@@ -1,174 +1,198 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { CheckCircle, XCircle, Clock, Eye, MessageSquare } from 'lucide-react'
-import Navbar from '@/components/Navbar'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { formatPrice, formatFirebaseDate } from '@/lib/utils'
-import toast from 'react-hot-toast'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle, XCircle, Clock, Eye, MessageSquare } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { formatPrice, formatFirebaseDate } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 interface Ground {
-  id: string
-  name: string
-  description?: string
-  location: string
-  city: string
-  phone: string
-  secondaryPhone?: string
-  images: string[]
-  amenities: string[]
-  morningPrice: number
-  eveningPrice: number
-  nightPrice: number
-  isActive: boolean
-  ownerId: string
-  status: 'PENDING' | 'APPROVED' | 'REJECTED'
-  rejectionReason?: string
-  reviewedBy?: string
-  reviewedAt?: any
-  createdAt: any
-  updatedAt: any
+  id: string;
+  name: string;
+  description?: string;
+  location: string;
+  city: string;
+  phone: string;
+  secondaryPhone?: string;
+  images: string[];
+  amenities: string[];
+  morningPrice: number;
+  eveningPrice: number;
+  nightPrice: number;
+  isActive: boolean;
+  ownerId: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  rejectionReason?: string;
+  reviewedBy?: string;
+  reviewedAt?: any;
+  createdAt: any;
+  updatedAt: any;
   owner: {
-    name: string | null
-    phone: string
-  }
+    name: string | null;
+    phone: string;
+  };
 }
 
 export default function SuperAdminGroundsPage() {
-  const [grounds, setGrounds] = useState<Ground[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING')
-  const [selectedGround, setSelectedGround] = useState<Ground | null>(null)
-  const [showRejectModal, setShowRejectModal] = useState(false)
-  const [rejectReason, setRejectReason] = useState('')
-  const [processing, setProcessing] = useState<string | null>(null)
-  const router = useRouter()
+  const [grounds, setGrounds] = useState<Ground[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<
+    "ALL" | "PENDING" | "APPROVED" | "REJECTED"
+  >("PENDING");
+  const [selectedGround, setSelectedGround] = useState<Ground | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [processing, setProcessing] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    fetchGrounds()
-  }, [])
+    fetchGrounds();
+  }, []);
 
   const fetchGrounds = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch('/api/admin/grounds', {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/admin/grounds", {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        console.log('Fetched grounds:', data.grounds)
-        setGrounds(data.grounds || [])
+        const data = await response.json();
+        // console.log('Fetched grounds:', data.grounds)
+        setGrounds(data.grounds || []);
       } else {
-        toast.error('Failed to fetch grounds')
+        toast.error("Failed to fetch grounds");
       }
     } catch (error) {
-      console.error('Error fetching grounds:', error)
-      toast.error('Failed to fetch grounds')
+      console.error("Error fetching grounds:", error);
+      toast.error("Failed to fetch grounds");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleApprove = async (groundId: string) => {
-    setProcessing(groundId)
+    setProcessing(groundId);
     try {
-      const token = localStorage.getItem('token')
-      console.log('Approving ground:', groundId)
+      const token = localStorage.getItem("token");
       const response = await fetch(`/api/admin/grounds/${groundId}/review`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ action: 'APPROVE' })
-      })
+        body: JSON.stringify({ action: "APPROVE" }),
+      });
 
       if (response.ok) {
-        toast.success('Ground approved successfully')
-        fetchGrounds()
+        toast.success("Ground approved successfully");
+        fetchGrounds();
       } else {
-        const data = await response.json()
-        console.error('Approval failed:', data)
-        toast.error(data.error || 'Failed to approve ground')
+        const data = await response.json();
+        console.error("Approval failed:", data);
+        toast.error(data.error || "Failed to approve ground");
       }
     } catch (error) {
-      console.error('Error approving ground:', error)
-      toast.error('Failed to approve ground')
+      console.error("Error approving ground:", error);
+      toast.error("Failed to approve ground");
     } finally {
-      setProcessing(null)
+      setProcessing(null);
     }
-  }
+  };
 
   const handleReject = async () => {
     if (!selectedGround || !rejectReason.trim()) {
-      toast.error('Please provide a rejection reason')
-      return
+      toast.error("Please provide a rejection reason");
+      return;
     }
 
-    setProcessing(selectedGround.id)
+    setProcessing(selectedGround.id);
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`/api/admin/grounds/${selectedGround.id}/review`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          action: 'REJECT', 
-          reason: rejectReason.trim() 
-        })
-      })
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `/api/admin/grounds/${selectedGround.id}/review`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "REJECT",
+            reason: rejectReason.trim(),
+          }),
+        }
+      );
 
       if (response.ok) {
-        toast.success('Ground rejected successfully')
-        setShowRejectModal(false)
-        setSelectedGround(null)
-        setRejectReason('')
-        fetchGrounds()
+        toast.success("Ground rejected successfully");
+        setShowRejectModal(false);
+        setSelectedGround(null);
+        setRejectReason("");
+        fetchGrounds();
       } else {
-        const data = await response.json()
-        toast.error(data.error || 'Failed to reject ground')
+        const data = await response.json();
+        toast.error(data.error || "Failed to reject ground");
       }
     } catch (error) {
-      console.error('Error rejecting ground:', error)
-      toast.error('Failed to reject ground')
+      console.error("Error rejecting ground:", error);
+      toast.error("Failed to reject ground");
     } finally {
-      setProcessing(null)
+      setProcessing(null);
     }
-  }
+  };
 
   const getStatusBadge = (ground: Ground) => {
-    const isResubmitted = ground.status === 'PENDING' && ground.rejectionReason && 
-      ground.reviewedAt && ground.updatedAt && 
-      new Date(ground.updatedAt.toDate ? ground.updatedAt.toDate() : ground.updatedAt) > new Date(ground.reviewedAt.toDate ? ground.reviewedAt.toDate() : ground.reviewedAt)
-    
+    const isResubmitted =
+      ground.status === "PENDING" &&
+      ground.rejectionReason &&
+      ground.reviewedAt &&
+      ground.updatedAt &&
+      new Date(
+        ground.updatedAt.toDate ? ground.updatedAt.toDate() : ground.updatedAt
+      ) >
+        new Date(
+          ground.reviewedAt.toDate
+            ? ground.reviewedAt.toDate()
+            : ground.reviewedAt
+        );
+
     switch (ground.status) {
-      case 'PENDING':
+      case "PENDING":
         return (
           <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
             <Clock className="h-3 w-3 mr-1" />
-            {isResubmitted ? 'Resubmitted' : 'Pending'}
+            {isResubmitted ? "Resubmitted" : "Pending"}
           </Badge>
-        )
-      case 'APPROVED':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>
-      case 'REJECTED':
-        return <Badge variant="secondary" className="bg-red-100 text-red-800"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>
+        );
+      case "APPROVED":
+        return (
+          <Badge variant="secondary" className="bg-green-100 text-green-800">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Approved
+          </Badge>
+        );
+      case "REJECTED":
+        return (
+          <Badge variant="secondary" className="bg-red-100 text-red-800">
+            <XCircle className="h-3 w-3 mr-1" />
+            Rejected
+          </Badge>
+        );
       default:
-        return <Badge variant="secondary">{ground.status}</Badge>
+        return <Badge variant="secondary">{ground.status}</Badge>;
     }
-  }
+  };
 
-  const filteredGrounds = grounds.filter(ground => 
-    filter === 'ALL' || ground.status === filter
-  )
+  const filteredGrounds = grounds.filter(
+    (ground) => filter === "ALL" || ground.status === filter
+  );
 
   if (loading) {
     return (
@@ -180,35 +204,49 @@ export default function SuperAdminGroundsPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Ground Review</h1>
-          <p className="text-gray-600">Review and approve/reject ground submissions</p>
+          <p className="text-gray-600">
+            Review and approve/reject ground submissions
+          </p>
         </div>
 
         {/* Filter Tabs */}
         <div className="mb-6">
           <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
             {[
-              { key: 'PENDING', label: 'Pending', count: grounds.filter(g => g.status === 'PENDING').length },
-              { key: 'APPROVED', label: 'Approved', count: grounds.filter(g => g.status === 'APPROVED').length },
-              { key: 'REJECTED', label: 'Rejected', count: grounds.filter(g => g.status === 'REJECTED').length },
-              { key: 'ALL', label: 'All', count: grounds.length }
+              {
+                key: "PENDING",
+                label: "Pending",
+                count: grounds.filter((g) => g.status === "PENDING").length,
+              },
+              {
+                key: "APPROVED",
+                label: "Approved",
+                count: grounds.filter((g) => g.status === "APPROVED").length,
+              },
+              {
+                key: "REJECTED",
+                label: "Rejected",
+                count: grounds.filter((g) => g.status === "REJECTED").length,
+              },
+              { key: "ALL", label: "All", count: grounds.length },
             ].map(({ key, label, count }) => (
               <button
                 key={key}
                 onClick={() => setFilter(key as any)}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   filter === key
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? "bg-white text-blue-600 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {label} ({count})
@@ -218,14 +256,16 @@ export default function SuperAdminGroundsPage() {
         </div>
 
         {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
+        {process.env.NODE_ENV === "development" && (
           <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-800 mb-2">Debug Info</h3>
+            <h3 className="text-sm font-medium text-blue-800 mb-2">
+              Debug Info
+            </h3>
             <p className="text-xs text-blue-700">
-              Total grounds: {grounds.length} | 
-              Pending: {grounds.filter(g => g.status === 'PENDING').length} | 
-              Approved: {grounds.filter(g => g.status === 'APPROVED').length} | 
-              Rejected: {grounds.filter(g => g.status === 'REJECTED').length}
+              Total grounds: {grounds.length} | Pending:{" "}
+              {grounds.filter((g) => g.status === "PENDING").length} | Approved:{" "}
+              {grounds.filter((g) => g.status === "APPROVED").length} |
+              Rejected: {grounds.filter((g) => g.status === "REJECTED").length}
             </p>
           </div>
         )}
@@ -240,18 +280,26 @@ export default function SuperAdminGroundsPage() {
                     <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
                       {ground.name}
                     </CardTitle>
-                    <p className="text-sm text-gray-600">{ground.location}, {ground.city}</p>
+                    <p className="text-sm text-gray-600">
+                      {ground.location}, {ground.city}
+                    </p>
                   </div>
                   {getStatusBadge(ground)}
                 </div>
               </CardHeader>
-              
+
               <CardContent className="space-y-4">
                 {/* Owner Info */}
                 <div className="text-sm">
-                  <p className="text-gray-600">Owner: {ground.owner.name || ground.owner.phone}</p>
+                  <p className="text-gray-600">
+                    Owner: {ground.owner.name || ground.owner.phone}
+                  </p>
                   <p className="text-gray-600">Phone: {ground.phone}</p>
-                  {ground.secondaryPhone && <p className="text-gray-600">Secondary Phone: {ground.secondaryPhone}</p>}
+                  {ground.secondaryPhone && (
+                    <p className="text-gray-600">
+                      Secondary Phone: {ground.secondaryPhone}
+                    </p>
+                  )}
                 </div>
 
                 {/* Pricing */}
@@ -284,7 +332,11 @@ export default function SuperAdminGroundsPage() {
                   <div>
                     <div className="flex flex-wrap gap-1">
                       {ground.amenities.slice(0, 3).map((amenity, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {amenity}
                         </Badge>
                       ))}
@@ -298,13 +350,17 @@ export default function SuperAdminGroundsPage() {
                 )}
 
                 {/* Rejection Reason */}
-                {ground.status === 'REJECTED' && ground.rejectionReason && (
+                {ground.status === "REJECTED" && ground.rejectionReason && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                     <div className="flex items-start gap-2">
                       <MessageSquare className="h-4 w-4 text-red-600 mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium text-red-800">Rejection Reason:</p>
-                        <p className="text-sm text-red-700">{ground.rejectionReason}</p>
+                        <p className="text-sm font-medium text-red-800">
+                          Rejection Reason:
+                        </p>
+                        <p className="text-sm text-red-700">
+                          {ground.rejectionReason}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -321,8 +377,8 @@ export default function SuperAdminGroundsPage() {
                     <Eye className="h-4 w-4 mr-1" />
                     View
                   </Button>
-                  
-                  {ground.status === 'PENDING' && (
+
+                  {ground.status === "PENDING" && (
                     <>
                       <Button
                         onClick={() => handleApprove(ground.id)}
@@ -335,8 +391,8 @@ export default function SuperAdminGroundsPage() {
                       </Button>
                       <Button
                         onClick={() => {
-                          setSelectedGround(ground)
-                          setShowRejectModal(true)
+                          setSelectedGround(ground);
+                          setShowRejectModal(true);
                         }}
                         disabled={processing === ground.id}
                         variant="outline"
@@ -365,19 +421,27 @@ export default function SuperAdminGroundsPage() {
         {filteredGrounds.length === 0 && (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
-              {filter === 'PENDING' ? <Clock className="h-12 w-12 mx-auto" /> :
-               filter === 'APPROVED' ? <CheckCircle className="h-12 w-12 mx-auto" /> :
-               filter === 'REJECTED' ? <XCircle className="h-12 w-12 mx-auto" /> :
-               <Eye className="h-12 w-12 mx-auto" />}
+              {filter === "PENDING" ? (
+                <Clock className="h-12 w-12 mx-auto" />
+              ) : filter === "APPROVED" ? (
+                <CheckCircle className="h-12 w-12 mx-auto" />
+              ) : filter === "REJECTED" ? (
+                <XCircle className="h-12 w-12 mx-auto" />
+              ) : (
+                <Eye className="h-12 w-12 mx-auto" />
+              )}
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               No {filter.toLowerCase()} grounds
             </h3>
             <p className="text-gray-600">
-              {filter === 'PENDING' ? 'No grounds are waiting for review' :
-               filter === 'APPROVED' ? 'No grounds have been approved yet' :
-               filter === 'REJECTED' ? 'No grounds have been rejected' :
-               'No grounds found'}
+              {filter === "PENDING"
+                ? "No grounds are waiting for review"
+                : filter === "APPROVED"
+                ? "No grounds have been approved yet"
+                : filter === "REJECTED"
+                ? "No grounds have been rejected"
+                : "No grounds found"}
             </p>
           </div>
         )}
@@ -405,13 +469,13 @@ export default function SuperAdminGroundsPage() {
                   rows={4}
                 />
               </div>
-              
+
               <div className="flex gap-3">
                 <Button
                   onClick={() => {
-                    setShowRejectModal(false)
-                    setSelectedGround(null)
-                    setRejectReason('')
+                    setShowRejectModal(false);
+                    setSelectedGround(null);
+                    setRejectReason("");
                   }}
                   variant="outline"
                   className="flex-1"
@@ -420,10 +484,14 @@ export default function SuperAdminGroundsPage() {
                 </Button>
                 <Button
                   onClick={handleReject}
-                  disabled={processing === selectedGround.id || !rejectReason.trim()}
+                  disabled={
+                    processing === selectedGround.id || !rejectReason.trim()
+                  }
                   className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                 >
-                  {processing === selectedGround.id ? 'Rejecting...' : 'Reject Ground'}
+                  {processing === selectedGround.id
+                    ? "Rejecting..."
+                    : "Reject Ground"}
                 </Button>
               </div>
             </CardContent>
@@ -431,5 +499,5 @@ export default function SuperAdminGroundsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
