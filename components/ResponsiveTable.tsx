@@ -1,55 +1,61 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { ChevronDown, ChevronRight, X } from 'lucide-react'
-import { formatPrice, formatTime } from '@/lib/utils'
+import { useState } from "react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
+import { formatPrice, formatTime } from "@/lib/utils";
 
 interface Booking {
-  id: string
-  customerName: string
-  customerPhone: string
-  cancellationReason: string
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  cancellationReason: string;
   ground: {
-    name: string
-  }
-  date: string
-  startTime: string
-  endTime: string
-  price: number
-  status: string
-  reason?: string
+    name: string;
+  };
+  date: string;
+  startTime: string;
+  endTime: string;
+  price: number;
+  status: string;
+  reason?: string;
 }
 
 interface ResponsiveTableProps {
-  bookings: Booking[]
-  onCancelBooking: (booking: Booking) => void
+  bookings: Booking[];
+  onCancelBooking: (booking: Booking) => void;
 }
 
 const isToday = (date: string) => {
-  const today = new Date().toDateString()
-  const bookingDate = new Date(date).toDateString()
-  return today === bookingDate
-}
+  const today = new Date().toDateString();
+  const bookingDate = new Date(date).toDateString();
+  return today === bookingDate;
+};
 
-export default function ResponsiveTable({ bookings, onCancelBooking }: ResponsiveTableProps) {
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+export default function ResponsiveTable({
+  bookings,
+  onCancelBooking,
+}: ResponsiveTableProps) {
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const toggleRow = (bookingId: string) => {
-    const newExpanded = new Set(expandedRows)
+    const newExpanded = new Set(expandedRows);
     if (newExpanded.has(bookingId)) {
-      newExpanded.delete(bookingId)
+      newExpanded.delete(bookingId);
     } else {
-      newExpanded.add(bookingId)
+      newExpanded.add(bookingId);
     }
-    setExpandedRows(newExpanded)
-  }
+    setExpandedRows(newExpanded);
+  };
 
   return (
     <div className="space-y-3">
       {bookings.map((booking) => (
-        <div key={booking.id} className="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div
+          key={booking.id}
+          className="bg-white border border-gray-200 rounded-lg shadow-sm"
+        >
           {/* Mobile Card Header */}
-          <div 
+          <div
             className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
             onClick={() => toggleRow(booking.id)}
           >
@@ -59,29 +65,40 @@ export default function ResponsiveTable({ bookings, onCancelBooking }: Responsiv
                   <h3 className="text-sm font-medium text-gray-900 truncate">
                     {booking.customerName}
                   </h3>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    booking.status === 'CANCELLED' || booking.status === 'cancelled'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-green-100 text-green-800'
-                  }`}>
-                    {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? 'Cancelled' : 'Active'}
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      booking.status === "CANCELLED" ||
+                      booking.status === "cancelled"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-green-100 text-green-800"
+                    }`}
+                  >
+                    {booking.status === "CANCELLED" ||
+                    booking.status === "cancelled"
+                      ? "Cancelled"
+                      : "Active"}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
-                  {booking.customerPhone}
-                </p>
-                {/* <p className="text-sm text-gray-500 mt-1">
-                  {booking.ground.name}
-                </p> */}
+
                 <p className="text-sm font-medium text-primary-600 mt-1">
                   {/* {formatPrice(booking.price)} */}
-                  {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                  {formatTime(booking.startTime)} -{" "}
+                  {formatTime(booking.endTime)}
                 </p>
+
+                <span className="text-xs text-gray-500">
+                  {new Date(booking.date).toLocaleDateString("en-LK")}
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">
-                  {new Date(booking.date).toLocaleDateString('en-LK')}
-                </span>
+                <p className="text-sm text-gray-500 mt-1">
+                  <a
+                    href={`tel:${booking.customerPhone}`}
+                    className="text-sm font-medium text-primary-600 underline"
+                  >
+                    {booking.customerPhone}
+                  </a>
+                </p>
                 {expandedRows.has(booking.id) ? (
                   <ChevronDown className="h-4 w-4 text-gray-400" />
                 ) : (
@@ -98,25 +115,30 @@ export default function ResponsiveTable({ bookings, onCancelBooking }: Responsiv
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-500">Ground:</span>
-                    <p className="font-medium text-gray-900">{booking.ground.name}</p>
+                    <p className="font-medium text-gray-900">
+                      {booking.ground.name}
+                    </p>
                   </div>
                   <div>
                     <span className="text-gray-500">Price:</span>
                     <p className="font-medium text-gray-900">
-                       {formatPrice(booking.price)}
+                      {formatPrice(booking.price)}
                     </p>
                   </div>
                 </div>
-                
+
                 {booking.reason && (
                   <div>
                     <span className="text-gray-500 text-sm">Reason:</span>
-                    <p className="text-sm text-gray-900 mt-1">{booking.reason}</p>
+                    <p className="text-sm text-gray-900 mt-1">
+                      {booking.reason}
+                    </p>
                   </div>
                 )}
 
                 <div className="flex justify-end pt-2">
-                  {booking.status === 'CANCELLED' || booking.status === 'cancelled' ? (
+                  {booking.status === "CANCELLED" ||
+                  booking.status === "cancelled" ? (
                     <span className="text-gray-400 text-sm">Cancelled</span>
                   ) : (
                     <button
@@ -134,5 +156,5 @@ export default function ResponsiveTable({ bookings, onCancelBooking }: Responsiv
         </div>
       ))}
     </div>
-  )
+  );
 }
