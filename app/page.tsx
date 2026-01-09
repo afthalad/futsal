@@ -5,7 +5,6 @@ import { Search, MapPin, Filter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import GroundCard from "@/components/GroundCard";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
-// import PerformanceMonitor from '@/components/PerformanceMonitor'
 import toast from "react-hot-toast";
 
 interface Ground {
@@ -20,6 +19,7 @@ interface Ground {
   nightPrice: number;
   amenities: string[];
   isActive: boolean;
+  phone: string;
   _count: {
     bookings: number;
   };
@@ -117,7 +117,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen ">
       <Navbar />
 
       {/* Hero Section */}

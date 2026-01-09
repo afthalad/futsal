@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Clock, Star } from "lucide-react";
+import { MapPin, Clock, Star, Phone } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import {
   Card,
@@ -29,6 +29,7 @@ interface Ground {
   noClosingTime?: boolean;
   amenities: string[];
   isActive: boolean;
+  phone: string;
   _count: {
     bookings: number;
   };
@@ -55,14 +56,14 @@ export default function GroundCard({ ground }: GroundCardProps) {
 
   return (
     <Card
-      className={`overflow-hidden hover:shadow-lg transition-all duration-300 ${
+      className={`overflow-hidden hover:shadow-lg shadow-none transition-all duration-300 ${
         isDisabled ? "opacity-60" : ""
       }`}
     >
       <div className="relative h-32 sm:h-40 md:h-48 w-full overflow-hidden bg-gray-200">
         {imageLoading && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 border-b-2 border-primary-600"></div>
+            <div className="animate-spin rounded-full h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 "></div>
           </div>
         )}
         {!imageError ? (
@@ -87,9 +88,26 @@ export default function GroundCard({ ground }: GroundCardProps) {
               <p className="text-gray-500 text-xs sm:text-sm">
                 No image available
               </p>
+
+              {/* <img
+                src={
+                  "https://turftown.s3.ap-south-1.amazonaws.com/super_admin/tt-1719570227580.webp"
+                }
+                alt="A placeholder image"
+              /> */}
             </div>
           </div>
         )}
+        <div className="absolute inset-0">
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+
+          {/* Bottom-left text */}
+
+          <span className="text-lg text-gray-0 font-normal absolute bottom-1 left-3 text-white gap-2">
+            Rs.{ground.eveningPrice}
+          </span>
+        </div>
 
         {isDisabled && (
           <Badge
@@ -101,19 +119,23 @@ export default function GroundCard({ ground }: GroundCardProps) {
         )}
       </div>
 
-      <CardContent className="p-2 sm:p-3 md:p-4">
-        <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 line-clamp-1">
+      <CardContent className="p-2 flex flex-col sm:p-3 md:p-4 gap-2">
+        <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 ">
           {ground.name}
         </h3>
 
-        <div className="flex items-center text-gray-600 text-xs sm:text-sm mb-1 sm:mb-2">
+        <div className="flex items-center text-gray-400 font-light text-xs sm:text-sm ">
           <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-          <span className="line-clamp-1">
+          <span className="line-clamp-1 ">
             {ground.location}, {ground.city}
           </span>
         </div>
+        <div className="flex items-center text-gray-400 font-light text-xs sm:text-sm ">
+          <Phone className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+          <span className="line-clamp-1 ">{ground.phone}</span>
+        </div>
 
-        <div className="mb-2 sm:mb-3">
+        {/* <div className="mb-2 sm:mb-3">
           <div className="flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
             <div className="flex items-center text-green-600">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
@@ -127,15 +149,14 @@ export default function GroundCard({ ground }: GroundCardProps) {
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
               <span className="truncate">Night: {ground.nightPrice}</span>
             </div>
-            
           </div>
-        </div>
+        </div> */}
       </CardContent>
 
-      <CardFooter className="p-2 sm:p-3 md:px-4 pt-0">
+      <CardFooter className="mt-3 p-2 sm:p-3 md:px-4 pt-0">
         <Button
           asChild
-          className="w-full bg-primary-600 text-white hover:bg-primary-700"
+          className="w-full bg-primary-600 md:h-11  md:rounded-2xl rounded-lg text-white text-xs md:text-base hover:bg-primary-700"
         >
           <Link href={`/grounds/${ground.id}`} prefetch={true}>
             View Details & Book
