@@ -72,8 +72,8 @@ export default function HomePage() {
             Object.entries(counts)
               .map(([venue, count]) => ({ venue, count }))
               .sort(
-                (a, b) => b.count - a.count || a.venue.localeCompare(b.venue)
-              )
+                (a, b) => b.count - a.count || a.venue.localeCompare(b.venue),
+              ),
           );
         }
       } catch (e) {
@@ -102,7 +102,7 @@ export default function HomePage() {
 
         // Extract unique cities
         const uniqueCities = Array.from(
-          new Set(data.grounds.map((ground: Ground) => ground.city))
+          new Set(data.grounds.map((ground: Ground) => ground.city)),
         );
         setCities(uniqueCities as string[]);
       } else {
@@ -326,3 +326,6 @@ export default function HomePage() {
 // update favicon
 // check url across check
 // check sms text.lk
+
+// show the pool only to that owner to make bool in dashboard or in home
+// better shows a button in dashobard if typeswimmingpool vanue avaiable for the owner and trgiger the form

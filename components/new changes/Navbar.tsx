@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu, X, User, LogOut } from "lucide-react";
 import toast from "react-hot-toast";
+import dynamic from "next/dynamic";
 
 interface User {
   id: string;
@@ -13,10 +14,13 @@ interface User {
   role: string;
 }
 
+const BookingsModal = dynamic(() => import("./BookingsModal"), { ssr: false });
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showBookings, setShowBookings] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -99,6 +103,12 @@ export default function Navbar() {
                 >
                   Ground Owner? Join Us
                 </Link>
+                <button
+                  className="btn-outline text-xs xl:text-sm px-3 xl:px-4 py-2"
+                  onClick={() => setShowBookings(true)}
+                >
+                  My Bookings
+                </button>
               </>
             ) : (
               <>
@@ -110,14 +120,16 @@ export default function Navbar() {
                     Home
                   </Link>
                 )}
-                {user.role === "GROUND_OWNER" && (
-                  <Link
-                    href="/admin/dashboard"
-                    className="text-gray-700 hover:text-primary-600 px-2 xl:px-3 py-2 rounded-md text-sm font-medium transition-colors"
+
+                {user.role === "CUSTOMER" && (
+                  <button
+                    className="text-gray-700 hover:text-primary-600 px-2 xl:px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+                    onClick={() => setShowBookings(true)}
                   >
-                    Dashboard
-                  </Link>
+                    My Bookings
+                  </button>
                 )}
+
                 {user.role === "SUPER_ADMIN" && (
                   <>
                     <Link
@@ -240,6 +252,17 @@ export default function Navbar() {
                   </Link>
                 </>
               )}
+              {user.role === "CUSTOMER" && (
+                <>
+                  <Link
+                    href="/admin/dashboard"
+                    className="text-gray-700 hover:text-primary-600 block px-3 py-3 rounded-md text-base font-medium transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    My Bookings
+                  </Link>
+                </>
+              )}
               {user.role === "SUPER_ADMIN" && (
                 <>
                   <Link
@@ -278,6 +301,12 @@ export default function Navbar() {
               </div>
             </div>
           </div>
+        )}
+        {showBookings && (
+          <BookingsModal
+            open={showBookings}
+            onClose={() => setShowBookings(false)}
+          />
         )}
       </div>
     </nav>

@@ -53,6 +53,7 @@ export interface Booking {
   reason?: string;
   userId?: string;
   status?: string;
+  type?: string;
   cancellationReason?: string;
   isCommissionPaid?: boolean;
   cancelledAt?: any;
@@ -63,7 +64,7 @@ export interface Booking {
 
 // User operations
 export const createUser = async (
-  userData: Omit<User, "id" | "createdAt" | "updatedAt">
+  userData: Omit<User, "id" | "createdAt" | "updatedAt">,
 ): Promise<string> => {
   try {
     const docRef = await adminDb.collection("users").add({
@@ -117,7 +118,7 @@ export const getUserByPhone = async (phone: string): Promise<User | null> => {
 
 export const updateUser = async (
   id: string,
-  updates: Partial<User>
+  updates: Partial<User>,
 ): Promise<void> => {
   const docRef = adminDb.collection("users").doc(id);
   await docRef.update({
@@ -128,7 +129,7 @@ export const updateUser = async (
 
 // Ground operations
 export const createGround = async (
-  groundData: Omit<Ground, "id" | "createdAt" | "updatedAt">
+  groundData: Omit<Ground, "id" | "createdAt" | "updatedAt">,
 ): Promise<string> => {
   try {
     const docRef = await adminDb.collection("grounds").add({
@@ -202,7 +203,7 @@ export const getAllGroundsWithOwnerInfo = async (): Promise<Ground[]> => {
 
     // Get all ground owner IDs
     const ownerIds = Array.from(
-      new Set(grounds.map((ground) => ground.ownerId))
+      new Set(grounds.map((ground) => ground.ownerId)),
     );
 
     // Fetch owner information for all owners
@@ -213,7 +214,7 @@ export const getAllGroundsWithOwnerInfo = async (): Promise<Ground[]> => {
 
     const ownerResults = await Promise.all(ownerPromises);
     const ownerMap = new Map(
-      ownerResults.map(({ ownerId, user }) => [ownerId, user])
+      ownerResults.map(({ ownerId, user }) => [ownerId, user]),
     );
 
     // Filter out grounds from disabled owners and add owner info
@@ -259,7 +260,7 @@ export const getGroundsByOwner = async (ownerId: string): Promise<Ground[]> => {
 
 export const updateGround = async (
   id: string,
-  data: Partial<Ground>
+  data: Partial<Ground>,
 ): Promise<void> => {
   try {
     await adminDb
@@ -314,7 +315,7 @@ export const deleteUser = async (id: string): Promise<void> => {
 
 // Booking operations
 export const createBooking = async (
-  bookingData: Omit<Booking, "id" | "createdAt" | "updatedAt">
+  bookingData: Omit<Booking, "id" | "createdAt" | "updatedAt">,
 ): Promise<string> => {
   try {
     const docRef = await adminDb.collection("bookings").add({
@@ -350,7 +351,7 @@ export const getBookingById = async (id: string): Promise<Booking | null> => {
 };
 
 export const getBookingsByGround = async (
-  groundId: string
+  groundId: string,
 ): Promise<Booking[]> => {
   const q = adminDb.collection("bookings").where("groundId", "==", groundId);
   const querySnapshot = await q.get();
@@ -372,7 +373,7 @@ export const getBookingsByUser = async (userId: string): Promise<Booking[]> => {
 };
 
 export const getUnpaidBookingsByOwner = async (
-  ownerId: string
+  ownerId: string,
 ): Promise<Booking[]> => {
   try {
     // Get yesterday's date in YYYY-MM-DD format
@@ -396,7 +397,7 @@ export const getUnpaidBookingsByOwner = async (
           ({
             id: doc.id,
             ...doc.data(),
-          } as Booking)
+          }) as Booking,
       )
       .filter((booking) => {
         const commissionPaid = booking.isCommissionPaid;
@@ -429,7 +430,7 @@ export const getAllUnpaidBookingsUntilYesterdayGroupedByOwner =
       const querySnapshot = await q.get();
 
       const bookings: Booking[] = querySnapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() } as Booking))
+        .map((doc) => ({ id: doc.id, ...doc.data() }) as Booking)
         // Filter out cancelled bookings
         .filter((b) => !(b.status && b.status.toUpperCase() === "CANCELLED"));
 
@@ -444,7 +445,7 @@ export const getAllUnpaidBookingsUntilYesterdayGroupedByOwner =
       // Optionally, sort bookings for each owner by date ascending
       Object.keys(grouped).forEach((ownerId) => {
         grouped[ownerId].sort((a, b) =>
-          a.date < b.date ? -1 : a.date > b.date ? 1 : 0
+          a.date < b.date ? -1 : a.date > b.date ? 1 : 0,
         );
       });
       // console.log("Grouped", grouped);
@@ -461,7 +462,7 @@ export const getAllUnpaidBookingsUntilYesterdayGroupedByOwner =
 export const getBookingsAfterDate = async (
   ownerId: string,
   afterDate?: string,
-  beforeDate?: string
+  beforeDate?: string,
 ): Promise<Booking[]> => {
   // Simple query with just ownerId
   const q = adminDb.collection("bookings").where("ownerId", "==", ownerId);
@@ -497,7 +498,7 @@ export const getAllBookings = async (): Promise<Booking[]> => {
 
 export const updateBooking = async (
   id: string,
-  updates: Partial<Booking>
+  updates: Partial<Booking>,
 ): Promise<void> => {
   try {
     const docRef = adminDb.collection("bookings").doc(id);
@@ -517,7 +518,7 @@ export const updateBooking = async (
 export const updateCommissionAmount = async (
   ownerId: string,
   bookingAmount: number,
-  operation: "add" | "subtract"
+  operation: "add" | "subtract",
 ): Promise<void> => {
   try {
     const commissionRef = adminDb.collection("commission").doc(ownerId);
@@ -576,9 +577,11 @@ export const updateCommissionAmount = async (
   }
 };
 
-// CHECK TO COLLECT ONLY IS OWNER IS FALSE IN BOOKING NOT YET IMPLEMENTED TO SEND IS OWNER TO BOOKING IMPLEMENT THAT AS WELL
-
-export const getUnpaidCommissionsByOwner = async (): Promise<
+/**
+ * Get unpaid commissions for swimming pool bookings grouped by owner.
+ * Swimming pools use poolStatus field and have different status values.
+ */
+export const getUnpaidSwimmingPoolCommissionsByOwner = async (): Promise<
   Record<string, { totalCommission: number; bookings: Booking[] }>
 > => {
   try {
@@ -587,19 +590,35 @@ export const getUnpaidCommissionsByOwner = async (): Promise<
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-    // Query unpaid bookings up to yesterday
+    // Query unpaid swimming pool bookings up to yesterday
+    // For swimming pools, we need to check poolStatus field
     const q = adminDb
       .collection("bookings")
       .where("isCommissionPaid", "==", false)
-      .where("date", "<=", yesterdayStr)
-      .where("status", "==", "BOOKED")
-      .where("customerName", "!=", "Call Booking");
+      .where("date", "<=", yesterdayStr);
 
     const querySnapshot = await q.get();
 
-    const bookings: Booking[] = querySnapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as Booking)
-    );
+    // Filter for swimming pool bookings with valid poolStatus
+    const bookings: Booking[] = querySnapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        return { id: doc.id, ...data } as Booking & {
+          poolStatus?: string;
+          type?: string;
+        };
+      })
+      .filter((booking: any) => {
+        // Only include swimming pool bookings
+        if (booking.type !== "swimmingpool") return false;
+
+        // Exclude cancelled bookings
+        if (booking.status?.toUpperCase() === "CANCELLED") return false;
+
+        // Include bookings with any poolStatus (WAITING_ADVANCE, ADVANCE_PAID, CONFIRMED)
+        // Note: for swimming pools, poolStatus may not always be set, so we also accept bookings without it
+        return true;
+      });
 
     // Group by ownerId and calculate commission
     const grouped: Record<
@@ -607,8 +626,9 @@ export const getUnpaidCommissionsByOwner = async (): Promise<
       { totalCommission: number; bookings: Booking[] }
     > = {};
 
-    bookings.forEach((b) => {
+    bookings.forEach((b: any) => {
       const ownerId = b.ownerId || "unknown";
+
       // Calculate commission based on owner ID
       let commission: number;
       if (ownerId === "eq9ywFOCOlqEkUBUaDeh") {
@@ -631,17 +651,169 @@ export const getUnpaidCommissionsByOwner = async (): Promise<
     // Sort bookings for each owner by date ascending
     Object.keys(grouped).forEach((ownerId) => {
       grouped[ownerId].bookings.sort((a, b) =>
-        a.date < b.date ? -1 : a.date > b.date ? 1 : 0
+        a.date < b.date ? -1 : a.date > b.date ? 1 : 0,
       );
       // Round commission to 2 decimal places
       grouped[ownerId].totalCommission =
         Math.round(grouped[ownerId].totalCommission * 100) / 100;
     });
-    // console.log("Grouped", grouped);
 
     return grouped;
   } catch (error) {
-    console.error("Error getting unpaid commissions by owner:", error);
+    console.error(
+      "Error getting unpaid swimming pool commissions by owner:",
+      error,
+    );
+    return {};
+  }
+};
+
+// TEST BY CREATING BOOKINGS AGAIN
+
+/**
+ * Get all unpaid commissions (both futsal and swimming pool) grouped by owner.
+ * This combines both futsal bookings (status: WAITING_ADVANCE) and swimming pool bookings (poolStatus).
+ */
+export const getAllUnpaidCommissionsByOwner = async (): Promise<
+  Record<
+    string,
+    {
+      totalCommission: number;
+      bookings: Booking[];
+      futsalCount: number;
+      poolCount: number;
+    }
+  >
+> => {
+  try {
+    // Yesterday in YYYY-MM-DD
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+    // Query all unpaid bookings up to yesterday
+    const q = adminDb
+      .collection("bookings")
+      .where("isCommissionPaid", "==", false)
+      .where("date", "<=", yesterdayStr);
+
+    const querySnapshot = await q.get();
+
+    const allBookings: (Booking & {
+      poolStatus?: string;
+      type?: string;
+      customerName?: string;
+    })[] = querySnapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() }) as any,
+    );
+
+    // Fix missing ownerIds by looking up the ground
+    const bookingsWithOwnerIds = await Promise.all(
+      allBookings.map(async (booking) => {
+        if (!booking.ownerId && booking.groundId) {
+          // Look up the ground to get the ownerId
+          const ground = await adminDb
+            .collection("grounds")
+            .doc(booking.groundId)
+            .get();
+          if (ground.exists) {
+            const groundData = ground.data();
+            booking.ownerId = groundData?.ownerId || "unknown";
+          }
+        }
+        return booking;
+      }),
+    );
+
+    // Separate futsal and swimming pool bookings
+    const futsalBookings = bookingsWithOwnerIds.filter((b: any) => {
+      // Futsal bookings: BOOKED status, not Call Booking, not swimming pool
+      return (
+        b.status === "BOOKED" &&
+        b.customerName !== "Call Booking" &&
+        b.type !== "swimmingpool"
+      );
+    });
+
+    const poolBookings = bookingsWithOwnerIds.filter((b: any) => {
+      // Swimming pool bookings: has type as swimmingpool, not cancelled
+      const status = (b.status || "").toUpperCase();
+      return b.type === "swimmingpool" && status !== "CANCELLED";
+    });
+
+    // Group by ownerId and calculate commission
+    const grouped: Record<
+      string,
+      {
+        totalCommission: number;
+        bookings: Booking[];
+        futsalCount: number;
+        poolCount: number;
+      }
+    > = {};
+
+    // Process futsal bookings
+    futsalBookings.forEach((b: any) => {
+      const ownerId = b.ownerId || "unknown";
+
+      let commission: number;
+      if (ownerId === "eq9ywFOCOlqEkUBUaDeh") {
+        commission = (b.price || 0) * 0.01;
+      } else {
+        commission = 50;
+      }
+
+      if (!grouped[ownerId]) {
+        grouped[ownerId] = {
+          totalCommission: 0,
+          bookings: [],
+          futsalCount: 0,
+          poolCount: 0,
+        };
+      }
+
+      grouped[ownerId].totalCommission += commission;
+      grouped[ownerId].bookings.push(b);
+      grouped[ownerId].futsalCount += 1;
+    });
+
+    // Process swimming pool bookings
+    poolBookings.forEach((b: any) => {
+      const ownerId = b.ownerId || "unknown";
+
+      let commission: number;
+      if (ownerId === "eq9ywFOCOlqEkUBUaDeh") {
+        commission = (b.price || 0) * 0.01;
+      } else {
+        commission = 50;
+      }
+
+      if (!grouped[ownerId]) {
+        grouped[ownerId] = {
+          totalCommission: 0,
+          bookings: [],
+          futsalCount: 0,
+          poolCount: 0,
+        };
+      }
+
+      grouped[ownerId].totalCommission += commission;
+      grouped[ownerId].bookings.push(b);
+      grouped[ownerId].poolCount += 1;
+    });
+
+    // Sort bookings for each owner by date ascending and round commission
+    Object.keys(grouped).forEach((ownerId) => {
+      grouped[ownerId].bookings.sort((a, b) =>
+        a.date < b.date ? -1 : a.date > b.date ? 1 : 0,
+      );
+      grouped[ownerId].totalCommission =
+        Math.round(grouped[ownerId].totalCommission * 100) / 100;
+    });
+
+    return grouped;
+  } catch (error) {
+    console.error("Error getting all unpaid commissions by owner:", error);
     return {};
   }
 };
@@ -656,18 +828,29 @@ export const getTotalUnpaidCommissionFromBookings = async (): Promise<{
   bookingsCount: number;
 }> => {
   try {
-    const q = adminDb
+    // Query for BOOKED bookings
+    const q1 = adminDb
       .collection("bookings")
       .where("isCommissionPaid", "==", false)
       .where("status", "==", "BOOKED")
       .where("customerName", "!=", "Call Booking");
 
-    const snapshot = await q.get();
+    // Query for CONFIRMED bookings
+    const q2 = adminDb
+      .collection("bookings")
+      .where("isCommissionPaid", "==", false)
+      .where("poolStatus", "==", "CONFIRMED")
+      .where("customerName", "!=", "Call Booking");
+
+    const [snapshot1, snapshot2] = await Promise.all([q1.get(), q2.get()]);
 
     let total = 0;
     let count = 0;
 
-    snapshot.docs.forEach((doc) => {
+    // Process both BOOKED and CONFIRMED bookings
+    const allDocs = [...snapshot1.docs, ...snapshot2.docs];
+
+    allDocs.forEach((doc) => {
       const data: any = doc.data();
       const price = Number(data.price || 0);
       const ownerId = data.ownerId || "";
@@ -713,7 +896,7 @@ export const getNoYesterdayLimitCommissionsByOwner = async (): Promise<
     const querySnapshot = await q.get();
 
     const bookings: Booking[] = querySnapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as Booking)
+      (doc) => ({ id: doc.id, ...doc.data() }) as Booking,
     );
 
     // Group by ownerId and calculate commission
@@ -746,7 +929,7 @@ export const getNoYesterdayLimitCommissionsByOwner = async (): Promise<
     // Sort bookings for each owner by date ascending
     Object.keys(grouped).forEach((ownerId) => {
       grouped[ownerId].bookings.sort((a, b) =>
-        a.date < b.date ? -1 : a.date > b.date ? 1 : 0
+        a.date < b.date ? -1 : a.date > b.date ? 1 : 0,
       );
       // Round commission to 2 decimal places
       grouped[ownerId].totalCommission =
@@ -838,7 +1021,7 @@ export const markCommissionAsPaid = async (
   ownerId: string,
   paidAmount: number,
   totalDue: number,
-  paidDate: Date
+  paidDate: Date,
 ): Promise<void> => {
   try {
     if (!ownerId) throw new Error("ownerId is required");
@@ -887,7 +1070,7 @@ export const markCommissionAsPaid = async (
     await batch.commit();
 
     console.log(
-      `Marked ${querySnapshot.docs.length} bookings as paid for owner ${ownerId}`
+      `Marked ${querySnapshot.docs.length} bookings as paid for owner ${ownerId}`,
     );
   } catch (error) {
     console.error("Error marking commission as paid:", error);

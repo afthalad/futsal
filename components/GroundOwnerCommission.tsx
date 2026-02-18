@@ -47,7 +47,6 @@ export default function GroundOwnerCommission() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Fetch commission once on mount. Polling removed to reduce DB reads.
     fetchCommission();
   }, []);
 
@@ -75,34 +74,30 @@ export default function GroundOwnerCommission() {
         const data = await response.json();
         const raw = data.commission || null;
         if (raw) {
-          // Calculate total due: unpaid commission + last payment's remaining balance
-          let lastPaymentRemaining = 0;
-          if (raw.payments && raw.payments.length > 0) {
-            lastPaymentRemaining = raw.payments[0].amountRemaining || 0;
-          }
-          const totalDue = (raw.payableCommission || 0) + lastPaymentRemaining;
+          // Use totalDue from API response (already calculated server-side)
           const normalized = {
             ...raw,
-            totalDue,
+            totalDue: raw.totalDue ?? 0,
             payableCommission: raw.payableCommission ?? 0,
             bookingCount:
               raw.bookingCount ?? (raw.bookings ? raw.bookings.length : 0),
             balance: raw.balance ?? raw.amount ?? 0,
             payments: raw.payments ?? [],
-            // prefer explicit lastPaymentRemaining from API, fallback to computed value
-            lastPaymentRemaining:
-              raw.lastPaymentRemaining ?? lastPaymentRemaining,
+            lastPaymentRemaining: raw.lastPaymentRemaining ?? 0,
             totalPaid:
               raw.totalPaid ??
               (raw.payments
                 ? raw.payments.reduce(
                     (s: any, p: any) => s + (p.amountPaid || 0),
-                    0
+                    0,
                   )
                 : 0),
             lastPaymentDate: raw.lastPaymentDate ?? null,
             calculatedUntil: raw.calculatedUntil ?? raw.calculatedUntil,
+            futsalBookingCount: raw.futsalBookingCount ?? 0,
+            poolBookingCount: raw.poolBookingCount ?? 0,
           };
+          console.log("Commission data received:", normalized);
           setCommission(normalized);
         } else {
           setCommission(null);
@@ -113,28 +108,6 @@ export default function GroundOwnerCommission() {
     } finally {
       setLoading(false);
       setRefreshing(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "text-amber-600 bg-amber-100";
-      case "PAID":
-        return "text-green-600 bg-green-100";
-      default:
-        return "text-gray-600 bg-gray-100";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return <Clock className="h-4 w-4" />;
-      case "PAID":
-        return <CheckCircle className="h-4 w-4" />;
-      default:
-        return <AlertCircle className="h-4 w-4" />;
     }
   };
 
@@ -246,7 +219,7 @@ export default function GroundOwnerCommission() {
       {/* Content - Always visible on desktop, expandable on mobile */}
       {(!isMobile || isExpanded) && (
         <div className="px-4 sm:px-6 pb-4 sm:pb-6 ">
-          {commission && (commission.amount || 0) > 0 && (
+          {commission && (commission.totalDue || 0) > 0 && (
             <div className="space-y-3">
               {/* <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
                 <div className="flex items-center gap-2">

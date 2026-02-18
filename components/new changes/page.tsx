@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Phone, ArrowLeft, User } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const type = searchParams?.get("type");
   const [step, setStep] = useState<"phone" | "otp" | "name">("phone");
   const [formData, setFormData] = useState({
     phone: "",
@@ -156,7 +158,7 @@ export default function LoginPage() {
           body: JSON.stringify({
             phone: formData.phone,
             idToken: result.idToken,
-            role: "GROUND_OWNER",
+            role: type === "customer" ? "CUSTOMER" : "GROUND_OWNER",
           }),
         });
 
@@ -245,7 +247,7 @@ export default function LoginPage() {
           phone: formData.phone,
           idToken: idToken,
           name: formData.name,
-          role: "GROUND_OWNER",
+          role: type === "customer" ? "CUSTOMER" : "GROUND_OWNER",
         }),
       });
 
@@ -277,12 +279,17 @@ export default function LoginPage() {
       <div className="mx-auto w-full max-w-md">
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-2xl font-bold text-gray-900">
-            {step === "phone" && "Join or Sign in as Ground Owner"}
+            {type === "customer"
+              ? step === "phone" && "Login or Register to view bookings"
+              : step === "phone" && "Join or Sign in as Ground Owner"}
             {step === "otp" && "Verify Phone Number"}
             {step === "name" && "Complete Profile"}
           </h1>
           <p className="mt-2 text-sm sm:text-base text-gray-600">
-            {step === "phone" && "Enter your phone number to get started"}
+            {type === "customer"
+              ? step === "phone" &&
+                "Enter your phone number to view your bookings"
+              : step === "phone" && "Enter your phone number to get started"}
             {step === "otp" && "Enter the verification code sent to your phone"}
             {step === "name" &&
               "Please provide your name to complete registration"}
@@ -297,8 +304,8 @@ export default function LoginPage() {
                 step === "phone"
                   ? handleSendOTP
                   : step === "otp"
-                    ? handleVerifyOTP
-                    : handleCompleteProfile
+                  ? handleVerifyOTP
+                  : handleCompleteProfile
               }
             >
               {step === "phone" && (
@@ -392,10 +399,10 @@ export default function LoginPage() {
                 {loading
                   ? "Processing..."
                   : step === "phone"
-                    ? "Send OTP"
-                    : step === "otp"
-                      ? "Verify OTP"
-                      : "Complete Registration"}
+                  ? "Send OTP"
+                  : step === "otp"
+                  ? "Verify OTP"
+                  : "Complete Registration"}
               </button>
 
               {step !== "phone" && (
@@ -427,8 +434,8 @@ export default function LoginPage() {
                       {resending
                         ? "Sending..."
                         : resendCooldown > 0
-                          ? `Resend in ${resendCooldown}s`
-                          : "Resend OTP"}
+                        ? `Resend in ${resendCooldown}s`
+                        : "Resend OTP"}
                     </Button>
                   )}
                 </div>

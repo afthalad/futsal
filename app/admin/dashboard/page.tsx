@@ -27,6 +27,10 @@ import GroundOwnerCommission from "@/components/GroundOwnerCommission";
 import Tooltip from "@/components/Tooltip";
 import CancellationReasonModal from "@/components/CancellationReasonModal";
 import GroundViewModal from "@/components/GroundViewModal";
+import ManualBookingModal from "@/components/ManualBookingModal";
+import FutsalMyGroundCard from "@/components/FutsalMyGroundCard";
+import SwimmingPoolMyGroundCard from "@/components/SwimmingPoolMyGroundCard";
+import SwimmingPoolViewModal from "@/components/SwimmingPoolViewModal";
 
 interface Ground {
   id: string;
@@ -49,7 +53,21 @@ interface Ground {
   reviewedAt?: any;
   createdAt: any;
   updatedAt: any;
-  permanentCloseDate?: string; // Added for permanent close date feature
+  permanentCloseDate?: string;
+  // Swimming pool specific fields
+  type?: string;
+  shifts?: Array<{
+    startTime: string;
+    endTime: string;
+    maxCapacity: number;
+    price: number;
+  }>;
+  advancePercentage?: string;
+  bankAccountName?: string;
+  bankAccountNumber?: string;
+  bankName?: string;
+  bankBranch?: string;
+  customerRules?: string;
   _count: {
     bookings: number;
   };
@@ -59,7 +77,7 @@ interface Booking {
   id: string;
   customerName: string;
   customerPhone: string;
-  cancellationReason: string;
+  cancellationReason?: string;
   date: string;
   startTime: string;
   endTime: string;
@@ -102,20 +120,21 @@ export default function AdminDashboard() {
   const [showGroundViewModal, setShowGroundViewModal] = useState(false);
   const [selectedGroundForView, setSelectedGroundForView] =
     useState<Ground | null>(null);
+  const [showManualBookingModal, setShowManualBookingModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     otherBookings: false,
     commission: false,
   });
   const [selectedGround, setSelectedGround] = useState<string>("all");
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const router = useRouter();
 
   // Maintenance form state (UI-only)
   const [maintenanceGround, setMaintenanceGround] = useState<string>("");
   const [maintenanceDate, setMaintenanceDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [savingMaintenance, setSavingMaintenance] = useState(false);
   // Editing existing maintenance entry
@@ -135,7 +154,7 @@ export default function AdminDashboard() {
 
   const toggleMaintenanceSlot = (slot: string) => {
     setSelectedMaintenanceSlots((prev) =>
-      prev.includes(slot) ? prev.filter((s) => s !== slot) : [...prev, slot]
+      prev.includes(slot) ? prev.filter((s) => s !== slot) : [...prev, slot],
     );
   };
 
@@ -184,7 +203,7 @@ export default function AdminDashboard() {
       };
 
       const convertedSlots = selectedMaintenanceSlots.map((slot) =>
-        convert12To24(slot)
+        convert12To24(slot),
       );
 
       // If we are editing an existing maintenance entry (replace the slots for that date)
@@ -226,8 +245,8 @@ export default function AdminDashboard() {
           prev.map((g) =>
             g.id === groundObj.id
               ? { ...g, blockedSlots: data.blockedSlots }
-              : g
-          )
+              : g,
+          ),
         );
       }
 
@@ -235,7 +254,7 @@ export default function AdminDashboard() {
       toast.success(
         `Maintenance ${verb} for ${groundObj.name} on ${
           editingDate || maintenanceDate
-        } (${selectedMaintenanceSlots.length} slot(s))`
+        } (${selectedMaintenanceSlots.length} slot(s))`,
       );
 
       // Clear selections and editing state
@@ -309,8 +328,8 @@ export default function AdminDashboard() {
       // Update local state
       setGrounds((prev) =>
         prev.map((g) =>
-          g.id === groundObj.id ? { ...g, blockedSlots: data.blockedSlots } : g
-        )
+          g.id === groundObj.id ? { ...g, blockedSlots: data.blockedSlots } : g,
+        ),
       );
 
       toast.success(`Maintenance finished for ${groundObj.name} on ${date}`);
@@ -329,7 +348,7 @@ export default function AdminDashboard() {
   // Finish maintenance for a specific ground (used when listing across all grounds)
   const handleFinishMaintenanceForGround = async (
     date: string,
-    groundName: string
+    groundName: string,
   ) => {
     const groundObj = grounds.find((g) => g.name === groundName);
     if (!groundObj) {
@@ -366,8 +385,8 @@ export default function AdminDashboard() {
       // Update local state
       setGrounds((prev) =>
         prev.map((g) =>
-          g.id === groundObj.id ? { ...g, blockedSlots: data.blockedSlots } : g
-        )
+          g.id === groundObj.id ? { ...g, blockedSlots: data.blockedSlots } : g,
+        ),
       );
 
       toast.success(`Maintenance finished for ${groundObj.name} on ${date}`);
@@ -441,7 +460,7 @@ export default function AdminDashboard() {
     // Filter by ground
     if (selectedGround !== "all") {
       filtered = filtered.filter(
-        (booking) => booking.ground.name === selectedGround
+        (booking) => booking.ground.name === selectedGround,
       );
     }
 
@@ -578,7 +597,7 @@ export default function AdminDashboard() {
 
             // If neither is today, sort by date (earliest first)
             return new Date(a.date).getTime() - new Date(b.date).getTime();
-          }
+          },
         );
 
         setBookings(sortedBookings);
@@ -663,12 +682,12 @@ export default function AdminDashboard() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ reason: reason }),
-        }
+        },
       );
 
       if (response.ok) {
         toast.success(
-          "Booking cancelled successfully. Customer will be notified via SMS."
+          "Booking cancelled successfully. Customer will be notified via SMS.",
         );
 
         // Immediately update the booking status in local state
@@ -676,8 +695,8 @@ export default function AdminDashboard() {
           prevBookings.map((booking) =>
             booking.id === selectedBooking.id
               ? { ...booking, status: "CANCELLED", cancellationReason: reason }
-              : booking
-          )
+              : booking,
+          ),
         );
 
         setShowCancelModal(false);
@@ -730,7 +749,6 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
@@ -820,7 +838,7 @@ export default function AdminDashboard() {
               Get started by adding your first futsal ground
             </p>
             <button
-              onClick={() => router.push("/admin/grounds/new")}
+              onClick={() => router.push("/admin/grounds/select")}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center mx-auto"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -849,7 +867,7 @@ export default function AdminDashboard() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  My Grounds
+                  Grounds
                 </button>
                 <button
                   onClick={() => setActiveTab("maintenance")}
@@ -883,7 +901,7 @@ export default function AdminDashboard() {
                     </h2>
                     {/* The button to add a new ground should always be present if grounds exist and this tab is active */}
                     <button
-                      onClick={() => router.push("/admin/grounds/new")}
+                      onClick={() => router.push("/admin/grounds/select")}
                       className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center"
                     >
                       <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
@@ -898,199 +916,35 @@ export default function AdminDashboard() {
                   ) : (
                     // If not loading, and we are in this branch (grounds.length > 0), display the grounds grid
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {grounds.map((ground) => (
-                        <div
-                          key={ground.id}
-                          className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                        >
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h3 className="font-semibold text-gray-900">
-                                {ground.name}
-                              </h3>
-                              <p className="text-sm text-gray-600">
-                                {ground.location}, {ground.city}
-                              </p>
-                            </div>
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${
-                                ground.status === "APPROVED"
-                                  ? "bg-green-100 text-green-800"
-                                  : ground.status === "REJECTED"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}
-                            >
-                              {ground.status === "APPROVED"
-                                ? "Active"
-                                : ground.status === "REJECTED"
-                                ? "Rejected"
-                                : ground.rejectionReason &&
-                                  ground.reviewedAt &&
-                                  ground.updatedAt &&
-                                  new Date(
-                                    ground.updatedAt.toDate
-                                      ? ground.updatedAt.toDate()
-                                      : ground.updatedAt
-                                  ) >
-                                    new Date(
-                                      ground.reviewedAt.toDate
-                                        ? ground.reviewedAt.toDate()
-                                        : ground.reviewedAt
-                                    )
-                                ? "Resubmitted"
-                                : "Under Review"}
-                            </span>
-                          </div>
-
-                          <div className="space-y-2 mb-4">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Morning:</span>
-                              <span className="font-medium">
-                                {formatPrice(ground.morningPrice)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Evening:</span>
-                              <span className="font-medium">
-                                {formatPrice(ground.eveningPrice)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Night:</span>
-                              <span className="font-medium">
-                                {formatPrice(ground.nightPrice)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Bookings:</span>
-                              <span className="font-medium">
-                                {ground._count.bookings}
-                              </span>
-                            </div>
-
-                            {/* Permanent Close Date Feature */}
-                            <div className="flex flex-col gap-1 mt-2">
-                              <span className="text-gray-600 text-xs">
-                                Permanent Close Date:
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="date"
-                                  value={ground.permanentCloseDate || ""}
-                                  min={new Date().toISOString().split("T")[0]}
-                                  onChange={async (e) => {
-                                    const newDate = e.target.value;
-                                    const token = localStorage.getItem("token");
-                                    if (!token) {
-                                      toast.error("Please login again");
-                                      return;
-                                    }
-                                    const res = await fetch(
-                                      `/api/grounds/${ground.id}`,
-                                      {
-                                        method: "PATCH",
-                                        headers: {
-                                          "Content-Type": "application/json",
-                                          Authorization: `Bearer ${token}`,
-                                        },
-                                        body: JSON.stringify({
-                                          permanentCloseDate: newDate,
-                                        }),
-                                      }
-                                    );
-                                    const data = await res.json();
-                                    if (!res.ok) {
-                                      toast.error(
-                                        data?.error ||
-                                          "Failed to set close date"
-                                      );
-                                      return;
-                                    }
-                                    setGrounds((prev) =>
-                                      prev.map((g) =>
-                                        g.id === ground.id
-                                          ? {
-                                              ...g,
-                                              permanentCloseDate: newDate,
-                                            }
-                                          : g
-                                      )
-                                    );
-                                    toast.success(
-                                      "Permanent close date updated"
-                                    );
-                                  }}
-                                  className="border px-2 py-1 rounded text-sm"
-                                />
-                                {ground.permanentCloseDate && (
-                                  <span className="text-xs text-gray-500">
-                                    (Current: {ground.permanentCloseDate})
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Rejection Reason */}
-                            {ground.status === "REJECTED" &&
-                              ground.rejectionReason && (
-                                <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs">
-                                  <p className="text-red-800 font-medium">
-                                    Rejection Reason:
-                                  </p>
-                                  <p className="text-red-700">
-                                    {ground.rejectionReason}
-                                  </p>
-                                </div>
-                              )}
-
-                            {/* Resubmission Notice */}
-                            {ground.status === "PENDING" &&
-                              ground.rejectionReason &&
-                              ground.reviewedAt &&
-                              ground.updatedAt &&
-                              new Date(
-                                ground.updatedAt.toDate
-                                  ? ground.updatedAt.toDate()
-                                  : ground.updatedAt
-                              ) >
-                                new Date(
-                                  ground.reviewedAt.toDate
-                                    ? ground.reviewedAt.toDate()
-                                    : ground.reviewedAt
-                                ) && (
-                                <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
-                                  <p className="text-blue-800 font-medium">
-                                    Resubmitted for Review
-                                  </p>
-                                  <p className="text-blue-700">
-                                    Your changes have been submitted for
-                                    re-review.
-                                  </p>
-                                </div>
-                              )}
-                          </div>
-
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleViewGround(ground)}
-                              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm flex items-center justify-center py-2 rounded-lg transition-colors"
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </button>
-                            <button
-                              onClick={() =>
-                                router.push(`/admin/grounds/${ground.id}/edit`)
-                              }
-                              className="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm flex items-center justify-center py-2 rounded-lg transition-colors"
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                      {grounds.map((ground) =>
+                        (ground as any).type === "swimmingpool" ? (
+                          <SwimmingPoolMyGroundCard
+                            key={ground.id}
+                            ground={ground as any}
+                            onUpdate={(groundId, updates) => {
+                              setGrounds((prev) =>
+                                prev.map((g) =>
+                                  g.id === groundId ? { ...g, ...updates } : g,
+                                ),
+                              );
+                            }}
+                            onView={handleViewGround}
+                          />
+                        ) : (
+                          <FutsalMyGroundCard
+                            key={ground.id}
+                            ground={ground}
+                            onUpdate={(groundId, updates) => {
+                              setGrounds((prev) =>
+                                prev.map((g) =>
+                                  g.id === groundId ? { ...g, ...updates } : g,
+                                ),
+                              );
+                            }}
+                            onView={handleViewGround}
+                          />
+                        ),
+                      )}
                     </div>
                   )}
                 </div>
@@ -1138,7 +992,7 @@ export default function AdminDashboard() {
                       <button
                         onClick={() => {
                           setSelectedDate(
-                            new Date().toISOString().split("T")[0]
+                            new Date().toISOString().split("T")[0],
                           );
                         }}
                         className="px-4 py-2 text-sm text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors flex items-center gap-2"
@@ -1184,6 +1038,9 @@ export default function AdminDashboard() {
                                 Customer
                               </th>
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Ground
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Date & Time
                               </th>
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1213,11 +1070,18 @@ export default function AdminDashboard() {
                                     </div>
                                   </div>
                                 </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div>
+                                    <div className="text-sm text-gray-900">
+                                      {booking.ground.name}
+                                    </div>
+                                  </div>
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                   <div>
                                     <div className="flex items-center gap-2">
                                       {new Date(
-                                        booking.date
+                                        booking.date,
                                       ).toLocaleDateString("en-LK")}
                                       {isToday(booking.date)}
                                     </div>
@@ -1242,7 +1106,7 @@ export default function AdminDashboard() {
                                         ? booking.cancellationReason.length > 10
                                           ? booking.cancellationReason.substring(
                                               0,
-                                              10
+                                              10,
                                             ) + "..."
                                           : booking.cancellationReason
                                         : "-"}
@@ -1250,19 +1114,96 @@ export default function AdminDashboard() {
                                   </Tooltip>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  <span
-                                    className={`px-2 py-1 text-xs rounded-full ${
-                                      booking.status === "CANCELLED" ||
+                                  {(booking as any).type === "swimmingpool" &&
+                                  booking.status !== "CANCELLED" &&
+                                  booking.status !== "cancelled" ? (
+                                    <select
+                                      value={
+                                        (booking as any).poolStatus ||
+                                        "WAITING_ADVANCE"
+                                      }
+                                      onChange={async (e) => {
+                                        const newStatus = e.target.value;
+                                        try {
+                                          const token =
+                                            localStorage.getItem("token");
+                                          const response = await fetch(
+                                            `/api/bookings/${booking.id}/pool-status`,
+                                            {
+                                              method: "PATCH",
+                                              headers: {
+                                                "Content-Type":
+                                                  "application/json",
+                                                Authorization: `Bearer ${token}`,
+                                              },
+                                              body: JSON.stringify({
+                                                status: newStatus,
+                                              }),
+                                            },
+                                          );
+
+                                          if (response.ok) {
+                                            toast.success(
+                                              "Status updated successfully",
+                                            );
+                                            setBookings((prev) =>
+                                              prev.map((b) =>
+                                                b.id === booking.id
+                                                  ? {
+                                                      ...b,
+                                                      poolStatus: newStatus,
+                                                    }
+                                                  : b,
+                                              ),
+                                            );
+                                          } else {
+                                            toast.error(
+                                              "Failed to update status",
+                                            );
+                                          }
+                                        } catch (error) {
+                                          console.error(
+                                            "Status update error:",
+                                            error,
+                                          );
+                                          toast.error(
+                                            "Failed to update status",
+                                          );
+                                        }
+                                      }}
+                                      className={`px-2 py-1 text-xs rounded-md border font-medium cursor-pointer ${
+                                        (booking as any).poolStatus ===
+                                        "CONFIRMED"
+                                          ? "bg-green-100 text-green-800 border-green-300"
+                                          : (booking as any).poolStatus ===
+                                              "WAITING_ADVANCE"
+                                            ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                                            : "bg-blue-100 text-blue-800 border-blue-300"
+                                      }`}
+                                    >
+                                      <option value="WAITING_ADVANCE">
+                                        Waiting Advance
+                                      </option>
+
+                                      <option value="CONFIRMED">
+                                        Confirmed
+                                      </option>
+                                    </select>
+                                  ) : (
+                                    <span
+                                      className={`px-2 py-1 text-xs rounded-full ${
+                                        booking.status === "CANCELLED" ||
+                                        booking.status === "cancelled"
+                                          ? "bg-red-100 text-red-800"
+                                          : "bg-green-100 text-green-800"
+                                      }`}
+                                    >
+                                      {booking.status === "CANCELLED" ||
                                       booking.status === "cancelled"
-                                        ? "bg-red-100 text-red-800"
-                                        : "bg-green-100 text-green-800"
-                                    }`}
-                                  >
-                                    {booking.status === "CANCELLED" ||
-                                    booking.status === "cancelled"
-                                      ? "Cancelled"
-                                      : "Active"}
-                                  </span>
+                                        ? "Cancelled"
+                                        : "Active"}
+                                    </span>
+                                  )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                   {booking.status === "CANCELLED" ||
@@ -1292,12 +1233,17 @@ export default function AdminDashboard() {
                           bookings={filteredBookings.map((booking) => ({
                             ...booking,
                             status: booking.status || "ACTIVE",
+                            type: (booking as any).type,
+                            poolStatus: (booking as any).poolStatus,
                             // Ensure cancellationReason is a primitive string, not a String object
                             cancellationReason: String(
-                              booking.cancellationReason
+                              booking.cancellationReason,
                             ),
                           }))}
                           onCancelBooking={handleCancelBooking}
+                          onStatusUpdate={() => {
+                            fetchBookings();
+                          }}
                         />
                       </div>
                     </>
@@ -1404,7 +1350,6 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-
       {/* Cancellation Modal */}
       <CancellationReasonModal
         isOpen={showCancelModal}
@@ -1426,7 +1371,7 @@ export default function AdminDashboard() {
                 time:
                   selectedBooking?.startTime && selectedBooking?.endTime
                     ? `${formatTime(selectedBooking.startTime)} - ${formatTime(
-                        selectedBooking.endTime
+                        selectedBooking.endTime,
                       )}`
                     : "",
               }
@@ -1434,17 +1379,51 @@ export default function AdminDashboard() {
         }
         loading={cancelling}
       />
+      {selectedGroundForView &&
+      (selectedGroundForView as any).type === "swimmingpool" ? (
+        <SwimmingPoolViewModal
+          isOpen={showGroundViewModal}
+          onClose={() => {
+            setShowGroundViewModal(false);
+            setSelectedGroundForView(null);
+          }}
+          ground={selectedGroundForView as any}
+          userRole="GROUND_OWNER"
+        />
+      ) : (
+        <GroundViewModal
+          isOpen={showGroundViewModal}
+          onClose={() => {
+            setShowGroundViewModal(false);
+            setSelectedGroundForView(null);
+          }}
+          ground={selectedGroundForView}
+          userRole="GROUND_OWNER"
+        />
+      )}
 
-      {/* Ground View Modal */}
-      <GroundViewModal
-        isOpen={showGroundViewModal}
-        onClose={() => {
-          setShowGroundViewModal(false);
-          setSelectedGroundForView(null);
+      {/* Manual Booking Modal */}
+      <ManualBookingModal
+        isOpen={showManualBookingModal}
+        onClose={() => setShowManualBookingModal(false)}
+        grounds={grounds}
+        onBookingSuccess={() => {
+          fetchBookings();
+          setShowManualBookingModal(false);
         }}
-        ground={selectedGroundForView}
-        userRole="GROUND_OWNER"
       />
+
+      {/* Floating Action Button */}
+      {grounds.length > 0 && (
+        <button
+          onClick={() => setShowManualBookingModal(true)}
+          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40 flex items-center gap-2"
+          title="Create Manual Booking"
+        >
+          <Plus className="h-6 w-6" />
+          <span className="hidden sm:inline font-medium">Add Booking</span>
+        </button>
+      )}
     </div>
   );
 }

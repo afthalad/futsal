@@ -4,7 +4,7 @@ import {
   getAllGrounds,
   getCommissionByOwner,
   getPaymentsByOwner,
-  getUnpaidCommissionsByOwner,
+  getAllUnpaidCommissionsByOwner,
   getUserById,
 } from "@/lib/firestore-server";
 
@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Get grouped unpaid commission totals (calculated from bookings)
-    const unpaidByOwner = await getUnpaidCommissionsByOwner();
+    // Get grouped unpaid commission totals (calculated from bookings - both futsal and swimming pool)
+    const unpaidByOwner = await getAllUnpaidCommissionsByOwner();
 
     // Get grounds to compute ground counts and names
     const allGrounds = await getAllGrounds();
@@ -68,6 +68,8 @@ export async function GET(request: NextRequest) {
         bookings: unpaidByOwner[ownerId]?.bookings || [],
         payments: payments || [],
         bookingCount: unpaidByOwner[ownerId]?.bookings?.length || 0,
+        futsalBookingCount: unpaidByOwner[ownerId]?.futsalCount || 0,
+        poolBookingCount: unpaidByOwner[ownerId]?.poolCount || 0,
         balance: commissionDoc?.amount || 0,
         totalPaid:
           payments && payments.length > 0
@@ -79,7 +81,6 @@ export async function GET(request: NextRequest) {
           ? unpaidByOwner[ownerId].bookings.slice(-1)[0].date
           : null,
       };
-
       return NextResponse.json({ commission });
     }
 
@@ -123,7 +124,7 @@ export async function GET(request: NextRequest) {
           console.error(`Error processing owner ${ownerId}:`, error);
           return null;
         }
-      })
+      }),
     );
 
     const validCommissions = commissions
@@ -135,17 +136,17 @@ export async function GET(request: NextRequest) {
       commissions: validCommissions,
       totalAmount: (validCommissions as any[]).reduce(
         (sum, c) => sum + (c?.amount || 0),
-        0
+        0,
       ),
       pendingCount: (validCommissions as any[]).filter(
-        (c) => c?.status === "PENDING"
+        (c) => c?.status === "PENDING",
       ).length,
     });
   } catch (error) {
     console.error("Get Commissions Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

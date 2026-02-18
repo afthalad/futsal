@@ -82,6 +82,11 @@ interface Booking {
   price: number;
   reason?: string;
   status?: string;
+  type?: string;
+  poolStatus?: string;
+  numberOfPeople?: number;
+  shift?: string;
+  isOccassion?: boolean;
   ground: {
     name: string;
     location: string;
@@ -136,7 +141,7 @@ export default function SuperAdminPage() {
 
   // Commission calculation function
   const calculateCommission = (
-    bookingPrice: number
+    bookingPrice: number,
   ): { amount: number; percentage: number } => {
     if (bookingPrice < 500)
       return { amount: bookingPrice * 0.05, percentage: 5 }; // 5% for bookings under 500
@@ -340,7 +345,7 @@ export default function SuperAdminPage() {
   const handleToggleUser = (
     userId: string,
     userName: string,
-    currentStatus: boolean
+    currentStatus: boolean,
   ) => {
     if (currentStatus) {
       // Only show reason modal when disabling
@@ -360,7 +365,7 @@ export default function SuperAdminPage() {
   const toggleUserStatus = async (
     userId: string,
     currentStatus: boolean,
-    reason: string = ""
+    reason: string = "",
   ) => {
     try {
       setDisabling(true);
@@ -376,7 +381,7 @@ export default function SuperAdminPage() {
 
       if (response.ok) {
         toast.success(
-          `User ${currentStatus ? "disabled" : "enabled"} successfully`
+          `User ${currentStatus ? "disabled" : "enabled"} successfully`,
         );
         fetchUsers();
         if (currentStatus) {
@@ -412,7 +417,7 @@ export default function SuperAdminPage() {
   const handleToggleGround = (
     groundId: string,
     groundName: string,
-    currentStatus: boolean
+    currentStatus: boolean,
   ) => {
     if (currentStatus) {
       // Only show reason modal when disabling
@@ -432,7 +437,7 @@ export default function SuperAdminPage() {
   const toggleGroundStatus = async (
     groundId: string,
     currentStatus: boolean,
-    reason: string = ""
+    reason: string = "",
   ) => {
     try {
       setDisabling(true);
@@ -448,7 +453,7 @@ export default function SuperAdminPage() {
 
       if (response.ok) {
         toast.success(
-          `Ground ${currentStatus ? "disabled" : "enabled"} successfully`
+          `Ground ${currentStatus ? "disabled" : "enabled"} successfully`,
         );
         fetchGrounds();
         if (currentStatus) {
@@ -487,7 +492,7 @@ export default function SuperAdminPage() {
   const deleteUser = async (userId: string, userName: string) => {
     if (
       !confirm(
-        `Are you sure you want to delete user "${userName}"? This action cannot be undone.`
+        `Are you sure you want to delete user "${userName}"? This action cannot be undone.`,
       )
     ) {
       return;
@@ -518,7 +523,7 @@ export default function SuperAdminPage() {
   const deleteGround = async (groundId: string, groundName: string) => {
     if (
       !confirm(
-        `Are you sure you want to delete ground "${groundName}"? This action cannot be undone.`
+        `Are you sure you want to delete ground "${groundName}"? This action cannot be undone.`,
       )
     ) {
       return;
@@ -555,7 +560,7 @@ export default function SuperAdminPage() {
       await toggleGroundStatus(
         disableItem.id,
         disableItem.currentStatus,
-        reason
+        reason,
       );
     }
 
@@ -586,12 +591,12 @@ export default function SuperAdminPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ reason: reason }),
-        }
+        },
       );
 
       if (response.ok) {
         toast.success(
-          "Booking cancelled successfully. SMS notifications sent to customer and ground owner."
+          "Booking cancelled successfully. SMS notifications sent to customer and ground owner.",
         );
         setShowCancelBookingModal(false);
         setSelectedBooking(null);
@@ -691,7 +696,7 @@ export default function SuperAdminPage() {
   const handleSendToReview = async (groundId: string, groundName: string) => {
     if (
       !confirm(
-        `Are you sure you want to send "${groundName}" back to review? This will change its status from approved to pending.`
+        `Are you sure you want to send "${groundName}" back to review? This will change its status from approved to pending.`,
       )
     ) {
       return;
@@ -1010,7 +1015,7 @@ export default function SuperAdminPage() {
                         {users
                           .sort(
                             (a, b) =>
-                              b.createdAt._seconds - a.createdAt._seconds
+                              b.createdAt._seconds - a.createdAt._seconds,
                           )
                           .map((user) => (
                             <tr key={user.id}>
@@ -1025,7 +1030,7 @@ export default function SuperAdminPage() {
                                   <div className="sm:hidden mt-1">
                                     <span
                                       className={`px-2 py-1 text-xs rounded-full ${getRoleColor(
-                                        user.role
+                                        user.role,
                                       )}`}
                                     >
                                       {user.role}
@@ -1036,7 +1041,7 @@ export default function SuperAdminPage() {
                               <td className="hidden sm:table-cell px-3 sm:px-6 py-4 whitespace-nowrap">
                                 <span
                                   className={`px-2 py-1 text-xs rounded-full ${getRoleColor(
-                                    user.role
+                                    user.role,
                                   )}`}
                                 >
                                   {user.role}
@@ -1063,7 +1068,7 @@ export default function SuperAdminPage() {
                               </td>
                               <td className="hidden md:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {formatFirebaseDate(
-                                  user.updatedAt || user.createdAt
+                                  user.updatedAt || user.createdAt,
                                 )}
                               </td>
                               <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -1073,7 +1078,7 @@ export default function SuperAdminPage() {
                                       handleToggleUser(
                                         user.id,
                                         user.name || user.phone,
-                                        user.isActive
+                                        user.isActive,
                                       )
                                     }
                                     className={`flex items-center space-x-1 ${
@@ -1097,7 +1102,7 @@ export default function SuperAdminPage() {
                                   <button
                                     onClick={() =>
                                       router.push(
-                                        `/admin/users/${user.id}/edit`
+                                        `/admin/users/${user.id}/edit`,
                                       )
                                     }
                                     className="text-blue-600 hover:text-blue-900 flex items-center space-x-1"
@@ -1111,7 +1116,7 @@ export default function SuperAdminPage() {
                                       onClick={() =>
                                         deleteUser(
                                           user.id,
-                                          user.name || user.phone
+                                          user.name || user.phone,
                                         )
                                       }
                                       className="text-red-600 hover:text-red-900 flex items-center space-x-1"
@@ -1193,7 +1198,7 @@ export default function SuperAdminPage() {
                         {grounds
                           .sort(
                             (a, b) =>
-                              b.createdAt._seconds - a.createdAt._seconds
+                              b.createdAt._seconds - a.createdAt._seconds,
                           )
                           .map((ground) => (
                             <tr key={ground.id}>
@@ -1231,15 +1236,15 @@ export default function SuperAdminPage() {
                                       ground.status === "PENDING"
                                         ? "bg-yellow-100 text-yellow-800"
                                         : ground.status === "APPROVED"
-                                        ? "bg-green-100 text-green-800"
-                                        : "bg-red-100 text-red-800"
+                                          ? "bg-green-100 text-green-800"
+                                          : "bg-red-100 text-red-800"
                                     }`}
                                   >
                                     {ground.status === "PENDING"
                                       ? "Under Review"
                                       : ground.status === "APPROVED"
-                                      ? "Approved"
-                                      : "Rejected"}
+                                        ? "Approved"
+                                        : "Rejected"}
                                   </span>
                                   <span
                                     className={`px-2 py-1 text-xs rounded-full ${
@@ -1268,7 +1273,7 @@ export default function SuperAdminPage() {
                                       onClick={() =>
                                         handleSendToReview(
                                           ground.id,
-                                          ground.name
+                                          ground.name,
                                         )
                                       }
                                       className="text-orange-600 hover:text-orange-900"
@@ -1290,7 +1295,7 @@ export default function SuperAdminPage() {
                                       handleToggleGround(
                                         ground.id,
                                         ground.name,
-                                        ground.isActive
+                                        ground.isActive,
                                       )
                                     }
                                     className={`${
@@ -1313,7 +1318,7 @@ export default function SuperAdminPage() {
                                   <button
                                     onClick={() =>
                                       router.push(
-                                        `/admin/grounds/${ground.id}/edit`
+                                        `/admin/grounds/${ground.id}/edit`,
                                       )
                                     }
                                     className="text-blue-600 hover:text-blue-900"
@@ -1378,6 +1383,9 @@ export default function SuperAdminPage() {
                           <th className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Price
                           </th>
+                          <th className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Type
+                          </th>
                           <th className="hidden lg:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Commission
                           </th>
@@ -1399,7 +1407,7 @@ export default function SuperAdminPage() {
                         {bookings
                           .sort(
                             (a, b) =>
-                              b.createdAt._seconds - a.createdAt._seconds
+                              b.createdAt._seconds - a.createdAt._seconds,
                           )
                           .map((booking: any) => (
                             <tr key={booking.id}>
@@ -1424,7 +1432,7 @@ export default function SuperAdminPage() {
                                       <Plus className="h-2 w-2" />
                                       Commission: Rs.{" "}
                                       {calculateCommission(
-                                        booking.price
+                                        booking.price,
                                       ).amount.toLocaleString()}{" "}
                                       (
                                       {
@@ -1451,7 +1459,7 @@ export default function SuperAdminPage() {
                               <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div>
                                   {new Date(booking.date).toLocaleDateString(
-                                    "en-LK"
+                                    "en-LK",
                                   )}
                                 </div>
                                 <div className="text-xs sm:text-sm text-gray-500 flex items-center">
@@ -1464,6 +1472,29 @@ export default function SuperAdminPage() {
                               <td className="hidden md:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                                 Rs. {booking.price.toLocaleString()}
                               </td>
+                              <td className="hidden md:table-cell px-3 sm:px-6 py-4 whitespace-nowrap">
+                                {booking.type === "swimmingpool" ? (
+                                  <div className="flex flex-col gap-1">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-100 text-cyan-800">
+                                      Swimming Pool
+                                    </span>
+                                    {booking.isOccassion && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                        Occasion
+                                      </span>
+                                    )}
+                                    {booking.numberOfPeople && (
+                                      <span className="text-xs text-gray-600">
+                                        {booking.numberOfPeople} people
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                    Futsal
+                                  </span>
+                                )}
+                              </td>
                               {booking.status !== "CANCELLED" &&
                               booking.status !== "cancelled" ? (
                                 <td className="hidden lg:table-cell px-3 sm:px-6 py-4 whitespace-nowrap">
@@ -1472,7 +1503,7 @@ export default function SuperAdminPage() {
                                     <span>
                                       Rs.{" "}
                                       {calculateCommission(
-                                        booking.price
+                                        booking.price,
                                       ).amount.toLocaleString()}
                                     </span>
                                     <span className="text-xs text-gray-500">
@@ -1489,19 +1520,89 @@ export default function SuperAdminPage() {
                                 <td className="hidden lg:table-cell px-3 sm:px-6 py-4 whitespace-nowrap"></td>
                               )}
                               <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                                <span
-                                  className={`px-2 py-1 text-xs rounded-full ${
-                                    booking.status === "CANCELLED" ||
+                                {booking.type === "swimmingpool" &&
+                                booking.status !== "CANCELLED" &&
+                                booking.status !== "cancelled" ? (
+                                  <select
+                                    value={
+                                      booking.poolStatus || "WAITING_ADVANCE"
+                                    }
+                                    onChange={async (e) => {
+                                      const newStatus = e.target.value;
+                                      try {
+                                        const token =
+                                          localStorage.getItem("token");
+                                        const response = await fetch(
+                                          `/api/bookings/${booking.id}/pool-status`,
+                                          {
+                                            method: "PATCH",
+                                            headers: {
+                                              "Content-Type":
+                                                "application/json",
+                                              Authorization: `Bearer ${token}`,
+                                            },
+                                            body: JSON.stringify({
+                                              status: newStatus,
+                                            }),
+                                          },
+                                        );
+
+                                        if (response.ok) {
+                                          toast.success(
+                                            "Status updated successfully",
+                                          );
+                                          setBookings((prev) =>
+                                            prev.map((b) =>
+                                              b.id === booking.id
+                                                ? {
+                                                    ...b,
+                                                    poolStatus: newStatus,
+                                                  }
+                                                : b,
+                                            ),
+                                          );
+                                        } else {
+                                          toast.error(
+                                            "Failed to update status",
+                                          );
+                                        }
+                                      } catch (error) {
+                                        console.error(
+                                          "Status update error:",
+                                          error,
+                                        );
+                                        toast.error("Failed to update status");
+                                      }
+                                    }}
+                                    className={`px-2 py-1 text-xs rounded-md border font-medium cursor-pointer ${
+                                      booking.poolStatus === "CONFIRMED"
+                                        ? "bg-green-100 text-green-800 border-green-300"
+                                        : booking.poolStatus ===
+                                            "WAITING_ADVANCE"
+                                          ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                                          : "bg-blue-100 text-blue-800 border-blue-300"
+                                    }`}
+                                  >
+                                    <option value="WAITING_ADVANCE">
+                                      Waiting Advance
+                                    </option>
+                                    <option value="CONFIRMED">Confirmed</option>
+                                  </select>
+                                ) : (
+                                  <span
+                                    className={`px-2 py-1 text-xs rounded-full ${
+                                      booking.status === "CANCELLED" ||
+                                      booking.status === "cancelled"
+                                        ? "bg-red-100 text-red-800"
+                                        : "bg-green-100 text-green-800"
+                                    }`}
+                                  >
+                                    {booking.status === "CANCELLED" ||
                                     booking.status === "cancelled"
-                                      ? "bg-red-100 text-red-800"
-                                      : "bg-green-100 text-green-800"
-                                  }`}
-                                >
-                                  {booking.status === "CANCELLED" ||
-                                  booking.status === "cancelled"
-                                    ? "Cancelled"
-                                    : "Active"}
-                                </span>
+                                      ? "Cancelled"
+                                      : "Active"}
+                                  </span>
+                                )}
                               </td>
                               <td className="hidden lg:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <Tooltip
@@ -1515,7 +1616,7 @@ export default function SuperAdminPage() {
                                       ? booking.cancellationReason.length > 10
                                         ? booking.cancellationReason.substring(
                                             0,
-                                            10
+                                            10,
                                           ) + "..."
                                         : booking.cancellationReason
                                       : "-"}
@@ -1525,7 +1626,7 @@ export default function SuperAdminPage() {
 
                               <td className="hidden xl:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {formatFirebaseDate(
-                                  booking.updatedAt || booking.createdAt
+                                  booking.updatedAt || booking.createdAt,
                                 )}
                               </td>
                               <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -1533,7 +1634,7 @@ export default function SuperAdminPage() {
                                   <button
                                     onClick={() =>
                                       router.push(
-                                        `/admin/bookings/${booking.id}/edit`
+                                        `/admin/bookings/${booking.id}/edit`,
                                       )
                                     }
                                     className="text-blue-600 hover:text-blue-900 flex items-center justify-center gap-1 px-2 py-1 rounded text-xs bg-blue-50 hover:bg-blue-100"
@@ -1748,10 +1849,10 @@ export default function SuperAdminPage() {
                 customerPhone: selectedBooking.customerPhone,
                 groundName: selectedBooking.ground?.name || "Ground not found",
                 date: new Date(selectedBooking.date).toLocaleDateString(
-                  "en-LK"
+                  "en-LK",
                 ),
                 time: `${formatTime(selectedBooking.startTime)} - ${formatTime(
-                  selectedBooking.endTime
+                  selectedBooking.endTime,
                 )}`,
               }
             : undefined
