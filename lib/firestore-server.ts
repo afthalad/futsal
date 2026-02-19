@@ -173,15 +173,17 @@ export const getAllGrounds = async (): Promise<Ground[]> => {
     const q = adminDb.collection("grounds");
     const querySnapshot = await q.get();
 
-    const grounds = querySnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        // Set default status for existing grounds that don't have it
-        status: data.status || "PENDING",
-      };
-    }) as Ground[];
+    const grounds = querySnapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Set default status for existing grounds that don't have it
+          status: data.status || "PENDING",
+        };
+      })
+      .filter((ground: any) => ground.type !== "swimmingpool") as Ground[];
 
     // Update cache
     groundsCache = grounds;
