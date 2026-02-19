@@ -170,7 +170,7 @@ export const getAllGrounds = async (): Promise<Ground[]> => {
     }
 
     // Get all grounds (both active and inactive)
-    const q = adminDb.collection("grounds");
+    const q = adminDb.collection("grounds").where("type", "!=", "swimmingpool");
     const querySnapshot = await q.get();
 
     const grounds = querySnapshot.docs.map((doc) => {
