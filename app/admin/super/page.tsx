@@ -139,6 +139,15 @@ export default function SuperAdminPage() {
   });
   const router = useRouter();
 
+  // Helper function to get timestamp from either Firestore Timestamp or ISO string
+  const getTimestamp = (dateValue: any): number => {
+    if (!dateValue) return 0;
+    if (dateValue._seconds) {
+      return dateValue._seconds * 1000;
+    }
+    return new Date(dateValue).getTime();
+  };
+
   // Commission calculation function
   const calculateCommission = (
     bookingPrice: number,
@@ -1015,7 +1024,8 @@ export default function SuperAdminPage() {
                         {users
                           .sort(
                             (a, b) =>
-                              b.createdAt._seconds - a.createdAt._seconds,
+                              getTimestamp(b.createdAt) -
+                              getTimestamp(a.createdAt),
                           )
                           .map((user) => (
                             <tr key={user.id}>
@@ -1198,7 +1208,8 @@ export default function SuperAdminPage() {
                         {grounds
                           .sort(
                             (a, b) =>
-                              b.createdAt._seconds - a.createdAt._seconds,
+                              getTimestamp(b.createdAt) -
+                              getTimestamp(a.createdAt),
                           )
                           .map((ground) => (
                             <tr key={ground.id}>
@@ -1407,7 +1418,8 @@ export default function SuperAdminPage() {
                         {bookings
                           .sort(
                             (a, b) =>
-                              b.createdAt._seconds - a.createdAt._seconds,
+                              getTimestamp(b.createdAt) -
+                              getTimestamp(a.createdAt),
                           )
                           .map((booking: any) => (
                             <tr key={booking.id}>
