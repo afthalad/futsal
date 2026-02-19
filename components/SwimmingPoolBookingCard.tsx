@@ -48,11 +48,6 @@ export default function SwimmingPoolBookingCard({
   onStatusUpdate,
 }: SwimmingPoolBookingCardProps) {
   // Debug log
-  console.log("Booking data:", {
-    id: booking.id,
-    isOccassion: booking.isOccassion,
-    customerName: booking.customerName,
-  });
 
   const handleStatusChange = async (newStatus: string) => {
     try {
@@ -228,7 +223,8 @@ export default function SwimmingPoolBookingCard({
                 <div>
                   <span className="text-gray-500">Shift:</span>
                   <p className="font-medium text-gray-900">
-                    {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                    {formatTime(booking.startTime)} -{" "}
+                    {formatTime(booking.endTime)}
                   </p>
                 </div>
               )}

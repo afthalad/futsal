@@ -264,12 +264,9 @@ export default function SwimmingPoolForm({
     }
 
     setLoading(true);
-    console.log(`🏊 Starting pool ${isEditing ? "update" : "submission"}...`);
-    console.log("Pool data:", poolFormData);
 
     try {
       const token = localStorage.getItem("token");
-      console.log("Token exists:", !!token);
 
       const payload = {
         ...poolFormData,
@@ -280,8 +277,6 @@ export default function SwimmingPoolForm({
           price: parseFloat(shift.price.toString()),
         })),
       };
-
-      console.log("Sending payload:", JSON.stringify(payload, null, 2));
 
       const url = isEditing
         ? `/api/grounds/pool/${poolId}`
@@ -297,9 +292,6 @@ export default function SwimmingPoolForm({
         },
         body: JSON.stringify(payload),
       });
-
-      console.log("Response status:", response.status);
-      console.log("Response ok:", response.ok);
 
       if (!response.ok) {
         const errorData = await response.json();

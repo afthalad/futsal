@@ -97,7 +97,6 @@ export default function GroundOwnerCommission() {
             futsalBookingCount: raw.futsalBookingCount ?? 0,
             poolBookingCount: raw.poolBookingCount ?? 0,
           };
-          console.log("Commission data received:", normalized);
           setCommission(normalized);
         } else {
           setCommission(null);
