@@ -139,8 +139,8 @@ export default function BookingModal({
   const price = isMorningSlot(selectedTime)
     ? ground.morningPrice
     : isEveningSlot(selectedTime)
-    ? ground.eveningPrice
-    : ground.nightPrice;
+      ? ground.eveningPrice
+      : ground.nightPrice;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -155,7 +155,7 @@ export default function BookingModal({
     const phoneRegex = /^(0|94)[0-9]{9}$/;
     if (!phoneRegex.test(formData.customerPhone)) {
       toast.error(
-        "Please enter a valid Sri Lankan phone number (e.g., 0773078103 or 94773078103)"
+        "Please enter a valid Sri Lankan phone number (e.g., 0773078103 or 94773078103)",
       );
       return;
     }
@@ -375,6 +375,19 @@ export default function BookingModal({
                     confirmed. Please be on time for your booking.
                   </p>
                 </div>
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-md text-amber-900">
+                  <h4 className="font-semibold text-lg mb-3">Notice</h4>
+                  <p>Sports balls are not provided. Kindly bring your own.</p>
+                  <br />
+                  <p>
+                    பந்துகள் வழங்கப்படமாட்டாது. விளையாடுவதற்கு உங்கள் பந்தை
+                    கொண்டு வாருங்கள்.{" "}
+                  </p>
+                  <br />
+                  <p>
+                    ක්‍රීඩා පන්දු ලබා නොදේ. කරුණාකර ඔබගේ පන්දුව රැගෙන එන්න.{" "}
+                  </p>
+                </div>
               </>
             ) : (
               <>
@@ -507,12 +520,12 @@ export default function BookingModal({
                       {otpLoading
                         ? "Sending OTP..."
                         : loading
-                        ? "Processing..."
-                        : !otpSent && !isOwner
-                        ? "Send OTP to Book"
-                        : !otpSent && isOwner
-                        ? "Book now"
-                        : "Verify & Book"}
+                          ? "Processing..."
+                          : !otpSent && !isOwner
+                            ? "Send OTP to Book"
+                            : !otpSent && isOwner
+                              ? "Book now"
+                              : "Verify & Book"}
                     </button>
                     <button
                       type="button"

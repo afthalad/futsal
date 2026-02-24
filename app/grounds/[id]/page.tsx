@@ -91,7 +91,7 @@ export default function GroundDetailPage() {
   const [showImageModal, setShowImageModal] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [viewMode, setViewMode] = useState<"calendar" | "time-slots">(
-    "time-slots"
+    "time-slots",
   );
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -138,7 +138,8 @@ export default function GroundDetailPage() {
 
       // Check if slot is booked
       const booking = ground.bookings.find(
-        (booking) => booking.date === selectedDate && booking.startTime === slot
+        (booking) =>
+          booking.date === selectedDate && booking.startTime === slot,
       );
 
       // Check if slot is blocked for maintenance. Support stored formats like "06:00" or "06:00 - 07:00"
@@ -162,7 +163,7 @@ export default function GroundDetailPage() {
 
   const availableSlots = useMemo(
     () => getAvailableTimeSlots(),
-    [getAvailableTimeSlots]
+    [getAvailableTimeSlots],
   );
   const price = useMemo(() => {
     if (!selectedTime || !ground) return 0;
@@ -321,7 +322,7 @@ export default function GroundDetailPage() {
 
     // Check if the selected time slot is already booked
     const selectedSlot = availableSlots.find(
-      (slot) => slot.time === selectedTime
+      (slot) => slot.time === selectedTime,
     );
     if (selectedSlot?.booking) {
       toast.error("This time slot is already booked by another customer");
@@ -356,12 +357,12 @@ export default function GroundDetailPage() {
           body: JSON.stringify({
             reason: reason,
           }),
-        }
+        },
       );
 
       if (response.ok) {
         toast.success(
-          "Booking cancelled successfully. Customer will be notified via SMS."
+          "Booking cancelled successfully. Customer will be notified via SMS.",
         );
         setShowCancelModal(false);
         setSelectedBooking(null);
@@ -396,7 +397,7 @@ export default function GroundDetailPage() {
   const prevImage = () => {
     if (ground?.images && ground.images.length > 0) {
       setCurrentImageIndex(
-        (prev) => (prev - 1 + ground.images.length) % ground.images.length
+        (prev) => (prev - 1 + ground.images.length) % ground.images.length,
       );
     }
   };
@@ -437,12 +438,12 @@ export default function GroundDetailPage() {
     // Check if ALL time slots for this date are booked
     const slots = generateTimeSlotsWithSpecial();
     const bookingsForDate = ground.bookings.filter(
-      (booking) => booking.date === dateStr
+      (booking) => booking.date === dateStr,
     );
 
     // If all slots are booked, consider the date fully booked
     return slots.every((slot) =>
-      bookingsForDate.some((booking) => booking.startTime === slot)
+      bookingsForDate.some((booking) => booking.startTime === slot),
     );
   };
 
@@ -589,7 +590,7 @@ export default function GroundDetailPage() {
                         >
                           {day}
                         </div>
-                      )
+                      ),
                     )}
 
                     {/* Calendar days */}
@@ -604,7 +605,7 @@ export default function GroundDetailPage() {
                       const year = date.getFullYear();
                       const month = String(date.getMonth() + 1).padStart(
                         2,
-                        "0"
+                        "0",
                       );
                       const day = String(date.getDate()).padStart(2, "0");
                       const dateStr = `${year}-${month}-${day}`;
@@ -621,12 +622,12 @@ export default function GroundDetailPage() {
                             isPast
                               ? "text-gray-300 cursor-not-allowed"
                               : isBooked
-                              ? "text-red-600 bg-red-50 cursor-not-allowed"
-                              : isSelected
-                              ? "bg-primary-600 text-white"
-                              : isToday
-                              ? "bg-primary-100 text-primary-700 hover:bg-primary-200"
-                              : "text-gray-700 hover:bg-gray-100"
+                                ? "text-red-600 bg-red-50 cursor-not-allowed"
+                                : isSelected
+                                  ? "bg-primary-600 text-white"
+                                  : isToday
+                                    ? "bg-primary-100 text-primary-700 hover:bg-primary-200"
+                                    : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
                           {date.getDate()}
@@ -682,7 +683,7 @@ export default function GroundDetailPage() {
                                   .filter(
                                     (slot) =>
                                       !slot.time.startsWith("24:") &&
-                                      !slot.time.startsWith("25:")
+                                      !slot.time.startsWith("25:"),
                                   )
                                   .map((slot) => (
                                     <button
@@ -699,10 +700,10 @@ export default function GroundDetailPage() {
                                         slot.isPast
                                           ? "past"
                                           : slot.maintenance
-                                          ? "past"
-                                          : slot.booking
-                                          ? "booked"
-                                          : "available"
+                                            ? "past"
+                                            : slot.booking
+                                              ? "booked"
+                                              : "available"
                                       }`}
                                     >
                                       <div className="text-xs font-medium">
@@ -712,14 +713,14 @@ export default function GroundDetailPage() {
                                         {slot.maintenance
                                           ? "Maintenance"
                                           : slot.booking
-                                          ? "Booked"
-                                          : null}
+                                            ? "Booked"
+                                            : null}
                                       </div>
                                       {slot.booking && (
                                         <div className="text-xs text-red-600  space-y-0.5">
                                           <div className="text-xs opacity-75">
                                             {capitalizeFirstLetter(
-                                              slot.booking.customerName
+                                              slot.booking.customerName,
                                             )}
                                           </div>
                                         </div>
@@ -733,7 +734,7 @@ export default function GroundDetailPage() {
                             {availableSlots.some(
                               (slot) =>
                                 slot.time.startsWith("24:") ||
-                                slot.time.startsWith("25:")
+                                slot.time.startsWith("25:"),
                             ) && (
                               <div>
                                 <h4 className="text-sm font-medium text-gray-700 mb-2">
@@ -746,7 +747,7 @@ export default function GroundDetailPage() {
                                     .filter(
                                       (slot) =>
                                         slot.time.startsWith("24:") ||
-                                        slot.time.startsWith("25:")
+                                        slot.time.startsWith("25:"),
                                     )
                                     .map((slot) => (
                                       <button
@@ -763,21 +764,21 @@ export default function GroundDetailPage() {
                                           slot.isPast
                                             ? "past"
                                             : slot.maintenance
-                                            ? "maintenance"
-                                            : slot.booking
-                                            ? "booked"
-                                            : selectedTime === slot.time
-                                            ? "selected"
-                                            : "available"
+                                              ? "maintenance"
+                                              : slot.booking
+                                                ? "booked"
+                                                : selectedTime === slot.time
+                                                  ? "selected"
+                                                  : "available"
                                         } next-day-slot`}
                                         title={
                                           slot.isPast
                                             ? "Past time slot"
                                             : slot.maintenance
-                                            ? "Maintenance - not available"
-                                            : slot.booking
-                                            ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
-                                            : "Next day slot (special time)"
+                                              ? "Maintenance - not available"
+                                              : slot.booking
+                                                ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                                : "Next day slot (special time)"
                                         }
                                       >
                                         <div className="text-xs font-medium">
@@ -790,8 +791,8 @@ export default function GroundDetailPage() {
                                               {slot.maintenance
                                                 ? "Maintenance"
                                                 : slot.booking
-                                                ? "Booked"
-                                                : ""}
+                                                  ? "Booked"
+                                                  : ""}
                                             </div>
                                             <div className="text-xs text-red-500 mt-1 space-y-0.5">
                                               {slot.booking.customerName}
@@ -1312,7 +1313,7 @@ export default function GroundDetailPage() {
                         >
                           {day}
                         </div>
-                      )
+                      ),
                     )}
 
                     {/* Calendar days */}
@@ -1327,7 +1328,7 @@ export default function GroundDetailPage() {
                       const year = date.getFullYear();
                       const month = String(date.getMonth() + 1).padStart(
                         2,
-                        "0"
+                        "0",
                       );
                       const day = String(date.getDate()).padStart(2, "0");
                       const dateStr = `${year}-${month}-${day}`;
@@ -1344,12 +1345,12 @@ export default function GroundDetailPage() {
                             isPast
                               ? "text-gray-300 cursor-not-allowed"
                               : isBooked
-                              ? "text-red-600 bg-red-50 cursor-not-allowed"
-                              : isSelected
-                              ? "bg-primary-600 text-white"
-                              : isToday
-                              ? "bg-primary-100 text-primary-700 hover:bg-primary-200"
-                              : "text-gray-700 hover:bg-gray-100"
+                                ? "text-red-600 bg-red-50 cursor-not-allowed"
+                                : isSelected
+                                  ? "bg-primary-600 text-white"
+                                  : isToday
+                                    ? "bg-primary-100 text-primary-700 hover:bg-primary-200"
+                                    : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
                           {date.getDate()}
@@ -1396,7 +1397,7 @@ export default function GroundDetailPage() {
                                   .filter(
                                     (slot) =>
                                       !slot.time.startsWith("24:") &&
-                                      !slot.time.startsWith("25:")
+                                      !slot.time.startsWith("25:"),
                                   )
                                   .map((slot) => (
                                     <button
@@ -1413,17 +1414,17 @@ export default function GroundDetailPage() {
                                         slot.isPast
                                           ? "past"
                                           : slot.maintenance
-                                          ? "past"
-                                          : slot.booking
-                                          ? "booked"
-                                          : "available"
+                                            ? "past"
+                                            : slot.booking
+                                              ? "booked"
+                                              : "available"
                                       }`}
                                       title={
                                         slot.isPast
                                           ? "Past time slot"
                                           : slot.booking
-                                          ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
-                                          : "Available for booking"
+                                            ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                            : "Available for booking"
                                       }
                                     >
                                       <div className="text-xs font-medium">
@@ -1433,14 +1434,14 @@ export default function GroundDetailPage() {
                                         {slot.maintenance
                                           ? "Maintenance"
                                           : slot.booking
-                                          ? "Booked"
-                                          : null}
+                                            ? "Booked"
+                                            : null}
                                       </div>
                                       {slot.booking && (
                                         <div className="text-xs text-red-600  space-y-0.5">
                                           <div className="text-xs opacity-75">
                                             {capitalizeFirstLetter(
-                                              slot.booking.customerName
+                                              slot.booking.customerName,
                                             )}
                                           </div>
                                         </div>
@@ -1454,7 +1455,7 @@ export default function GroundDetailPage() {
                             {availableSlots.some(
                               (slot) =>
                                 slot.time.startsWith("24:") ||
-                                slot.time.startsWith("25:")
+                                slot.time.startsWith("25:"),
                             ) && (
                               <div>
                                 <h4 className="text-sm font-medium text-gray-700 mb-3">
@@ -1465,7 +1466,7 @@ export default function GroundDetailPage() {
                                     .filter(
                                       (slot) =>
                                         slot.time.startsWith("24:") ||
-                                        slot.time.startsWith("25:")
+                                        slot.time.startsWith("25:"),
                                     )
                                     .map((slot) => (
                                       <button
@@ -1478,17 +1479,17 @@ export default function GroundDetailPage() {
                                           slot.isPast
                                             ? "past"
                                             : slot.booking
-                                            ? "booked"
-                                            : selectedTime === slot.time
-                                            ? "selected"
-                                            : "available"
+                                              ? "booked"
+                                              : selectedTime === slot.time
+                                                ? "selected"
+                                                : "available"
                                         } next-day-slot`}
                                         title={
                                           slot.isPast
                                             ? "Past time slot"
                                             : slot.booking
-                                            ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
-                                            : "Next day slot (special time)"
+                                              ? `Booked by ${slot.booking.customerName} (${slot.booking.customerPhone})`
+                                              : "Next day slot (special time)"
                                         }
                                       >
                                         <div className="text-xs font-medium">
@@ -1677,7 +1678,7 @@ export default function GroundDetailPage() {
                 time:
                   selectedBooking.startTime && selectedBooking.endTime
                     ? `${formatTime(selectedBooking.startTime)} - ${formatTime(
-                        selectedBooking.endTime
+                        selectedBooking.endTime,
                       )}`
                     : "N/A",
               }
