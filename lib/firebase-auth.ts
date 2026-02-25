@@ -10,7 +10,7 @@ const isBrowser = typeof window !== "undefined";
 
 // Firebase phone authentication functions
 export const sendOTP = async (
-  phoneNumber: string
+  phoneNumber: string,
 ): Promise<{
   success: boolean;
   error?: string;
@@ -57,14 +57,14 @@ export const sendOTP = async (
         "expired-callback": () => {
           // console.log('reCAPTCHA expired')
         },
-      }
+      },
     );
 
     try {
       const confirmationResult = await signInWithPhoneNumber(
         auth,
         formattedPhone,
-        recaptchaVerifier
+        recaptchaVerifier,
       );
 
       // console.log('✅ OTP sent successfully via Firebase')
@@ -73,7 +73,8 @@ export const sendOTP = async (
         confirmationResult,
       };
     } catch (error: any) {
-      // console.error('Firebase sendOTP error:', error)
+      console.error("Firebase sendOTP error:", error);
+
       return {
         success: false,
         error: error.message || "Failed to send OTP",
@@ -102,7 +103,7 @@ export const sendOTP = async (
 
 export const verifyOTP = async (
   confirmationResult: ConfirmationResult,
-  otp: string
+  otp: string,
 ): Promise<{ success: boolean; error?: string; idToken?: string }> => {
   try {
     // console.log('🔍 Verifying OTP with Firebase...')
