@@ -72,12 +72,24 @@ export const sendOTP = async (
         success: true,
         confirmationResult,
       };
-    } catch (error: any) {
-      console.error("Firebase sendOTP error:", error);
+    } catch (e: any) {
+      console.error("Firebase sendOTP failed", {
+        code: e?.code,
+        message: e?.message,
+        name: e?.name,
+        customData: e?.customData,
+        stack: e?.stack,
+      });
 
+      // Helpful user-facing mapping
+      const friendly =
+        e?.code?.includes("too-many-requests") ||
+        e?.message?.toLowerCase()?.includes("quota")
+          ? "Too many OTP attempts. Please wait a few minutes and try again."
+          : "OTP service is temporarilnewy unavailable. Please try again.";
       return {
         success: false,
-        error: error.message || "Failed to send OTP",
+        error: e.message || "Failed to send OTP",
       };
     } finally {
       // Clean up reCAPTCHA verifier and container
