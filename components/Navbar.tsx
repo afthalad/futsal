@@ -94,7 +94,7 @@ export default function Navbar() {
             {!user ? (
               <>
                 <Link
-                  href="/auth/login"
+                  href="/auth/signin"
                   className="btn-outline text-xs xl:text-sm px-3 xl:px-4 py-2"
                 >
                   Ground Owner? Join Us
@@ -148,7 +148,7 @@ export default function Navbar() {
           <div className="hidden md:flex lg:hidden items-center space-x-2">
             {!user ? (
               <Link
-                href="/auth/login"
+                href="/auth/signin"
                 className="btn-outline text-xs px-3 py-2"
               >
                 Join Us
@@ -190,7 +190,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center">
             {!user ? (
               <Link
-                href="/auth/login"
+                href="/auth/signin"
                 className="btn-outline text-xs px-3 py-2"
               >
                 Ground Owner? Join Us

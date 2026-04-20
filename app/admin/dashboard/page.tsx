@@ -179,7 +179,7 @@ export default function AdminDashboard() {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/auth/login");
+      router.push("/auth/signin");
       return;
     }
 
@@ -301,7 +301,7 @@ export default function AdminDashboard() {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/auth/login");
+      router.push("/auth/signin");
       return;
     }
 
@@ -358,7 +358,7 @@ export default function AdminDashboard() {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/auth/login");
+      router.push("/auth/signin");
       return;
     }
 
@@ -486,7 +486,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        router.push("/auth/login");
+        router.push("/auth/signin");
         return;
       }
 
@@ -498,7 +498,7 @@ export default function AdminDashboard() {
 
       if (!response.ok) {
         localStorage.removeItem("token");
-        router.push("/auth/login");
+        router.push("/auth/signin");
         return;
       }
 
@@ -512,7 +512,7 @@ export default function AdminDashboard() {
       // The loading state will be set to false when data fetching completes
     } catch (error) {
       // console.error('Auth check failed:', error)
-      router.push("/auth/login");
+      router.push("/auth/signin");
     }
   };
 

@@ -9,16 +9,13 @@ import {
   ConfirmationResult,
   RecaptchaVerifier,
   getAuth,
-  onAuthStateChanged,
   signInWithPhoneNumber,
-  signOut,
-  User,
 } from "firebase/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-type Step = "phone" | "code" | "done";
+type Step = "phone" | "code" | "name";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -39,42 +36,50 @@ export default function SignInPage() {
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [idToken, setIdToken] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const confirmationResultRef = useRef<ConfirmationResult | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      if (user) {
-        router.push("/admin/dashboard");
-      }
-    });
-
     return () => {
-      unsubscribe();
       if (recaptchaVerifierRef.current) {
         recaptchaVerifierRef.current.clear();
         recaptchaVerifierRef.current = null;
       }
     };
-  }, [router]);
+  }, []);
 
   const normalizeToE164 = (rawPhone: string) => {
-    const cleaned = rawPhone.replace(/\s|-/g, "");
+    const digits = rawPhone.replace(/\D/g, "");
 
-    if (!cleaned) {
+    if (!digits) {
       return "";
     }
 
-    if (cleaned.startsWith("+")) {
-      return cleaned;
+    if (digits.length === 10 && digits.startsWith("0") && digits[1] === "7") {
+      return `+94${digits.slice(1)}`;
     }
 
-    return `+${cleaned}`;
+    if (digits.length === 11 && digits.startsWith("94") && digits[2] === "7") {
+      return `+${digits}`;
+    }
+
+    if (digits.length === 9 && digits.startsWith("7")) {
+      return `+94${digits}`;
+    }
+
+    if (
+      rawPhone.trim().startsWith("+") &&
+      /^\+[1-9]\d{7,14}$/.test(rawPhone.trim())
+    ) {
+      return rawPhone.trim();
+    }
+
+    return "";
   };
 
   const ensureRecaptcha = () => {
@@ -108,15 +113,16 @@ export default function SignInPage() {
 
     const formattedPhone = normalizeToE164(phone);
 
-    if (!formattedPhone || !/^\+[1-9]\d{7,14}$/.test(formattedPhone)) {
+    if (!formattedPhone) {
       setMessage(
-        "Enter a valid phone number in international format, e.g. +94771234567.",
+        "Enter a valid phone number, e.g. 0773078103 or +94773078103.",
       );
       return;
     }
 
     setLoading(true);
     setMessage("");
+    setIdToken(null);
 
     try {
       const appVerifier = ensureRecaptcha();
@@ -168,28 +174,107 @@ export default function SignInPage() {
     setMessage("");
 
     try {
-      await confirmationResultRef.current.confirm(code.trim());
-      setMessage("Signed in successfully.");
-      router.push("/admin/dashboard");
+      const result = await confirmationResultRef.current.confirm(code.trim());
+      const verifiedIdToken = await result.user.getIdToken();
+      setIdToken(verifiedIdToken);
+
+      const response = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone,
+          idToken: verifiedIdToken,
+          role: "GROUND_OWNER",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        router.push(
+          data.user?.role === "SUPER_ADMIN"
+            ? "/admin/super"
+            : "/admin/dashboard",
+        );
+        return;
+      }
+
+      if (
+        data.error === "Name is required for new users" ||
+        data.error === "Name is required for existing users without profile"
+      ) {
+        setStep("name");
+        setMessage("OTP verified. Please complete your profile.");
+        return;
+      }
+
+      setMessage(data.error || "Failed to verify OTP.");
     } catch (error: any) {
-      setMessage(error?.message || "Invalid code. Please try again.");
+      if (
+        error?.message &&
+        (error.message.includes("invalid-verification-code") ||
+          error.message.includes("invalid-credential") ||
+          error.message.includes("code-expired") ||
+          error.message.includes("expired-action-code"))
+      ) {
+        setMessage("Incorrect OTP. Please check and try again.");
+      } else {
+        setMessage(error?.message || "Invalid code. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSignOut = async () => {
+  const handleCompleteProfile = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!name.trim()) {
+      setMessage("Please enter your name.");
+      return;
+    }
+
+    if (!idToken) {
+      setMessage("Please verify OTP first.");
+      setStep("phone");
+      return;
+    }
+
     setLoading(true);
     setMessage("");
 
     try {
-      await signOut(auth);
-      confirmationResultRef.current = null;
-      setCode("");
-      setStep("phone");
-      setMessage("Signed out.");
+      const response = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone,
+          idToken,
+          name: name.trim(),
+          role: "GROUND_OWNER",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        router.push(
+          data.user?.role === "SUPER_ADMIN"
+            ? "/admin/super"
+            : "/admin/dashboard",
+        );
+        return;
+      }
+
+      setMessage(data.error || "Failed to complete registration.");
     } catch (error: any) {
-      setMessage(error?.message || "Failed to sign out.");
+      setMessage(error?.message || "Failed to complete registration.");
     } finally {
       setLoading(false);
     }
@@ -202,45 +287,55 @@ export default function SignInPage() {
           <h1 className="text-2xl sm:text-2xl font-bold text-gray-900">
             {step === "phone" && "Join or Sign in as Ground Owner"}
             {step === "code" && "Verify Phone Number"}
-            {step === "done" && "Signed In"}
+            {step === "name" && "Complete Profile"}
           </h1>
           <p className="mt-2 text-sm sm:text-base text-gray-600">
             {step === "phone" && "Enter your phone number to get started"}
             {step === "code" &&
               "Enter the verification code sent to your phone"}
-            {step === "done" && "You are signed in with Firebase Phone Auth"}
+            {step === "name" &&
+              "Please provide your name to complete registration"}
           </p>
         </div>
 
         <Card className="w-full">
           <CardContent className="p-4 sm:p-6">
-            {(step === "phone" || step === "code") && (
+            {(step === "phone" || step === "code" || step === "name") && (
               <form
                 className="space-y-4 sm:space-y-6"
-                onSubmit={step === "phone" ? handleSendCode : handleVerifyCode}
+                onSubmit={
+                  step === "phone"
+                    ? handleSendCode
+                    : step === "code"
+                      ? handleVerifyCode
+                      : handleCompleteProfile
+                }
               >
-                <div className="space-y-2">
-                  <label
-                    htmlFor="phone"
-                    className="text-sm font-medium text-gray-700 flex items-center"
-                  >
-                    <Phone className="h-4 w-4 mr-1" />
-                    Phone Number
-                  </label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(event) => setPhone(event.target.value)}
-                    placeholder="Enter your phone number (e.g., +94771234567)"
-                    disabled={loading || step === "code"}
-                    className="w-full"
-                    required
-                  />
-                  <p className="text-xs text-gray-500">
-                    Enter your phone number in international format.
-                  </p>
-                </div>
+                {step !== "name" && (
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="phone"
+                      className="text-sm font-medium text-gray-700 flex items-center"
+                    >
+                      <Phone className="h-4 w-4 mr-1" />
+                      Phone Number
+                    </label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(event) => setPhone(event.target.value)}
+                      placeholder="Enter your phone number (e.g., 0773078103)"
+                      disabled={loading || step === "code"}
+                      className="w-full"
+                      required
+                    />
+                    <p className="text-xs text-gray-500">
+                      Enter local number (0773078103) or international
+                      (+94773078103).
+                    </p>
+                  </div>
+                )}
 
                 {step === "code" && (
                   <div className="space-y-2">
@@ -266,6 +361,26 @@ export default function SignInPage() {
                   </div>
                 )}
 
+                {step === "name" && (
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="name"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Full Name
+                    </label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      placeholder="Enter your full name"
+                      className="w-full"
+                      required
+                    />
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   className="w-full btn-primary"
@@ -275,19 +390,23 @@ export default function SignInPage() {
                     ? "Processing..."
                     : step === "phone"
                       ? "Send OTP"
-                      : "Verify OTP"}
+                      : step === "code"
+                        ? "Verify OTP"
+                        : "Complete Registration"}
                 </button>
 
-                {step === "code" && (
+                {step !== "phone" && (
                   <div className="flex items-center justify-between pt-2">
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setStep("phone");
-                        setCode("");
-                        setMessage("You can request a new code.");
+                        if (step === "name") {
+                          setStep("code");
+                        } else {
+                          setStep("phone");
+                        }
                       }}
                       className="text-sm text-gray-600 hover:text-gray-800 p-0 h-auto"
                     >
@@ -297,22 +416,6 @@ export default function SignInPage() {
                   </div>
                 )}
               </form>
-            )}
-
-            {step === "done" && (
-              <div className="space-y-4">
-                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                  Signed in as {currentUser?.phoneNumber || "phone user"}.
-                </div>
-                <button
-                  type="button"
-                  className="w-full btn-primary"
-                  onClick={handleSignOut}
-                  disabled={loading}
-                >
-                  {loading ? "Signing out..." : "Sign Out"}
-                </button>
-              </div>
             )}
 
             {message && (
