@@ -503,6 +503,9 @@ export default function AdminDashboard() {
       }
 
       const data = await response.json();
+
+      alert(data.user.role);
+
       if (data.user.role !== "GROUND_OWNER") {
         router.push("/");
         return;
