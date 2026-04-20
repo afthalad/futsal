@@ -194,6 +194,8 @@ export default function SignInPage() {
 
       if (response.ok) {
         localStorage.setItem("token", data.token);
+
+        console.log(data.user);
         router.push(
           data.user?.role === "SUPER_ADMIN"
             ? "/admin/super"

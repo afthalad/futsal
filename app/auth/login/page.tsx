@@ -75,21 +75,32 @@ export default function LoginPage() {
   }, [resendCooldown]);
 
   const normalizeToE164 = (rawPhone: string) => {
-    const cleaned = rawPhone.replace(/\s|-/g, "");
+    const digits = rawPhone.replace(/\D/g, "");
 
-    if (!cleaned) {
+    if (!digits) {
       return "";
     }
 
-    if (cleaned.startsWith("+")) {
-      return cleaned;
+    if (digits.length === 10 && digits.startsWith("0") && digits[1] === "7") {
+      return `+94${digits.slice(1)}`;
     }
 
-    if (cleaned.startsWith("0")) {
-      return `+94${cleaned.slice(1)}`;
+    if (digits.length === 11 && digits.startsWith("94") && digits[2] === "7") {
+      return `+${digits}`;
     }
 
-    return `+${cleaned}`;
+    if (digits.length === 9 && digits.startsWith("7")) {
+      return `+94${digits}`;
+    }
+
+    if (
+      rawPhone.trim().startsWith("+") &&
+      /^\+[1-9]\d{7,14}$/.test(rawPhone.trim())
+    ) {
+      return rawPhone.trim();
+    }
+
+    return "";
   };
 
   const ensureRecaptcha = () => {
@@ -139,8 +150,10 @@ export default function LoginPage() {
     setConfirmationResult(null);
 
     const formattedPhone = normalizeToE164(formData.phone);
-    if (!formattedPhone || !/^\+[1-9]\d{7,14}$/.test(formattedPhone)) {
-      toast.error("Please enter a valid phone number in international format");
+    if (!formattedPhone) {
+      toast.error(
+        "Please enter a valid phone number (e.g., 0773078103 or +94773078103)",
+      );
       return;
     }
 
