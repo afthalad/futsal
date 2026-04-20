@@ -104,7 +104,7 @@ export default function LoginPage() {
       auth.settings.appVerificationDisabledForTesting = true;
     }
 
-    const verifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+    const verifier = new RecaptchaVerifier(auth, "send-code-button", {
       size: "invisible",
       callback: () => {
         toast.success("reCAPTCHA verified. Sending OTP...");
@@ -501,7 +501,13 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div id="recaptcha-container" className="hidden" />
+      <button
+        id="send-code-button"
+        type="button"
+        className="hidden"
+        aria-hidden="true"
+        tabIndex={-1}
+      />
     </div>
   );
 }
