@@ -1,7 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { Phone, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { initializeApp, getApps } from "firebase/app";
 import {
   ConfirmationResult,
@@ -12,6 +14,9 @@ import {
   signOut,
   User,
 } from "firebase/auth";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type Step = "phone" | "code" | "done";
 
@@ -30,6 +35,7 @@ const auth = getAuth(app);
 auth.useDeviceLanguage();
 
 export default function SignInPage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -44,7 +50,7 @@ export default function SignInPage() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       if (user) {
-        setStep("done");
+        router.push("/admin/dashboard");
       }
     });
 
@@ -55,7 +61,7 @@ export default function SignInPage() {
         recaptchaVerifierRef.current = null;
       }
     };
-  }, []);
+  }, [router]);
 
   const normalizeToE164 = (rawPhone: string) => {
     const cleaned = rawPhone.replace(/\s|-/g, "");
@@ -163,8 +169,8 @@ export default function SignInPage() {
 
     try {
       await confirmationResultRef.current.confirm(code.trim());
-      setStep("done");
       setMessage("Signed in successfully.");
+      router.push("/admin/dashboard");
     } catch (error: any) {
       setMessage(error?.message || "Invalid code. Please try again.");
     } finally {
@@ -190,97 +196,104 @@ export default function SignInPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
-        <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
-          <p className="mb-2 text-xs uppercase tracking-[0.28em] text-cyan-300">
-            Firebase Client SDK
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-4 px-4 sm:py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-md">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-2xl font-bold text-gray-900">
+            {step === "phone" && "Join or Sign in as Ground Owner"}
+            {step === "code" && "Verify Phone Number"}
+            {step === "done" && "Signed In"}
+          </h1>
+          <p className="mt-2 text-sm sm:text-base text-gray-600">
+            {step === "phone" && "Enter your phone number to get started"}
+            {step === "code" &&
+              "Enter the verification code sent to your phone"}
+            {step === "done" && "You are signed in with Firebase Phone Auth"}
           </p>
-          <h1 className="text-2xl font-semibold">Phone Sign In</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            This page uses Firebase phone auth directly in the browser with
-            reCAPTCHA. No API route is used.
-          </p>
+        </div>
 
-          <div className="mt-6 space-y-4">
+        <Card className="w-full">
+          <CardContent className="p-4 sm:p-6">
             {(step === "phone" || step === "code") && (
               <form
+                className="space-y-4 sm:space-y-6"
                 onSubmit={step === "phone" ? handleSendCode : handleVerifyCode}
-                className="space-y-4"
               >
                 <div className="space-y-2">
                   <label
                     htmlFor="phone"
-                    className="block text-sm text-slate-300"
+                    className="text-sm font-medium text-gray-700 flex items-center"
                   >
-                    Phone Number (E.164)
+                    <Phone className="h-4 w-4 mr-1" />
+                    Phone Number
                   </label>
-                  <input
+                  <Input
                     id="phone"
                     type="tel"
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
-                    placeholder="+94771234567"
+                    placeholder="Enter your phone number (e.g., +94771234567)"
                     disabled={loading || step === "code"}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none ring-cyan-400 transition focus:ring-2 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="w-full"
                     required
                   />
+                  <p className="text-xs text-gray-500">
+                    Enter your phone number in international format.
+                  </p>
                 </div>
 
                 {step === "code" && (
                   <div className="space-y-2">
                     <label
                       htmlFor="code"
-                      className="block text-sm text-slate-300"
+                      className="text-sm font-medium text-gray-700"
                     >
                       Verification Code
                     </label>
-                    <input
+                    <Input
                       id="code"
                       type="text"
                       value={code}
                       onChange={(event) => setCode(event.target.value)}
-                      placeholder="123456"
+                      className="w-full text-center text-lg tracking-widest"
+                      placeholder="000000"
                       maxLength={6}
-                      inputMode="numeric"
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm tracking-[0.25em] text-slate-100 outline-none ring-cyan-400 transition focus:ring-2"
                       required
                     />
+                    <p className="text-xs text-gray-500">
+                      Enter the 6-digit verification code sent to {phone}
+                    </p>
                   </div>
                 )}
 
-                {step === "phone" && (
-                  <button
-                    id="send-code-button"
-                    type="submit"
-                    disabled={loading}
-                    className="w-full rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    {loading ? "Sending..." : "Send Verification Code"}
-                  </button>
-                )}
+                <button
+                  type="submit"
+                  className="w-full btn-primary"
+                  disabled={loading}
+                >
+                  {loading
+                    ? "Processing..."
+                    : step === "phone"
+                      ? "Send OTP"
+                      : "Verify OTP"}
+                </button>
 
                 {step === "code" && (
-                  <div className="flex gap-3">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex-1 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-70"
-                    >
-                      {loading ? "Verifying..." : "Verify Code"}
-                    </button>
-                    <button
+                  <div className="flex items-center justify-between pt-2">
+                    <Button
                       type="button"
-                      disabled={loading}
+                      variant="ghost"
+                      size="sm"
                       onClick={() => {
                         setStep("phone");
                         setCode("");
                         setMessage("You can request a new code.");
                       }}
-                      className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+                      className="text-sm text-gray-600 hover:text-gray-800 p-0 h-auto"
                     >
+                      <ArrowLeft className="h-4 w-4 mr-1" />
                       Back
-                    </button>
+                    </Button>
                   </div>
                 )}
               </form>
@@ -288,40 +301,42 @@ export default function SignInPage() {
 
             {step === "done" && (
               <div className="space-y-4">
-                <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
                   Signed in as {currentUser?.phoneNumber || "phone user"}.
                 </div>
                 <button
                   type="button"
+                  className="w-full btn-primary"
                   onClick={handleSignOut}
                   disabled={loading}
-                  className="w-full rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {loading ? "Signing out..." : "Sign Out"}
                 </button>
               </div>
             )}
 
-            <div id="recaptcha-container" className="min-h-[8px]" />
-
             {message && (
-              <p className="rounded-lg border border-slate-800 bg-slate-950 p-3 text-sm text-slate-300">
+              <p className="mt-4 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
                 {message}
               </p>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="text-center text-sm text-slate-400">
-          <p>Use fictional test numbers in Firebase Console for development.</p>
-          <Link
-            href="/"
-            className="mt-3 inline-block text-cyan-300 hover:text-cyan-200"
-          >
-            Back to home
+        <div className="mt-4 sm:mt-6 text-center">
+          <Link href="/" className="text-sm text-gray-600 hover:text-gray-800">
+            ← Back to Home
           </Link>
         </div>
       </div>
-    </main>
+
+      <button
+        id="send-code-button"
+        type="button"
+        className="hidden"
+        aria-hidden="true"
+        tabIndex={-1}
+      />
+    </div>
   );
 }

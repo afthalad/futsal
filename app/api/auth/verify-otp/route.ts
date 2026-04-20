@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
       // Check if phone number matches
       const expectedPhone = `+94${phone.replace(/^0/, "")}`;
-      if (decodedToken.phone_number !== expectedPhone) {
+      if (decodedToken.phone_number !== phone) {
         return NextResponse.json(
           { error: "Phone number mismatch" },
           { status: 400 },
