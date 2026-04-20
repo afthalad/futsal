@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { Phone, ArrowLeft, User } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { sendOTP, verifyOTP } from "@/lib/firebase-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { sendOTP, verifyOTP } from "@/lib/firebase-auth";
 
 export default function LoginPage() {
   const [step, setStep] = useState<"phone" | "otp" | "name">("phone");
@@ -445,7 +445,7 @@ export default function LoginPage() {
       </div>
 
       {/* reCAPTCHA container for Firebase phone authentication */}
-      <div id="recaptcha-container"></div>
+      {/* <div id="recaptcha-container"></div> */}
     </div>
   );
 }

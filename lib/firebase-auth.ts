@@ -5,10 +5,8 @@ import {
   ConfirmationResult,
 } from "firebase/auth";
 
-// Check if we're in a browser environment
 const isBrowser = typeof window !== "undefined";
 
-// Firebase phone authentication functions
 export const sendOTP = async (
   phoneNumber: string,
 ): Promise<{
@@ -17,21 +15,16 @@ export const sendOTP = async (
   confirmationResult?: ConfirmationResult;
 }> => {
   try {
-    // Check if we're in browser environment
     if (!isBrowser) {
-      // console.log('🚫 Firebase phone auth not available on server side')
       return {
         success: false,
         error: "Phone authentication is only available in browser environment",
       };
     }
 
-    // Format phone number for Firebase
     const formattedPhone = phoneNumber.startsWith("+94")
       ? phoneNumber
       : `+94${phoneNumber.replace(/^0/, "")}`;
-
-    // console.log('📱 Sending OTP via Firebase to:', formattedPhone)
 
     // Clean up any existing reCAPTCHA containers
     const existingContainer = document.getElementById("recaptcha-container");
@@ -45,70 +38,60 @@ export const sendOTP = async (
     recaptchaContainer.style.display = "none";
     document.body.appendChild(recaptchaContainer);
 
-    // Initialize reCAPTCHA verifier (invisible)
+    // Initialize reCAPTCHA verifier
     const recaptchaVerifier = new RecaptchaVerifier(
       auth,
       "recaptcha-container",
       {
         size: "invisible",
-        callback: (response: any) => {
-          // console.log('reCAPTCHA solved')
-        },
-        "expired-callback": () => {
-          // console.log('reCAPTCHA expired')
-        },
+        callback: () => {},
+        "expired-callback": () => {},
       },
     );
 
     try {
+      // Render before using
+      await recaptchaVerifier.render();
+
       const confirmationResult = await signInWithPhoneNumber(
         auth,
         formattedPhone,
         recaptchaVerifier,
       );
 
-      // console.log('✅ OTP sent successfully via Firebase')
       return {
         success: true,
         confirmationResult,
       };
     } catch (e: any) {
-      console.error("Firebase sendOTP failed", {
-        code: e?.code,
-        message: e?.message,
-        name: e?.name,
-        customData: e?.customData,
-        stack: e?.stack,
-      });
+      console.error("Firebase sendOTP failed", e);
 
-      // Helpful user-facing mapping
-      const friendly =
-        e?.code?.includes("too-many-requests") ||
-        e?.message?.toLowerCase()?.includes("quota")
-          ? "Too many OTP attempts. Please wait a few minutes and try again."
-          : "OTP service is temporarilnewy unavailable. Please try again.";
-      return {
-        success: false,
-        error: e.message || "Failed to send OTP",
-      };
-    } finally {
-      // Clean up reCAPTCHA verifier and container
-      try {
-        recaptchaVerifier.clear();
-      } catch (e) {
-        // console.log('reCAPTCHA verifier already cleared')
+      let errorMessage =
+        "OTP service is temporarily unavailable. Please try again.";
+
+      if (e?.code === "auth/too-many-requests") {
+        errorMessage =
+          "Too many OTP attempts. Please wait a few minutes and try again.";
+      } else if (e?.code === "auth/invalid-phone-number") {
+        errorMessage = "Invalid phone number. Please check and try again.";
+      } else if (e?.code === "auth/captcha-check-failed") {
+        errorMessage = "reCAPTCHA verification failed. Please try again.";
       }
 
-      // Remove the container after a short delay to ensure cleanup
-      setTimeout(() => {
-        const container = document.getElementById("recaptcha-container");
-        if (container) {
-          container.remove();
-        }
-      }, 1000);
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    } finally {
+      // Clean up verifier and container immediately
+      try {
+        recaptchaVerifier.clear();
+      } catch (e) {}
+
+      const container = document.getElementById("recaptcha-container");
+      if (container) container.remove();
     }
   } catch (error: any) {
-    // console.error('Firebase sendOTP error:', error)
     return { success: false, error: error.message || "Failed to send OTP" };
   }
 };
@@ -118,17 +101,10 @@ export const verifyOTP = async (
   otp: string,
 ): Promise<{ success: boolean; error?: string; idToken?: string }> => {
   try {
-    // console.log('🔍 Verifying OTP with Firebase...')
-
-    // Verify OTP with Firebase
     const result = await confirmationResult.confirm(otp);
 
     if (result.user) {
-      // Get the ID token
       const idToken = await result.user.getIdToken();
-
-      // console.log('✅ OTP verified successfully with Firebase')
-
       return {
         success: true,
         idToken,
@@ -137,10 +113,20 @@ export const verifyOTP = async (
       return { success: false, error: "No user returned from verification" };
     }
   } catch (error: any) {
-    // console.error('Firebase verification error:', error)
+    let errorMessage = "Failed to verify OTP";
+
+    if (
+      error?.code === "auth/invalid-verification-code" ||
+      error?.code === "auth/invalid-credential"
+    ) {
+      errorMessage = "Incorrect OTP. Please check and try again.";
+    } else if (error?.code === "auth/code-expired") {
+      errorMessage = "OTP has expired. Please request a new one.";
+    }
+
     return {
       success: false,
-      error: error.message || "Failed to verify OTP",
+      error: errorMessage,
     };
   }
 };
@@ -150,7 +136,6 @@ export const signOut = async () => {
     await auth.signOut();
     return { success: true };
   } catch (error: any) {
-    // console.error('Sign out error:', error)
     return { success: false, error: error.message };
   }
 };
