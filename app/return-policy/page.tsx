@@ -99,7 +99,7 @@ export default function ReturnPolicyPage() {
         <h2>Contact</h2>
         <p>
           For refund requests or questions about this policy, contact us at{" "}
-          <a href="mailto:ahmatafthal@gmail.com">ahmatafthal@gmail.com</a>.
+          <a href="mailto:ahmatafthaal@gmail.com">ahmatafthal@gmail.com</a>.
         </p>
       </div>
     </LegalPage>
