@@ -4,9 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
-  Eye,
-  Edit,
-  Trash2,
   Calendar,
   DollarSign,
   Users,
