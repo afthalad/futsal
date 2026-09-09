@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Search, MapPin, Filter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import GroundCard from "@/components/GroundCard";
@@ -314,6 +315,17 @@ export default function HomePage() {
           <p className="text-xs sm:text-sm md:text-base text-gray-400">
             Book grounds across puttalam with ease
           </p>
+          <div className="mt-3 sm:mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs sm:text-sm text-gray-400">
+            <Link href="/privacy-policy" className="hover:text-white">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-white">
+              Terms &amp; Conditions
+            </Link>
+            <Link href="/return-policy" className="hover:text-white">
+              Return &amp; Refund Policy
+            </Link>
+          </div>
         </div>
       </footer>
 
